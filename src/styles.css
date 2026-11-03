@@ -92,8 +92,11 @@
   /* list titles, controls, field labels */
   --text-body: 14px;
   /* body copy, inputs */
-  --font-ui: "Inter Variable", Inter, sans-serif;
-  --font-display: "Outfit Variable", Outfit, "Inter Variable", sans-serif;
+  /* Open Sans everywhere: one family with weight (300–800) and width (75–100%) axes.
+     Narrow (--stretch-narrow) is for dense numbers and uppercase labels. */
+  --font-ui: "Open Sans Variable", "Open Sans", system-ui, sans-serif;
+  --font-display: "Open Sans Variable", "Open Sans", system-ui, sans-serif;
+  --stretch-narrow: 87.5%;
   /* Slide text keeps the serif option; UI headings use the geometric display face. */
   --font-slide-serif: "Noto Serif Variable", "Noto Serif", serif;
   --topbar-h: 52px;
@@ -13729,4 +13732,44 @@ body:not(.output-mode) .settings-nav-item[data-tone].is-active {
     width: 18px;
     height: 18px;
   }
+}
+
+/* ── Open Sans: weights and narrow width ────────────────────────────
+   Bold for titles, semibold for panel and dialog headings; the narrow
+   width keeps dense numbers, uppercase labels and chips compact. */
+body:not(.output-mode) .app-shell :is(h1, h2):not(.slide-title-layout *, .slide-message *) {
+  font-weight: 700 !important;
+  letter-spacing: -0.025em;
+}
+
+body:not(.output-mode) .app-shell :is(h3, h4):not(.slide-title-layout *, .slide-message *) {
+  font-weight: 650 !important;
+  letter-spacing: -0.01em;
+}
+
+.eyebrow,
+.stat-label,
+.sidebar-label,
+.badge,
+.badge-xs,
+.live-chip,
+.status-chip,
+.translation-tag,
+.service-date span,
+.command-trigger kbd {
+  font-stretch: var(--stretch-narrow);
+}
+
+.stat-value,
+.readiness-ring strong,
+.service-date strong,
+.topbar-clock,
+.calendar-day-number {
+  font-stretch: var(--stretch-narrow);
+  font-weight: 700;
+}
+
+body:not(.output-mode) .nav-item.is-active,
+body:not(.output-mode) .btn {
+  font-weight: 600;
 }

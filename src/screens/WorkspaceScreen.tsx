@@ -1257,7 +1257,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                         }
                       >
                         <option value="serif">Serif (Noto Serif)</option>
-                        <option value="sans">Sans (Inter)</option>
+                        <option value="sans">Sans (Open Sans)</option>
                       </select>
                     </label>
                     <div className="field-grid">
@@ -1722,7 +1722,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                         }}
                       >
                         <option value="serif">Serif (Noto Serif)</option>
-                        <option value="sans">Sans (Inter)</option>
+                        <option value="sans">Sans (Open Sans)</option>
                       </select>
                     </label>
                     <div className="field-grid">

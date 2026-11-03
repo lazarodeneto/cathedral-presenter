@@ -652,7 +652,7 @@ const en: Dict = {
   'message.pos.bottom-right': 'bottom right',
   'message.typography': 'Text',
   'message.font': 'Font',
-  'message.font.sans': 'Inter',
+  'message.font.sans': 'Open Sans',
   'message.font.serif': 'Noto Serif',
   'message.weightLabel': 'Weight',
   'message.weight.300': 'Light',

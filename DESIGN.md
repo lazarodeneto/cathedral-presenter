@@ -28,110 +28,110 @@ colors:
   danger-text: "#f0a396"
 typography:
   display:
-    fontFamily: "Outfit Variable, Outfit, Inter Variable, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "clamp(30px, 2.6vw, 42px)"
     fontWeight: 500
     lineHeight: 1.08
     letterSpacing: "-0.035em"
   headline:
-    fontFamily: "Outfit Variable, Outfit, Inter Variable, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "23px"
     fontWeight: 500
     letterSpacing: "-0.025em"
   title:
-    fontFamily: "Outfit Variable, Outfit, Inter Variable, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "19px"
     fontWeight: 500
     letterSpacing: "-0.02em"
   display-hero:
-    fontFamily: "Outfit Variable, Outfit, Inter Variable, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "clamp(32px, 3.4vw, 50px)"
     fontWeight: 500
   display-greeting:
-    fontFamily: "Outfit Variable, Outfit, Inter Variable, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "clamp(30px, 2.4vw, 38px)"
     fontWeight: 500
   clock:
-    fontFamily: "Outfit Variable, Outfit, Inter Variable, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "58px"
     fontWeight: 500
   display-lg:
-    fontFamily: "Outfit Variable, Outfit, Inter Variable, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "36px"
     fontWeight: 500
   display-md:
-    fontFamily: "Outfit Variable, Outfit, Inter Variable, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "35px"
     fontWeight: 500
   display-sm:
-    fontFamily: "Outfit Variable, Outfit, Inter Variable, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "31px"
     fontWeight: 500
   headline-xl:
-    fontFamily: "Outfit Variable, Outfit, Inter Variable, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "28px"
     fontWeight: 500
   headline-lg:
-    fontFamily: "Outfit Variable, Outfit, Inter Variable, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "25px"
     fontWeight: 500
   headline-md:
-    fontFamily: "Outfit Variable, Outfit, Inter Variable, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "24px"
     fontWeight: 500
   headline-sm:
-    fontFamily: "Outfit Variable, Outfit, Inter Variable, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "22px"
     fontWeight: 500
   title-xl:
-    fontFamily: "Outfit Variable, Outfit, Inter Variable, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "21px"
     fontWeight: 500
   title-lg:
-    fontFamily: "Outfit Variable, Outfit, Inter Variable, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "20px"
     fontWeight: 500
   title-md:
-    fontFamily: "Outfit Variable, Outfit, Inter Variable, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "18px"
     fontWeight: 500
   title-sm:
-    fontFamily: "Outfit Variable, Outfit, Inter Variable, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "17px"
     fontWeight: 500
   title-xs:
-    fontFamily: "Outfit Variable, Outfit, Inter Variable, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "16px"
     fontWeight: 500
   lead:
-    fontFamily: "Inter Variable, Inter, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "15px"
     fontWeight: 500
   lead-sm:
-    fontFamily: "Inter Variable, Inter, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "14.5px"
     fontWeight: 500
   body:
-    fontFamily: "Inter Variable, Inter, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "14px"
     fontWeight: 400
     lineHeight: 1.45
   ui:
-    fontFamily: "Inter Variable, Inter, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "13px"
     fontWeight: 550
   meta:
-    fontFamily: "Inter Variable, Inter, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "12px"
     fontWeight: 400
   label:
-    fontFamily: "Inter Variable, Inter, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "12px"
     fontWeight: 650
     lineHeight: 1.2
     letterSpacing: "0.16em"
   micro:
-    fontFamily: "Inter Variable, Inter, sans-serif"
+    fontFamily: "Open Sans Variable, Open Sans, system-ui, sans-serif"
     fontSize: "11px"
     fontWeight: 550
 rounded:
@@ -229,7 +229,7 @@ components:
 
 Church Presenter is the room behind the room. The sanctuary is dim, the service is happening, and the operator's screen must glow just enough to work by without spilling light or attention. Everything sits on a neutral graphite near-black, with solid graphite cards and a floating sidebar above it. Light is spent only where hands and eyes are needed: the near-white primary on the one action that matters, Live Green on the slide the congregation is seeing, and nothing else competing.
 
-The system is dense, like a mixing console, but never cramped. Labels are small and uppercase, controls are compact, and the canvas or current-output frame is always the largest, brightest thing on screen. A geometric display sans (Outfit) gives headings a confident, modern voice. Inter carries every control, so the tool still reads as precise software. Slide content keeps its own serif option (Noto Serif), separate from the interface.
+The system is dense, like a mixing console, but never cramped. Labels are small and uppercase, controls are compact, and the canvas or current-output frame is always the largest, brightest thing on screen. Open Sans carries the whole interface: bold for titles, semibold for headings and controls, and a narrow width for dense numbers and uppercase labels. Slide content keeps its own serif option (Noto Serif), separate from the interface.
 
 Controls are quiet until needed. Ghost and outlined buttons recede into the surface. Only the primary white action and the live state carry visual weight, so a volunteer can find "what do I press next" at a glance.
 
@@ -237,7 +237,7 @@ Controls are quiet until needed. Ghost and outlined buttons recede into the surf
 - Graphite base (Sanctuary Dark) with solid graphite cards; glass only on chrome.
 - One action voice: the near-white primary (code name `--amber`) for action, selected navigation, and focus.
 - Three reserved state colors: green means live, violet means selected, red means destructive.
-- Geometric display headings (Outfit) over an Inter operator interface.
+- One family, Open Sans, with bold headings and a narrow width for dense data.
 - Dense, console-like spacing on a 4px rhythm. The 16:9 canvas is always the focal point.
 
 ## Colors
@@ -302,11 +302,12 @@ A church can replace the primary (near-white by default) and Selection Violet (a
 
 ## Typography
 
-**Display Font:** Outfit Variable (`--font-display`, bundled with @fontsource, falls back to Inter)
-**Body Font:** Inter Variable (`--font-ui`)
+**Display Font:** Open Sans Variable (`--font-display`), bold 700 for screen titles and h2, semibold 650 for h3/h4
+**Body Font:** Open Sans Variable (`--font-ui`), 400 body, 600 buttons and the selected nav item. Bundled with @fontsource (weight 300–800, width 75–100%), so it works offline.
+**Narrow:** `font-stretch: var(--stretch-narrow)` (87.5%) on stat numbers, the readiness percentage, calendar day numbers, the clock, eyebrows, badges, chips and key caps.
 **Slide Serif:** Noto Serif Variable (`--font-slide-serif`), used only by slide and message-box content
 
-**Character:** A geometric sans for names and headings (services, screens, dialogs) gives the room a calm, modern confidence; headings use weight 600. Inter handles every control and label. All faces are bundled with the app, so it works offline.
+**Character:** Open Sans is open and highly legible at small sizes in a dim booth. Hierarchy comes from weight and size rather than a second family; the narrow width keeps numbers and labels compact without shrinking them.
 
 ### Hierarchy
 - **Display** (500, clamp 30–42px, 1.08, -0.035em): screen titles such as "Bible Library", and the service name in the editor and live headers.
@@ -451,7 +452,7 @@ Quiet until needed: only one button per view is allowed to glow.
 - **Do** keep Live Green exclusively for audience-visible state, always with a "LIVE" word or dot.
 - **Do** use Selection Violet for selected or editing state: rundown row, canvas element, active tab.
 - **Do** limit each view to one filled amber button. Make everything else secondary, ghost, or a link.
-- **Do** set screen titles, service names, dialog titles, and panel titles in the display sans (Outfit). Set everything interactive in Inter. Slide text keeps the slide serif.
+- **Do** set screen titles, service names, dialog titles, and panel titles in bold Open Sans. Set everything interactive in regular or semibold Open Sans. Slide text keeps the slide serif.
 - **Do** keep operator text at 11px or larger, and use tabular numerals for anything that counts or ticks.
 - **Do** use warm off-white hairlines (8–15% opacity) for borders and the 9px / 14px radius pair for controls and panels.
 - **Do** reflow panels at narrow widths. The canvas stays the largest thing on screen.
