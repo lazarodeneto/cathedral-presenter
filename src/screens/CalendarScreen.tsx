@@ -23,6 +23,7 @@ import {
   isDateOnWeekday,
   isoDate,
   startOfMonthGrid,
+  formatNumericDate,
 } from '../utils/dates'
 import { flatSlides } from '../store/serviceUtils'
 import { CultoFormDialog } from '../components/culto/CultoFormDialog'
@@ -48,7 +49,7 @@ export function CalendarScreen() {
     const needle = query.trim().toLowerCase()
     if (!needle) return services
     return services.filter((service) =>
-      `${service.title} ${service.eventType ?? ''} ${service.date}`.toLowerCase().includes(needle),
+      `${service.title} ${service.eventType ?? ''} ${service.date} ${formatNumericDate(service.date)}`.toLowerCase().includes(needle),
     )
   }, [query, services])
 

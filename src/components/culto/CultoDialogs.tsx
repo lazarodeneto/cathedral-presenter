@@ -9,6 +9,7 @@ import { formatLongDate } from '../../utils/dates'
 import { isValidDate, isValidTime, MAX_TITLE } from '../../utils/culto'
 import { flatSlides } from '../../store/serviceUtils'
 import { Modal } from '../Modal'
+import { DateField } from '../DateField'
 
 /** Copy a culto with a new title, date and time. The copy is an independent draft. */
 export function DuplicateCultoDialog({
@@ -77,7 +78,7 @@ export function DuplicateCultoDialog({
         <div className="field-row">
           <label className="field">
             <span>{t('common.date')}</span>
-            <input lang="en-GB" type="date" value={date} onChange={(event) => setDate(event.target.value)} aria-invalid={submitted && Boolean(errors.date)} />
+            <DateField value={date} onChange={setDate} aria-invalid={submitted && Boolean(errors.date)} />
             {submitted && errors.date && (
               <small className="field-error" role="alert">
                 {t(`culto.error.${errors.date}`)}

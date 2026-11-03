@@ -15,6 +15,7 @@ import { useAppStore } from '../store/useAppStore'
 import { navigate, type RouteName } from '../hooks/useHashRoute'
 import { BrandMark } from './BrandMark'
 import { flatSlides } from '../store/serviceUtils'
+import { formatNumericDate } from '../utils/dates'
 
 // Each section keeps a muted icon tint from an existing colour family (Golden Gate sidebar).
 const NAV: { name: RouteName; key: string; icon: typeof House; tone: 'gold' | 'violet' | 'green' | 'wash' }[] = [
@@ -93,7 +94,7 @@ export function Sidebar({ current }: { current: RouteName }) {
             <button className="sidebar-service-name" onClick={() => navigate(`/service/${activeService.id}`)}>
               <strong>{activeService.title}</strong>
               <span>
-                {activeService.date} · {slideCount} {t(slideCount === 1 ? 'common.slide' : 'common.slides')}
+                {formatNumericDate(activeService.date)} · {slideCount} {t(slideCount === 1 ? 'common.slide' : 'common.slides')}
               </span>
             </button>
             <button className="btn btn-present btn-block" onClick={openPresent}>

@@ -7,6 +7,8 @@ import { bibleAdminStrings } from './bibleAdminStrings'
 type Dict = Record<string, string>
 
 const en: Dict = {
+  'common.datePlaceholder': 'DD/MM/YYYY',
+  'common.openCalendar': 'Open calendar',
   'app.name': 'Church Presenter',
   'app.subtitle': 'Local-first worship presentation',
   'nav.home': 'Home',
@@ -1070,6 +1072,8 @@ const en: Dict = {
 }
 
 const pt: Dict = {
+  'common.datePlaceholder': 'DD/MM/AAAA',
+  'common.openCalendar': 'Abrir calendário',
   'home.statSlides': 'Slides',
   'home.statSongs': 'Músicas',
   'home.statStartsIn': 'Começa em',
@@ -1539,6 +1543,8 @@ const ptBR: Dict = {
 }
 
 const es: Dict = {
+  'common.datePlaceholder': 'DD/MM/AAAA',
+  'common.openCalendar': 'Abrir calendario',
   'home.statSlides': 'Diapositivas',
   'home.statSongs': 'Canciones',
   'home.statStartsIn': 'Empieza en',
@@ -1907,6 +1913,8 @@ const es: Dict = {
 }
 
 const fr: Dict = {
+  'common.datePlaceholder': 'JJ/MM/AAAA',
+  'common.openCalendar': 'Ouvrir le calendrier',
   'home.statSlides': 'Diapositives',
   'home.statSongs': 'Chants',
   'home.statStartsIn': 'Commence dans',
@@ -2274,6 +2282,8 @@ const fr: Dict = {
 }
 
 const de: Dict = {
+  'common.datePlaceholder': 'TT/MM/JJJJ',
+  'common.openCalendar': 'Kalender öffnen',
   'home.statSlides': 'Folien',
   'home.statSongs': 'Lieder',
   'home.statStartsIn': 'Beginnt in',
@@ -2641,6 +2651,8 @@ const de: Dict = {
 }
 
 const it: Dict = {
+  'common.datePlaceholder': 'GG/MM/AAAA',
+  'common.openCalendar': 'Apri calendario',
   'home.statSlides': 'Diapositive',
   'home.statSongs': 'Canti',
   'home.statStartsIn': 'Inizia tra',

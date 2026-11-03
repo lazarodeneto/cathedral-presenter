@@ -29,6 +29,7 @@ import {
 } from '../../utils/culto'
 import { formatServiceTitleDate, nextSundayISO } from '../../utils/dates'
 import { ConfirmDialog, Modal } from '../Modal'
+import { DateField } from '../DateField'
 
 
 function emptyForm(date?: string, locale = 'en'): CultoForm {
@@ -219,7 +220,7 @@ export function CultoFormDialog({
               <span>
                 {t('common.date')} <small className="field-required">{t('branding.required')}</small>
               </span>
-              <input lang="en-GB" type="date" value={form.date} onChange={(event) => handleDateChange(event.target.value)} {...fieldProps('date')} />
+              <DateField value={form.date} onChange={handleDateChange} {...fieldProps('date')} />
               {errorLine('date')}
             </label>
             <label className="field">

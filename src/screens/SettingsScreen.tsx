@@ -28,6 +28,7 @@ import { BrandingPanel } from '../components/branding/BrandingPanel'
 import { BibleLibraryPanel } from '../components/settings/BibleLibraryPanel'
 import { ShortcutSettings } from '../components/settings/ShortcutSettings'
 import { ConfirmDialog } from '../components/Modal'
+import { formatNumericDateTime } from '../utils/dates'
 
 type Tab = 'general' | 'bibles' | 'identity' | 'outputs' | 'data' | 'security' | 'shortcuts'
 
@@ -489,7 +490,7 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
                     <strong>{t('settings.lastBackup')}</strong>
                     <span>
                       {settings.lastBackupAt
-                        ? new Date(settings.lastBackupAt).toLocaleString(settings.locale)
+                        ? formatNumericDateTime(settings.lastBackupAt)
                         : t('common.never')}
                     </span>
                   </div>

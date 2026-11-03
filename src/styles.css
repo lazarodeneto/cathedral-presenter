@@ -13484,3 +13484,48 @@ body:not(.output-mode) .recent-thumb {
     font-size: 19px;
   }
 }
+
+/* ── Date field: DD/MM/YYYY text entry with a calendar button ────── */
+.date-field {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.date-field > input[type="text"] {
+  width: 100%;
+  padding-right: 36px;
+  font-variant-numeric: tabular-nums;
+}
+
+.date-field-button {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: var(--rounded-xs);
+  color: var(--muted);
+  transform: translateY(-50%);
+}
+
+.date-field-button:hover:not(:disabled) {
+  color: var(--text);
+  background: rgb(var(--wash-rgb) / 0.08);
+}
+
+/* The native input stays in the layout (not display: none) so its picker can open
+   and anchor under the calendar button. */
+.date-field-picker {
+  position: absolute;
+  right: 4px;
+  bottom: 0;
+  width: 28px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}

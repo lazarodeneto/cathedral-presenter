@@ -1,7 +1,8 @@
 import type { Locale } from '../types'
 
 const INTL_LOCALE: Record<Locale, string> = {
-  en: 'en-US',
+  // Day-first everywhere (DD/MM/YYYY, 24-hour clock), English included.
+  en: 'en-GB',
   pt: 'pt-PT',
   'pt-BR': 'pt-BR',
   es: 'es-ES',
@@ -34,6 +35,32 @@ export function formatNumericDate(value: string): string {
   const day = String(date.getDate()).padStart(2, '0')
   const month = String(date.getMonth() + 1).padStart(2, '0')
   return `${day}/${month}/${date.getFullYear()}`
+}
+
+/** Date and 24-hour time for timestamps, such as the last backup: DD/MM/YYYY HH:MM. */
+export function formatNumericDateTime(value: string | Date): string {
+  const date = value instanceof Date ? value : new Date(value)
+  if (!Number.isFinite(date.getTime())) return typeof value === 'string' ? value : ''
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${formatNumericDate(isoDate(date))} ${hours}:${minutes}`
+}
+
+/**
+ * Reads a typed day-first date (DD/MM/YYYY; "/", ".", "-" or spaces between, or
+ * DDMMYYYY) and returns it as ISO YYYY-MM-DD. Null when it is not a real date.
+ */
+export function parseDayMonthYear(text: string): string | null {
+  const trimmed = text.trim()
+  const parts = /^\d{8}$/.test(trimmed)
+    ? [trimmed.slice(0, 2), trimmed.slice(2, 4), trimmed.slice(4)]
+    : trimmed.split(/[\s./-]+/)
+  if (parts.length !== 3 || parts[2].length !== 4) return null
+  const [day, month, year] = parts.map(Number)
+  if (![day, month, year].every(Number.isInteger) || year < 1000) return null
+  const date = new Date(year, month - 1, day, 12, 0, 0)
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null
+  return isoDate(date)
 }
 
 /** Readable title format used when a new service name is generated from its date. */

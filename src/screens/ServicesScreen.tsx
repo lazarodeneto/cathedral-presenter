@@ -5,7 +5,7 @@ import { useLocale, useT } from '../i18n/useT'
 import { useAppStore } from '../store/useAppStore'
 import { useToasts } from '../store/useToasts'
 import { navigate } from '../hooks/useHashRoute'
-import { formatToolbarDate } from '../utils/dates'
+import { formatNumericDateTime, formatToolbarDate } from '../utils/dates'
 import { flatSlides } from '../store/serviceUtils'
 import {
   DEFAULT_QUERY,
@@ -21,6 +21,7 @@ import {
 import { CultoFormDialog } from '../components/culto/CultoFormDialog'
 import { DeleteCultoDialog, DuplicateCultoDialog } from '../components/culto/CultoDialogs'
 import { StatusChip } from '../components/culto/StatusChip'
+import { DateField } from '../components/DateField'
 
 const VIEWS: ServiceView[] = ['upcoming', 'past', 'draft', 'scheduled', 'active', 'archived', 'all']
 const SORTS: ServiceSort[] = ['date-asc', 'date-desc', 'title', 'status', 'updated']
@@ -48,9 +49,7 @@ export function ServicesScreen() {
   const update = (patch: Partial<ServiceQuery>) => setQuery((current) => ({ ...current, ...patch }))
   const updatedLabel = (iso: string) => {
     const date = new Date(iso)
-    return Number.isNaN(date.getTime())
-      ? '—'
-      : new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(date)
+    return Number.isNaN(date.getTime()) ? '—' : formatNumericDateTime(date)
   }
 
   return (
@@ -140,11 +139,11 @@ export function ServicesScreen() {
           <fieldset className="services-date-range" aria-label={t('common.date')}>
             <label className="field compact">
               <span>{t('culto.from')}</span>
-              <input lang="en-GB" type="date" value={query.from} onChange={(event) => update({ from: event.target.value })} />
+              <DateField value={query.from} onChange={(from) => update({ from })} />
             </label>
             <label className="field compact">
               <span>{t('culto.to')}</span>
-              <input lang="en-GB" type="date" value={query.to} onChange={(event) => update({ to: event.target.value })} />
+              <DateField value={query.to} onChange={(to) => update({ to })} />
             </label>
           </fieldset>
           <label className="field compact services-sort">

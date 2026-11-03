@@ -20,7 +20,7 @@ import { useT } from '../i18n/useT'
 import { useIntlLocale } from '../i18n/useT'
 import { navigate } from '../hooks/useHashRoute'
 import { flatSlides } from '../store/serviceUtils'
-import { formatLongDate, formatTime, isoDate } from '../utils/dates'
+import { formatLongDate, formatNumericDate, formatTime, isoDate } from '../utils/dates'
 import { getLocalPassageSync } from '../providers/bible/LocalBibleProvider'
 import { BrandMark } from '../components/BrandMark'
 import { SlideRenderer } from '../components/SlideRenderer'
@@ -417,7 +417,7 @@ export function HomeScreen() {
             <span className="muted-note">
               {t('home.lastBackup')}:{' '}
               {settings.lastBackupAt
-                ? new Date(settings.lastBackupAt).toLocaleDateString(intlLocale)
+                ? formatNumericDate(isoDate(new Date(settings.lastBackupAt)))
                 : t('common.never')}
             </span>
           </div>

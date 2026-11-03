@@ -5,6 +5,7 @@ import { useToasts } from '../store/useToasts'
 import { navigate } from '../hooks/useHashRoute'
 import { formatServiceTitleDate, nextSundayISO, todayISO } from '../utils/dates'
 import { Modal } from './Modal'
+import { DateField } from './DateField'
 
 export function NewServiceDialog({
   open,
@@ -57,12 +58,9 @@ export function NewServiceDialog({
       <form className="form-stack" onSubmit={submit}>
         <label className="field">
           <span>{t('common.date')}</span>
-          <input
-            type="date"
-            lang="en-GB"
+          <DateField
             value={date}
-            onChange={(event) => {
-              const nextDate = event.target.value
+            onChange={(nextDate) => {
               setDate(nextDate)
               if (!titleManuallyEdited.current && nextDate) {
                 setTitle(formatServiceTitleDate(nextDate, locale))
