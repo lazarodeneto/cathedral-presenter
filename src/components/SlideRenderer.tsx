@@ -7,7 +7,7 @@ import { useT } from '../i18n/useT'
 import { TimerFace } from './timer/TimerFace'
 import { MessageBoxView } from './MessageBoxView'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
-import { SLIDE_TEXT_DEFAULTS } from '../utils/slides'
+import { DEFAULT_CONTENT_Z, SLIDE_TEXT_DEFAULTS } from '../utils/slides'
 
 /** Smallest auto-fit scale: 64 shrinks to about 19 before text is allowed to clip. */
 const MIN_FIT_SCALE = 0.3
@@ -433,6 +433,9 @@ export function SlideRenderer({
     )
   }
 
+  // The slide's own text is one layer among the elements (Layers panel); see reorderSlideLayers.
+  const contentZ = slide.contentZ ?? DEFAULT_CONTENT_Z
+
   const renderElement = (element: SlideElement) => {
     if (!element.visible) return null
     const style: React.CSSProperties = {
@@ -440,8 +443,8 @@ export function SlideRenderer({
       top: `${element.y}%`,
       width: `${element.width}%`,
       height: `${element.height}%`,
-      // Message boxes always sit above the slide's own text layer (z-index 2).
-      zIndex: element.type === 'message' ? Math.max(3, element.zIndex) : element.zIndex,
+      // Message boxes always sit above the slide's own text layer.
+      zIndex: element.type === 'message' ? Math.max(contentZ + 1, element.zIndex) : element.zIndex,
       opacity: element.opacity,
     }
     const settings = element.settings ?? {}
@@ -595,7 +598,7 @@ export function SlideRenderer({
       ref={rootRef}
       className={`slide-canvas is-aspect-${aspectRatio} bg-${background.preset ?? 'graphite'} tone-${tone} align-${align} ${
         compact ? 'is-compact' : ''
-      } ${thumbnail ? 'is-thumbnail' : ''} ${interactive ? 'is-interactive' : ''} ${className}`}
+      } ${thumbnail ? 'is-thumbnail' : ''} ${interactive ? 'is-interactive' : ''} ${interactive && selectedElementId ? 'has-selection' : ''} ${className}`}
       style={
         backgroundImage
           ? {
@@ -621,7 +624,7 @@ export function SlideRenderer({
       )}
 
       {primary ? (
-        <div className={`scripture-layout ${secondary ? 'is-bilingual' : ''}`}>
+        <div className={`scripture-layout ${secondary ? 'is-bilingual' : ''}`} style={{ zIndex: contentZ }}>
           <div className="scripture-heading">
             <span className="eyebrow">{branding.name.trim() || 'Church Presenter'}</span>
             <span className="scripture-ornament" />
@@ -661,6 +664,7 @@ export function SlideRenderer({
           ref={fitRef}
           className="slide-title-layout"
           style={{
+            zIndex: contentZ,
             justifyContent: slide.textVerticalAlign === 'top' ? 'flex-start' : slide.textVerticalAlign === 'bottom' ? 'flex-end' : undefined,
           }}
           onPointerDown={(event) => {
@@ -710,6 +714,7 @@ export function SlideRenderer({
             slide.kind === 'lyrics' ? `is-lyrics is-lyrics-${lyricsDensity}` : ''
           }`}
           style={{
+            zIndex: contentZ,
             justifyContent: slide.textVerticalAlign === 'top' ? 'flex-start' : slide.textVerticalAlign === 'bottom' ? 'flex-end' : undefined,
           }}
           onPointerDown={(event) => {

@@ -61,3 +61,30 @@ describe('slide labels', () => {
     expect(slideLabel(slides[3])).toBe(`${primary.verses[3].bookName} 23:4 · ${primary.translationAbbreviation} + ${secondary.translationAbbreviation}`)
   })
 })
+
+describe('slide text as a layer', () => {
+  it('moves the slide text in front of and behind elements', async () => {
+    const { makeSlide, makeElement, reorderSlideLayers, CONTENT_LAYER_ID, hasContentLayer } = await import('../utils/slides')
+    const shape = { ...makeElement('shape'), zIndex: 3 }
+    const slide = makeSlide({ kind: 'lyrics', text: 'Amazing grace', elements: [shape] })
+    expect(hasContentLayer(slide)).toBe(true)
+
+    // Default: text at z 2, the shape (z 3) in front of it. Bring the text forward.
+    const front = reorderSlideLayers(slide, CONTENT_LAYER_ID, 'forward')!
+    expect(front.contentZ).toBe(2)
+    expect(front.elements[0].zIndex).toBe(1)
+
+    // Then send it back behind the shape again.
+    const back = reorderSlideLayers({ ...slide, ...front }, CONTENT_LAYER_ID, 'backward')!
+    expect(back.contentZ).toBe(1)
+    expect(back.elements[0].zIndex).toBe(2)
+
+    // Already at the back: nothing to do.
+    expect(reorderSlideLayers({ ...slide, ...back }, CONTENT_LAYER_ID, 'backward')).toBeNull()
+  })
+
+  it('has no text layer on a blank slide', async () => {
+    const { makeSlide, hasContentLayer } = await import('../utils/slides')
+    expect(hasContentLayer(makeSlide({ kind: 'blank', text: '' }))).toBe(false)
+  })
+})

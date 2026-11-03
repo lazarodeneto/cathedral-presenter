@@ -451,6 +451,48 @@ export function slideLabel(slide: Slide, fallback = '', { short = false }: { sho
   return slide.title || fallback
 }
 
+/** Layer id the editor uses for the slide's own text in the Layers panel. */
+export const CONTENT_LAYER_ID = '__content'
+/** Stacking order of the slide's own text when the slide has not set one. */
+export const DEFAULT_CONTENT_Z = 2
+
+/** Whether a slide has its own text layer (lyrics, Scripture, title or body text). */
+export function hasContentLayer(slide: Slide): boolean {
+  if (slide.kind === 'timer' || slide.kind === 'blank' || slide.kind === 'media') return Boolean(slide.bible)
+  return Boolean(slide.bible || slide.text.trim())
+}
+
+/**
+ * Moves one layer, an element or the slide's own text (CONTENT_LAYER_ID), and
+ * renumbers every layer 1..n so the order is unambiguous. On equal z the
+ * element sits above the text, as it is drawn later.
+ */
+export function reorderSlideLayers(
+  slide: Slide,
+  layerId: string,
+  action: 'forward' | 'backward' | 'front' | 'back',
+): Pick<Slide, 'elements' | 'contentZ'> | null {
+  const layers = slide.elements.map((element) => ({ id: element.id, z: element.zIndex, content: false }))
+  if (hasContentLayer(slide)) layers.push({ id: CONTENT_LAYER_ID, z: slide.contentZ ?? DEFAULT_CONTENT_Z, content: true })
+  layers.sort((a, b) => a.z - b.z || Number(b.content) - Number(a.content))
+  const index = layers.findIndex((layer) => layer.id === layerId)
+  if (index < 0) return null
+  const last = layers.length - 1
+  const target =
+    action === 'forward' ? Math.min(last, index + 1)
+      : action === 'backward' ? Math.max(0, index - 1)
+        : action === 'front' ? last
+          : 0
+  if (target === index) return null
+  const [moving] = layers.splice(index, 1)
+  layers.splice(target, 0, moving)
+  const order = new Map(layers.map((layer, position) => [layer.id, position + 1]))
+  return {
+    elements: slide.elements.map((element) => ({ ...element, zIndex: order.get(element.id) ?? element.zIndex })),
+    contentZ: order.get(CONTENT_LAYER_ID) ?? slide.contentZ,
+  }
+}
+
 export function isLikelyOverflow(slide: Slide): boolean {
   if (slide.kind === 'scripture' && slide.bible) {
     const primaryLength = slide.bible.primary.text.length

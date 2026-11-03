@@ -64,6 +64,7 @@ export type ServiceSaveResult =
   | { ok: true; id: string }
   | { ok: false; reason: 'invalid'; errors: Partial<Record<CultoField, CultoError>> }
   | { ok: false; reason: 'not-found' | 'conflict' | 'live' }
+import { reorderSlideLayers } from '../utils/slides'
 import { clampMessageBox, MESSAGE_LIMITS, normalizeMessageStyle } from '../utils/messageBox'
 import {
   clampTimerSeconds,
@@ -1115,18 +1116,9 @@ export const useAppStore = create<AppState>()(
             .find((item) => item.id === itemId)
             ?.slides.find((entry) => entry.id === slideId)
           if (!slide) return
-          const sorted = [...slide.elements].sort((a, b) => a.zIndex - b.zIndex)
-          const index = sorted.findIndex((element) => element.id === elementId)
-          if (index < 0) return
-          let target = index
-          if (action === 'forward') target = Math.min(sorted.length - 1, index + 1)
-          if (action === 'backward') target = Math.max(0, index - 1)
-          if (action === 'front') target = sorted.length - 1
-          if (action === 'back') target = 0
-          if (target === index) return
-          const [moving] = sorted.splice(index, 1)
-          sorted.splice(target, 0, moving)
-          const zMap = new Map(sorted.map((element, order) => [element.id, order + 1]))
+          // The slide's own text (CONTENT_LAYER_ID) is ordered together with the elements.
+          const reordered = reorderSlideLayers(slide, elementId, action)
+          if (!reordered) return
           set((state) => ({
             services: mapService(state.services, serviceId, (service) => ({
               ...service,
@@ -1135,17 +1127,7 @@ export const useAppStore = create<AppState>()(
                   ? item
                   : {
                       ...item,
-                      slides: item.slides.map((slide) =>
-                        slide.id !== slideId
-                          ? slide
-                          : {
-                              ...slide,
-                              elements: slide.elements.map((element) => ({
-                                ...element,
-                                zIndex: zMap.get(element.id) ?? element.zIndex,
-                              })),
-                            },
-                      ),
+                      slides: item.slides.map((entry) => (entry.id !== slideId ? entry : { ...entry, ...reordered })),
                     },
               ),
             })),

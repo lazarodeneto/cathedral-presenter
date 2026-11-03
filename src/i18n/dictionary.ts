@@ -7,6 +7,9 @@ import { bibleAdminStrings } from './bibleAdminStrings'
 type Dict = Record<string, string>
 
 const en: Dict = {
+  'editor.layerSlideText': 'Slide text',
+  'editor.layerScripture': 'Scripture text',
+  'editor.layerLyrics': 'Song lyrics',
   'home.statSections': '{count} sections',
   'home.statNoSongs': 'No songs yet',
   'home.statInService': 'In this service',
@@ -1075,6 +1078,9 @@ const en: Dict = {
 }
 
 const pt: Dict = {
+  'editor.layerSlideText': 'Texto do slide',
+  'editor.layerScripture': 'Texto bíblico',
+  'editor.layerLyrics': 'Letra da música',
   'home.statSections': '{count} seções',
   'home.statNoSongs': 'Nenhuma música ainda',
   'home.statInService': 'Neste culto',
@@ -1549,6 +1555,9 @@ const ptBR: Dict = {
 }
 
 const es: Dict = {
+  'editor.layerSlideText': 'Texto de la diapositiva',
+  'editor.layerScripture': 'Texto bíblico',
+  'editor.layerLyrics': 'Letra de la canción',
   'home.statSections': '{count} secciones',
   'home.statNoSongs': 'Aún sin canciones',
   'home.statInService': 'En este culto',
@@ -1922,6 +1931,9 @@ const es: Dict = {
 }
 
 const fr: Dict = {
+  'editor.layerSlideText': 'Texte de la diapositive',
+  'editor.layerScripture': 'Texte biblique',
+  'editor.layerLyrics': 'Paroles du chant',
   'home.statSections': '{count} sections',
   'home.statNoSongs': 'Pas encore de chants',
   'home.statInService': 'Dans ce culte',
@@ -2294,6 +2306,9 @@ const fr: Dict = {
 }
 
 const de: Dict = {
+  'editor.layerSlideText': 'Folientext',
+  'editor.layerScripture': 'Bibeltext',
+  'editor.layerLyrics': 'Liedtext',
   'home.statSections': '{count} Abschnitte',
   'home.statNoSongs': 'Noch keine Lieder',
   'home.statInService': 'In diesem Gottesdienst',
@@ -2666,6 +2681,9 @@ const de: Dict = {
 }
 
 const it: Dict = {
+  'editor.layerSlideText': 'Testo della diapositiva',
+  'editor.layerScripture': 'Testo biblico',
+  'editor.layerLyrics': 'Testo del canto',
   'home.statSections': '{count} sezioni',
   'home.statNoSongs': 'Ancora nessun canto',
   'home.statInService': 'In questo culto',

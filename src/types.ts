@@ -174,6 +174,11 @@ export interface Slide {
   fontFamily?: 'serif' | 'sans'
   fontSize?: number
   fontWeight?: number
+  /**
+   * Stacking order of the slide's own text (lyrics, Scripture, title or body)
+   * among its elements, on the same scale as element zIndex. Unset means 2.
+   */
+  contentZ?: number
   notes?: string
   /** Overrides the service's default transition into this slide. */
   transition?: SlideTransition

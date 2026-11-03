@@ -2604,7 +2604,6 @@ dialog.modal::backdrop {
 }
 
 .slide-element.is-selected {
-  z-index: 50 !important;
   outline: 1px solid rgb(var(--violet-rgb) / 0.9);
   outline-offset: 2px;
 }
@@ -14040,4 +14039,223 @@ body.reduced-motion::before {
   height: 26px;
   flex-basis: 26px;
   border-radius: var(--rounded-xs);
+}
+
+/* ── Workspace spacing and responsiveness ───────────────────────────
+   The rundown, editor and inspector are separate floating cards with the
+   same 12px gutter the sidebar uses, on every side and between them. */
+body:not(.output-mode) .workspace {
+  gap: var(--shell-gap, 12px);
+  padding: 0 var(--shell-gap, 12px) var(--shell-gap, 12px);
+}
+
+body:not(.output-mode) .app-content .rundown,
+body:not(.output-mode) .app-content .inspector {
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--rounded-xl);
+}
+
+body:not(.output-mode) .editor-center {
+  padding: 4px 4px 0;
+}
+
+/* The pane grip sits in the gutter between editor and inspector. */
+@media (min-width: 1241px) {
+  body:not(.output-mode) .pane-grip {
+    left: calc(var(--shell-gap, 12px) / -2 - 4px);
+  }
+}
+
+/* Tool rows wrap onto a second line instead of hiding tools off-screen. */
+body:not(.output-mode) .editor-toolbar {
+  flex-wrap: wrap;
+  overflow: visible;
+  row-gap: 2px;
+}
+
+@media (max-width: 980px) {
+  body:not(.output-mode) .workspace {
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 820px) {
+  body:not(.output-mode) .workspace {
+    gap: 10px;
+    padding: 0 10px 10px;
+  }
+}
+
+/* Tablet and phone: the inspector sits in the page under the canvas, always
+   visible. An older drawer rule left it half off-screen (fixed width,
+   translated 100%) once the grid placed it in the page, so the drawer is
+   retired here along with its toggle and scrim. */
+@media (max-width: 980px) {
+  body:not(.output-mode) .workspace .inspector {
+    position: relative;
+    inset: auto;
+    z-index: auto;
+    width: auto;
+    transform: none;
+    box-shadow: var(--glass-rim), var(--glass-lift);
+  }
+
+  body:not(.output-mode) .mobile-inspector-toggle,
+  body:not(.output-mode) .drawer-scrim {
+    display: none;
+  }
+}
+
+/* Rundown rows: the move/duplicate/delete buttons float over the end of the
+   row on hover instead of always reserving 72px, so titles have the full width. */
+body:not(.output-mode) .rundown-item {
+  position: relative;
+}
+
+body:not(.output-mode) .rundown-actions {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  padding-left: 18px;
+  border-radius: var(--rounded-xs);
+  background: linear-gradient(90deg, transparent, rgb(var(--glass-tint-rgb)) 18px);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+body:not(.output-mode) .rundown-item:hover .rundown-actions,
+body:not(.output-mode) .rundown-item:focus-within .rundown-actions {
+  pointer-events: auto;
+}
+
+/* The workspace sets its own gutter; the generic screen padding would double it. */
+body:not(.output-mode) .workspace-screen {
+  padding: 0;
+}
+
+/* Slide strip arrows: clear round glass buttons beside the thumbnails, lit on
+   hover; disabled (faded) when the strip cannot scroll further that way. */
+body:not(.output-mode) .slide-thumbs-row {
+  gap: 8px;
+}
+
+body:not(.output-mode) .slide-thumbs-arrow {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--glass-border-strong);
+  border-radius: 50%;
+  color: var(--text);
+  background: linear-gradient(180deg, rgb(var(--wash-rgb) / 0.16), rgb(var(--wash-rgb) / 0.06));
+  box-shadow: inset 0 1px 0 rgb(var(--wash-rgb) / 0.22), 0 6px 16px rgb(0 0 0 / 0.35);
+  opacity: 1;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s, opacity 0.15s;
+}
+
+body:not(.output-mode) .slide-thumbs-arrow:hover:not(:disabled) {
+  border-color: rgb(var(--wash-rgb) / 0.4);
+  background: linear-gradient(180deg, rgb(var(--wash-rgb) / 0.28), rgb(var(--wash-rgb) / 0.12));
+  transform: scale(1.06);
+}
+
+body:not(.output-mode) .slide-thumbs-arrow:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+body:not(.output-mode) .slide-thumbs-arrow:disabled {
+  opacity: 0.28;
+  box-shadow: none;
+  cursor: default;
+}
+
+/* Phone: the slide canvas takes the full width, with its tools in a row below. */
+@media (max-width: 620px) {
+  body:not(.output-mode) .canvas-stage-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  body:not(.output-mode) .canvas-stage-row > .canvas-frame {
+    width: 100%;
+    max-width: none;
+  }
+
+  body:not(.output-mode) .canvas-rail-column {
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  body:not(.output-mode) .canvas-rail-column .editor-element-actions {
+    flex-direction: row;
+  }
+
+  body:not(.output-mode) .slide-thumbs-arrow {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* Tablet: the sticky rundown keeps the same 12px bottom gutter as the sidebar. */
+@media (max-width: 980px) {
+  body:not(.output-mode) .workspace .rundown {
+    max-height: calc(100dvh - var(--topbar-h) - var(--shell-gap, 12px));
+  }
+}
+
+/* ── Shell gutter ───────────────────────────────────────────────────
+   One spacing role for the gap between the window edge, the sidebar card and
+   every workspace card: 16px on desktop, 12px on tablet, 10px on phone. The
+   cards also sit half a gutter below the top bar so they never touch it. */
+:root {
+  --shell-gap: 12px;
+}
+
+@media (min-width: 1241px) {
+  :root {
+    --shell-gap: 16px;
+  }
+
+  body:not(.output-mode) .sidebar {
+    margin: var(--shell-gap) 0 var(--shell-gap) var(--shell-gap);
+  }
+}
+
+@media (max-width: 820px) {
+  :root {
+    --shell-gap: 10px;
+  }
+}
+
+body:not(.output-mode) .workspace {
+  padding-top: calc(var(--shell-gap) / 2);
+}
+
+@media (max-width: 980px) {
+  body:not(.output-mode) .workspace .rundown {
+    top: calc(var(--shell-gap) / 2);
+    max-height: calc(100dvh - var(--topbar-h) - var(--shell-gap) * 1.5);
+  }
+}
+
+/* Inspector header: a little more air between the output controls and the tabs. */
+body:not(.output-mode) .inspector-present {
+  gap: 8px;
+  padding: 14px 14px 12px;
+}
+
+/* Editor canvas: sized in script to fit its area at the exact slide format
+   (see useContainFit), so the aspect ratio never yields to max-height. */
+.canvas-frame.is-fitted {
+  flex: 0 0 auto;
+  max-width: none;
+  max-height: none;
+  aspect-ratio: auto;
+}
+
+/* A selected element keeps its real layer (so the canvas shows the true order).
+   While it is selected the slide's own text lets clicks pass through, so an
+   element sent behind the text can still be dragged and resized. */
+.slide-canvas.has-selection :is(.scripture-layout, .slide-title-layout, .slide-text-layout) {
+  pointer-events: none;
 }

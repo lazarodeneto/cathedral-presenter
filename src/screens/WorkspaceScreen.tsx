@@ -80,6 +80,7 @@ import {
   qrElement,
   type QrVariant,
 } from '../providers/media/mediaWorkflow'
+import { useContainFit } from '../hooks/useContainFit'
 
 // Same bounds the canvas uses for pointer and keyboard move/resize.
 const GEOMETRY_FIELDS = [
@@ -209,6 +210,32 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   const [mobileInspector, setMobileInspector] = useState(false)
   const [endOpen, setEndOpen] = useState(false)
   const thumbsRef = useRef<HTMLDivElement>(null)
+  const canvasAreaRef = useRef<HTMLDivElement>(null)
+  const canvasRailRef = useRef<HTMLDivElement>(null)
+  // The canvas fills its area at the exact slide format: 16:9 (1920 × 1080) or 4:3.
+  const canvasFit = useContainFit(canvasAreaRef, slideAspectRatio === 'wide' ? 1920 / 1080 : 4 / 3, canvasRailRef, 2)
+  // Which way the slide strip can still scroll, so the arrows show only when useful.
+  const [thumbScroll, setThumbScroll] = useState({ left: false, right: false })
+  const updateThumbScroll = useCallback(() => {
+    const strip = thumbsRef.current
+    if (!strip) return
+    const left = strip.scrollLeft > 2
+    const right = strip.scrollLeft + strip.clientWidth < strip.scrollWidth - 2
+    setThumbScroll((current) => (current.left === left && current.right === right ? current : { left, right }))
+  }, [])
+  useEffect(() => {
+    const strip = thumbsRef.current
+    if (!strip) return
+    updateThumbScroll()
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(updateThumbScroll)
+    observer?.observe(strip)
+    return () => observer?.disconnect()
+  })
+  /** Scroll the strip by most of its visible width, keeping one slide of overlap. */
+  const scrollThumbs = (direction: 1 | -1) => {
+    const strip = thumbsRef.current
+    if (strip) strip.scrollBy({ left: direction * Math.max(160, strip.clientWidth - 140), behavior: 'smooth' })
+  }
   const [fontApplyAll, setFontApplyAll] = useState<{
     itemId: string
     patch: Partial<Pick<Slide, 'fontFamily' | 'fontSize' | 'fontWeight'>>
@@ -852,10 +879,11 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
               onToggleLayers={() => setLayersOpen((value) => !value)}
             />
 
-            <div className="canvas-area">
+            <div className="canvas-area" ref={canvasAreaRef}>
               <div className="canvas-stage-row">
                 <div
-                  className={`canvas-frame is-aspect-${slideAspectRatio} ${canvasDrop !== 'idle' ? `is-drop-${canvasDrop}` : ''}`}
+                  className={`canvas-frame is-aspect-${slideAspectRatio} ${canvasFit ? 'is-fitted' : ''} ${canvasDrop !== 'idle' ? `is-drop-${canvasDrop}` : ''}`}
+                  style={canvasFit ? { width: canvasFit.width, height: canvasFit.height } : undefined}
                   onDragOver={(event) => {
                     if (!activeSlide || !event.dataTransfer.types.includes('Files')) return
                     event.preventDefault()
@@ -911,7 +939,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     </div>
                   )}
                 </div>
-                <div className="canvas-rail-column">
+                <div className="canvas-rail-column" ref={canvasRailRef}>
                   <ElementActionRail
                     selectedElement={selectedElement}
                     onAddContent={() => openAdd(activeSection?.id ?? service.sections[0]?.id ?? '')}
@@ -954,13 +982,16 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
               </div>
               <div className="slide-thumbs-row">
                 <button
+                  type="button"
                   className="slide-thumbs-arrow slide-thumbs-arrow-left"
-                  onClick={() => thumbsRef.current?.scrollBy({ left: -280, behavior: 'smooth' })}
+                  onClick={() => scrollThumbs(-1)}
+                  disabled={!thumbScroll.left}
                   aria-label={t('editor.scrollLeft')}
+                  title={t('editor.scrollLeft')}
                 >
-                  <ChevronLeft size={16} />
+                  <ChevronLeft size={20} strokeWidth={2.4} />
                 </button>
-                <div className="slide-thumbs" ref={thumbsRef}>
+                <div className="slide-thumbs" ref={thumbsRef} onScroll={updateThumbScroll}>
                 {allSlides.map((entry, index) => {
                   const isActive = entry.slide.id === activeSlide?.id && entry.item.id === activeItem?.id
                   const isLiveSlide = live?.currentSlideId === entry.slide.id
@@ -1001,11 +1032,14 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                 </button>
                 </div>
                 <button
+                  type="button"
                   className="slide-thumbs-arrow slide-thumbs-arrow-right"
-                  onClick={() => thumbsRef.current?.scrollBy({ left: 280, behavior: 'smooth' })}
+                  onClick={() => scrollThumbs(1)}
+                  disabled={!thumbScroll.right}
                   aria-label={t('editor.scrollRight')}
+                  title={t('editor.scrollRight')}
                 >
-                  <ChevronRight size={16} />
+                  <ChevronRight size={20} strokeWidth={2.4} />
                 </button>
               </div>
             </div>
