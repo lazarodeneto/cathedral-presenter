@@ -625,11 +625,6 @@ export function SlideRenderer({
 
       {primary ? (
         <div className={`scripture-layout ${secondary ? 'is-bilingual' : ''}`} style={{ zIndex: contentZ }}>
-          <div className="scripture-heading">
-            <span className="eyebrow">{branding.name.trim() || 'Church Presenter'}</span>
-            <span className="scripture-ornament" />
-            <span className="eyebrow">{primary.translationName}</span>
-          </div>
           <div className="scripture-stack" ref={fitRef}>
             <section className="scripture-block scripture-primary">
               <span className="translation-tag">
@@ -648,13 +643,6 @@ export function SlideRenderer({
                 </section>
               </>
             )}
-          </div>
-          <div className="scripture-footer">
-            <BrandMark branding={branding} size="sm" />
-            <span>
-              {primary.reference}
-              {secondary ? ` · ${secondary.reference}` : ''}
-            </span>
           </div>
         </div>
       ) : slide.kind === 'timer' ? (

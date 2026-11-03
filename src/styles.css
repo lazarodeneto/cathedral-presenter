@@ -14259,3 +14259,35 @@ body:not(.output-mode) .inspector-present {
 .slide-canvas.has-selection :is(.scripture-layout, .slide-title-layout, .slide-text-layout) {
   pointer-events: none;
 }
+
+/* ── Slide text shade ───────────────────────────────────────────────
+   Every text on a slide carries a dense shade so it stays legible over
+   shapes, images, video and bright backgrounds: a tight contact shadow for a
+   crisp edge plus a soft halo for separation. Sizes are in em, so the shade
+   scales with the text in thumbnails, the editor and the audience output.
+   Light slides (dark text) get a light shade instead. A text element with
+   its shadow turned off keeps none (the renderer sets it inline). */
+.slide-canvas {
+  --slide-shade-rgb: 0 0 0;
+}
+
+.slide-canvas.tone-light {
+  --slide-shade-rgb: 255 255 255;
+}
+
+.slide-canvas :is(
+  .scripture-block p,
+  .slide-title-layout :is(h1, p),
+  .slide-text-layout p,
+  .slide-text-inline-edit,
+  .slide-element-text
+) {
+  text-shadow:
+    0 0.03em 0.05em rgb(var(--slide-shade-rgb) / 0.9),
+    0 0.05em 0.22em rgb(var(--slide-shade-rgb) / 0.75),
+    0 0 0.6em rgb(var(--slide-shade-rgb) / 0.55);
+}
+
+.slide-canvas :is(.scripture-heading, .scripture-footer, .translation-tag, .slide-eyebrow, .slide-footer-brand, .slide-song-footer) {
+  text-shadow: 0 0.05em 0.25em rgb(var(--slide-shade-rgb) / 0.7);
+}
