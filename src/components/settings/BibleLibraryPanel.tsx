@@ -19,6 +19,7 @@ import {
   parseBibleTextJson,
   type BibleImportError,
 } from '../../utils/bibleImport'
+import { IncludedBibles } from './IncludedBibles'
 
 const LICENSE_TYPES: BibleTranslation['licenseType'][] = [
   'church-import',
@@ -233,6 +234,8 @@ export function BibleLibraryPanel() {
             )
           })}
         </ul>
+
+        <IncludedBibles />
 
         {hiddenTranslations.length > 0 && (
           <div className="bible-hidden-section">
