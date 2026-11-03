@@ -173,7 +173,8 @@ export function createBibleSlides(options: CreateBibleSlideOptions): Slide[] {
   }
 
   return primary.verses.map((verse, index) => {
-    const primaryBlock = blockForVerse(primary, index)
+    // The block carries this verse only; without the text the whole passage would repeat on every slide.
+    const primaryBlock = blockForVerse(primary, index, verse.text)
     const secondaryBlock = secondaryFor(index, verse.verse)
     const reference = primaryBlock.reference
     return makeSlide({

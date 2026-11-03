@@ -38,9 +38,13 @@ describe('Bible slides', () => {
     expect(single).toHaveLength(6)
     expect(single.map((slide) => slide.reference)).toEqual(primary.verses.map((verse) => `${verse.bookName} ${verse.chapter}:${verse.verse}`))
     expect(single[0].text).toBe(primary.verses[0].text)
+    // What the slide shows is the Scripture block: each must hold only its own verse.
+    expect(single.map((slide) => slide.bible?.primary.text)).toEqual(primary.verses.map((verse) => verse.text))
+    expect(single.map((slide) => slide.bible?.primary.reference)).toEqual(single.map((slide) => slide.reference))
 
     const bilingual = createBibleSlides({ primary, secondary, bilingual: true })
     expect(bilingual).toHaveLength(6)
     expect(bilingual[1].bible?.secondary?.text).toBe(secondary.verses[1].text)
+    expect(bilingual[1].bible?.primary.text).toBe(primary.verses[1].text)
   })
 })
