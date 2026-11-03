@@ -8,6 +8,8 @@ const en: Strings = {
   'settings.bibleSubtitle':
     'Add or remove the translations available to this church. Every Bible is identified by its language.',
   'settings.bibleAdd': 'Add Bible',
+  'settings.bibleEdit': 'Edit Bible',
+  'settings.bibleEditSubtitle': 'Change the name, language, licence, or replace the Scripture text.',
   'settings.bibleAddSubtitle': 'Import Scripture text from a JSON file and label it with its language.',
   'settings.bibleBundled': 'Bundled',
   'settings.bibleCustom': 'Added',
@@ -39,13 +41,13 @@ const en: Strings = {
   'settings.bibleSourceUrl': 'Source URL (optional)',
   'settings.bibleTextFile': 'Bible text (JSON)',
   'settings.bibleTextHint':
-    'JSON keyed by book, then chapter, then verse. Supported books: Psalms, John, Romans, 1 Corinthians, Matthew, Isaiah, Philippians.',
+    'A full Bible or part of one, up to 16 MB. Books may be listed in order (Genesis to Revelation), keyed by name or abbreviation in any app language, or given as one row per verse.',
   'settings.bibleChooseFile': 'Choose JSON file',
   'settings.bibleNoFile': 'No file selected',
   'settings.bibleImportInvalidJson': 'That file is not valid JSON.',
   'settings.bibleImportInvalidFormat':
     'The JSON must contain known books, chapters, and verses.',
-  'settings.bibleImportTooLarge': 'The Bible text must be smaller than 2 MB.',
+  'settings.bibleImportTooLarge': 'The Bible text must be smaller than 16 MB.',
   'settings.bibleImportNoVerses': 'No verses were found in that file.',
   'settings.bibleImportReadFailed': 'The file could not be read.',
   'settings.bibleRequired': 'Name, abbreviation, language, and Bible text are required.',
@@ -94,6 +96,8 @@ const pt: Strings = {
   'settings.bibleSubtitle':
     'Adicione ou remova as traduções disponíveis para esta igreja. Cada Bíblia é identificada pelo seu idioma.',
   'settings.bibleAdd': 'Adicionar Bíblia',
+  'settings.bibleEdit': 'Editar Bíblia',
+  'settings.bibleEditSubtitle': 'Altere o nome, o idioma, a licença ou substitua o texto bíblico.',
   'settings.bibleAddSubtitle': 'Importe o texto bíblico de um ficheiro JSON e indique o seu idioma.',
   'settings.bibleBundled': 'Incluída',
   'settings.bibleCustom': 'Adicionada',
@@ -125,13 +129,13 @@ const pt: Strings = {
   'settings.bibleSourceUrl': 'URL de origem (opcional)',
   'settings.bibleTextFile': 'Texto bíblico (JSON)',
   'settings.bibleTextHint':
-    'JSON organizado por livro, capítulo e versículo. Livros suportados: Salmos, João, Romanos, 1 Coríntios, Mateus, Isaías e Filipenses.',
+    'Uma Bíblia completa ou parte dela, até 16 MB. Os livros podem vir em ordem (Gênesis a Apocalipse), identificados por nome ou abreviatura, ou como uma linha por versículo.',
   'settings.bibleChooseFile': 'Escolher ficheiro JSON',
   'settings.bibleNoFile': 'Nenhum ficheiro selecionado',
   'settings.bibleImportInvalidJson': 'Esse ficheiro não é JSON válido.',
   'settings.bibleImportInvalidFormat':
     'O JSON deve conter livros, capítulos e versículos reconhecidos.',
-  'settings.bibleImportTooLarge': 'O texto bíblico deve ter menos de 2 MB.',
+  'settings.bibleImportTooLarge': 'O texto bíblico deve ter menos de 16 MB.',
   'settings.bibleImportNoVerses': 'Não foram encontrados versículos nesse ficheiro.',
   'settings.bibleImportReadFailed': 'Não foi possível ler o ficheiro.',
   'settings.bibleRequired': 'Nome, abreviatura, idioma e texto bíblico são obrigatórios.',
@@ -180,6 +184,8 @@ const es: Strings = {
   'settings.bibleSubtitle':
     'Añade o elimina las traducciones disponibles para esta iglesia. Cada Biblia se identifica por su idioma.',
   'settings.bibleAdd': 'Añadir Biblia',
+  'settings.bibleEdit': 'Editar Biblia',
+  'settings.bibleEditSubtitle': 'Cambia el nombre, el idioma, la licencia o reemplaza el texto bíblico.',
   'settings.bibleAddSubtitle': 'Importa el texto bíblico desde un archivo JSON e indica su idioma.',
   'settings.bibleBundled': 'Incluida',
   'settings.bibleCustom': 'Añadida',
@@ -212,13 +218,13 @@ const es: Strings = {
   'settings.bibleSourceUrl': 'URL de origen (opcional)',
   'settings.bibleTextFile': 'Texto bíblico (JSON)',
   'settings.bibleTextHint':
-    'JSON organizado por libro, capítulo y versículo. Libros admitidos: Salmos, Juan, Romanos, 1 Corintios, Mateo, Isaías y Filipenses.',
+    'Una Biblia completa o parte de ella, hasta 16 MB. Los libros pueden venir en orden (Génesis a Apocalipsis), por nombre o abreviatura, o como una fila por versículo.',
   'settings.bibleChooseFile': 'Elegir archivo JSON',
   'settings.bibleNoFile': 'Ningún archivo seleccionado',
   'settings.bibleImportInvalidJson': 'Ese archivo no es JSON válido.',
   'settings.bibleImportInvalidFormat':
     'El JSON debe contener libros, capítulos y versículos reconocidos.',
-  'settings.bibleImportTooLarge': 'El texto bíblico debe ser menor de 2 MB.',
+  'settings.bibleImportTooLarge': 'El texto bíblico debe ser menor de 16 MB.',
   'settings.bibleImportNoVerses': 'No se encontraron versículos en ese archivo.',
   'settings.bibleImportReadFailed': 'No se pudo leer el archivo.',
   'settings.bibleRequired': 'Nombre, abreviatura, idioma y texto bíblico son obligatorios.',
@@ -267,6 +273,8 @@ const fr: Strings = {
   'settings.bibleSubtitle':
     'Ajoutez ou supprimez les traductions disponibles pour cette église. Chaque Bible est identifiée par sa langue.',
   'settings.bibleAdd': 'Ajouter une Bible',
+  'settings.bibleEdit': 'Modifier la Bible',
+  'settings.bibleEditSubtitle': 'Modifiez le nom, la langue, la licence ou remplacez le texte biblique.',
   'settings.bibleAddSubtitle':
     'Importez le texte biblique depuis un fichier JSON et indiquez sa langue.',
   'settings.bibleBundled': 'Incluse',
@@ -300,13 +308,13 @@ const fr: Strings = {
   'settings.bibleSourceUrl': 'URL source (facultatif)',
   'settings.bibleTextFile': 'Texte biblique (JSON)',
   'settings.bibleTextHint':
-    'JSON organisé par livre, chapitre et verset. Livres pris en charge : Psaumes, Jean, Romains, 1 Corinthiens, Matthieu, Ésaïe et Philippiens.',
+    'Une Bible complète ou une partie, jusqu’à 16 Mo. Les livres peuvent être dans l’ordre (Genèse à Apocalypse), nommés ou abrégés, ou fournis verset par verset.',
   'settings.bibleChooseFile': 'Choisir un fichier JSON',
   'settings.bibleNoFile': 'Aucun fichier sélectionné',
   'settings.bibleImportInvalidJson': "Ce fichier n'est pas un JSON valide.",
   'settings.bibleImportInvalidFormat':
     'Le JSON doit contenir des livres, chapitres et versets reconnus.',
-  'settings.bibleImportTooLarge': 'Le texte biblique doit faire moins de 2 Mo.',
+  'settings.bibleImportTooLarge': 'Le texte biblique doit faire moins de 16 Mo.',
   'settings.bibleImportNoVerses': "Aucun verset n'a été trouvé dans ce fichier.",
   'settings.bibleImportReadFailed': "Le fichier n'a pas pu être lu.",
   'settings.bibleRequired': "Le nom, l'abréviation, la langue et le texte sont obligatoires.",
@@ -355,6 +363,8 @@ const de: Strings = {
   'settings.bibleSubtitle':
     'Fügen Sie Übersetzungen für diese Gemeinde hinzu oder entfernen Sie sie. Jede Bibel ist durch ihre Sprache gekennzeichnet.',
   'settings.bibleAdd': 'Bibel hinzufügen',
+  'settings.bibleEdit': 'Bibel bearbeiten',
+  'settings.bibleEditSubtitle': 'Name, Sprache oder Lizenz ändern oder den Bibeltext ersetzen.',
   'settings.bibleAddSubtitle':
     'Importieren Sie den Bibeltext aus einer JSON-Datei und geben Sie die Sprache an.',
   'settings.bibleBundled': 'Enthalten',
@@ -387,13 +397,13 @@ const de: Strings = {
   'settings.bibleSourceUrl': 'Quell-URL (optional)',
   'settings.bibleTextFile': 'Bibeltext (JSON)',
   'settings.bibleTextHint':
-    'JSON nach Buch, Kapitel und Vers. Unterstützte Bücher: Psalmen, Johannes, Römer, 1. Korinther, Matthäus, Jesaja und Philipper.',
+    'Eine vollständige Bibel oder ein Teil davon, bis 16 MB. Bücher in kanonischer Reihenfolge, mit Namen oder Abkürzung, oder eine Zeile pro Vers.',
   'settings.bibleChooseFile': 'JSON-Datei wählen',
   'settings.bibleNoFile': 'Keine Datei ausgewählt',
   'settings.bibleImportInvalidJson': 'Diese Datei ist kein gültiges JSON.',
   'settings.bibleImportInvalidFormat':
     'Das JSON muss bekannte Bücher, Kapitel und Verse enthalten.',
-  'settings.bibleImportTooLarge': 'Der Bibeltext muss kleiner als 2 MB sein.',
+  'settings.bibleImportTooLarge': 'Der Bibeltext muss kleiner als 16 MB sein.',
   'settings.bibleImportNoVerses': 'In dieser Datei wurden keine Verse gefunden.',
   'settings.bibleImportReadFailed': 'Die Datei konnte nicht gelesen werden.',
   'settings.bibleRequired': 'Name, Abkürzung, Sprache und Bibeltext sind erforderlich.',
@@ -442,6 +452,8 @@ const it: Strings = {
   'settings.bibleSubtitle':
     'Aggiungi o rimuovi le traduzioni disponibili per questa chiesa. Ogni Bibbia è identificata dalla sua lingua.',
   'settings.bibleAdd': 'Aggiungi Bibbia',
+  'settings.bibleEdit': 'Modifica Bibbia',
+  'settings.bibleEditSubtitle': 'Modifica nome, lingua o licenza, oppure sostituisci il testo biblico.',
   'settings.bibleAddSubtitle':
     'Importa il testo biblico da un file JSON e indica la sua lingua.',
   'settings.bibleBundled': 'Inclusa',
@@ -475,13 +487,13 @@ const it: Strings = {
   'settings.bibleSourceUrl': 'URL di origine (facoltativo)',
   'settings.bibleTextFile': 'Testo biblico (JSON)',
   'settings.bibleTextHint':
-    'JSON organizzato per libro, capitolo e versetto. Libri supportati: Salmi, Giovanni, Romani, 1 Corinzi, Matteo, Isaia e Filippesi.',
+    'Una Bibbia completa o parte di essa, fino a 16 MB. I libri possono essere in ordine (Genesi–Apocalisse), indicati per nome o abbreviazione, o un versetto per riga.',
   'settings.bibleChooseFile': 'Scegli file JSON',
   'settings.bibleNoFile': 'Nessun file selezionato',
   'settings.bibleImportInvalidJson': 'Quel file non è un JSON valido.',
   'settings.bibleImportInvalidFormat':
     'Il JSON deve contenere libri, capitoli e versetti riconosciuti.',
-  'settings.bibleImportTooLarge': 'Il testo biblico deve essere inferiore a 2 MB.',
+  'settings.bibleImportTooLarge': 'Il testo biblico deve essere inferiore a 16 MB.',
   'settings.bibleImportNoVerses': 'Nessun versetto trovato in quel file.',
   'settings.bibleImportReadFailed': 'Impossibile leggere il file.',
   'settings.bibleRequired': 'Nome, abbreviazione, lingua e testo biblico sono obbligatori.',

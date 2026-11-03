@@ -1,18 +1,11 @@
 import type { BibleTranslation, Locale } from '../types'
+import { CANONICAL_BIBLE_BOOKS } from './bibleBooks'
 
 type TranslationSeed = Omit<BibleTranslation, 'verseCount'> & {
   books: Record<string, Record<number, Record<number, string>>>
 }
 
-export const BIBLE_BOOKS = [
-  { id: 'psalms', names: { en: 'Psalms', pt: 'Salmos', 'pt-BR': 'Salmos', es: 'Salmos', fr: 'Psaumes', de: 'Psalmen', it: 'Salmi' }, abbreviations: ['ps', 'psalm', 'psalms', 'salmo', 'salmos'] },
-  { id: 'john', names: { en: 'John', pt: 'João', 'pt-BR': 'João', es: 'Juan', fr: 'Jean', de: 'Johannes', it: 'Giovanni' }, abbreviations: ['jn', 'john', 'joao', 'joão', 'juan', 'jean', 'johannes', 'giovanni'] },
-  { id: 'romans', names: { en: 'Romans', pt: 'Romanos', 'pt-BR': 'Romanos', es: 'Romanos', fr: 'Romains', de: 'Römer', it: 'Romani' }, abbreviations: ['ro', 'rom', 'romans', 'romanos', 'romains', 'römer', 'romer', 'romani'] },
-  { id: '1corinthians', names: { en: '1 Corinthians', pt: '1 Coríntios', 'pt-BR': '1 Coríntios', es: '1 Corintios', fr: '1 Corinthiens', de: '1. Korinther', it: '1 Corinzi' }, abbreviations: ['1co', '1cor', '1 corinthians', '1 corintios', '1 coríntios', '1 corinthiens', '1 korinther', '1 corinzi'] },
-  { id: 'matthew', names: { en: 'Matthew', pt: 'Mateus', 'pt-BR': 'Mateus', es: 'Mateo', fr: 'Matthieu', de: 'Matthäus', it: 'Matteo' }, abbreviations: ['mt', 'matt', 'matthew', 'mateus', 'mateo', 'matthieu', 'matthäus', 'matthaus', 'matteo'] },
-  { id: 'isaiah', names: { en: 'Isaiah', pt: 'Isaías', 'pt-BR': 'Isaías', es: 'Isaías', fr: 'Ésaïe', de: 'Jesaja', it: 'Isaia' }, abbreviations: ['isa', 'is', 'isaiah', 'isaias', 'isaías', 'ésaïe', 'esaie', 'jesaja', 'isaia'] },
-  { id: 'philippians', names: { en: 'Philippians', pt: 'Filipenses', 'pt-BR': 'Filipenses', es: 'Filipenses', fr: 'Philippiens', de: 'Philipper', it: 'Filippesi' }, abbreviations: ['php', 'phil', 'philippians', 'filipenses', 'philippiens', 'philipper', 'filippesi'] },
-] as const
+export const BIBLE_BOOKS = CANONICAL_BIBLE_BOOKS
 
 export const BOOK_IDS = BIBLE_BOOKS.map((book) => book.id)
 

@@ -30,12 +30,16 @@ function normalize(value: string): string {
 }
 
 const BOOK_ALIASES = new Map<string, string>()
+// Abbreviations first, then names, so a full name wins over a colliding short form.
 for (const book of BIBLE_BOOKS) {
-  for (const name of Object.values(book.names)) {
-    BOOK_ALIASES.set(normalize(name), book.id)
-  }
   for (const abbreviation of book.abbreviations) {
     BOOK_ALIASES.set(normalize(abbreviation), book.id)
+  }
+}
+for (const book of BIBLE_BOOKS) {
+  BOOK_ALIASES.set(normalize(book.id), book.id)
+  for (const name of Object.values(book.names)) {
+    BOOK_ALIASES.set(normalize(name), book.id)
   }
 }
 

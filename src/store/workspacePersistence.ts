@@ -10,6 +10,7 @@ function sanitizeHiddenBibleIds(value: unknown): string[] {
   return value.filter((id): id is string => typeof id === 'string' && bundledIds.has(id))
 }
 import { sanitizeCustomBibleTranslations } from '../providers/bible/customBibles'
+import { isBibleTextStored } from './bibleTextStore'
 import { DEFAULT_BRANDING, normalizeBranding } from '../utils/branding'
 import { upgradeService } from '../utils/cultoNormalize'
 import { normalizeOverrides } from '../shortcuts/bindings'
@@ -176,7 +177,9 @@ export function partializeWorkspace(state: AppState) {
     recentPassages: state.recentPassages,
     recentSongs: state.recentSongs,
     librarySongs: state.librarySongs,
-    customBibles: state.customBibles,
+    customBibles: state.customBibles.map((entry) =>
+      isBibleTextStored(entry.translation.id, entry.books) ? { ...entry, books: {} } : entry,
+    ),
     hiddenBibleIds: state.hiddenBibleIds,
     archivedBibleIds: state.archivedBibleIds,
     deletedBibleIds: state.deletedBibleIds,
@@ -187,7 +190,7 @@ export function partializeWorkspace(state: AppState) {
 export function mergeWorkspace(persisted: unknown, current: AppState): AppState {
   const value = persisted as Partial<AppState> | undefined
   if (!value || !Array.isArray(value.services)) return current
-  const customBibles = sanitizeCustomBibleTranslations(value.customBibles)
+  const customBibles = sanitizeCustomBibleTranslations(value.customBibles, { textStoredElsewhere: true })
   const translationIds = translationIdsFor(customBibles)
   const settings = { ...current.settings, ...(value.settings ?? {}) }
   const churchId =

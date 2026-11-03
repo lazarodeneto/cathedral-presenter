@@ -49,6 +49,7 @@ import {
   setDeletedBibleIds,
   setHiddenBibleIds,
 } from '../providers/bible/customBibles'
+import { loadBibleTexts, syncBibleTexts } from './bibleTextStore'
 import {
   isValidDate,
   isValidTime,
@@ -1710,6 +1711,37 @@ useAppStore.subscribe((state) => {
   setHiddenBibleIds(state.hiddenBibleIds)
   setArchivedBibleIds(state.archivedBibleIds)
   setDeletedBibleIds(state.deletedBibleIds)
+})
+
+// Imported Bible text lives in IndexedDB (see bibleTextStore). Load it back into the
+// entries that arrived without it, then keep IndexedDB in step with every change.
+// Each successful save re-persists the workspace so localStorage drops the inline text.
+let bibleTextSync: Promise<void> = Promise.resolve()
+function queueBibleTextSync(entries: CustomBibleTranslation[]) {
+  bibleTextSync = bibleTextSync
+    .then(() => syncBibleTexts(entries))
+    .then((saved) => {
+      if (saved) useAppStore.setState({})
+    })
+}
+
+void loadBibleTexts(useAppStore.getState().customBibles).then((loaded) => {
+  if (Object.keys(loaded).length > 0) {
+    useAppStore.setState((state) => ({
+      customBibles: state.customBibles.map((entry) => {
+        const books = loaded[entry.translation.id]
+        if (!books || Object.keys(entry.books).length > 0) return entry
+        const otherIds = new Set(
+          state.customBibles.filter((other) => other !== entry).map((other) => other.translation.id),
+        )
+        return normalizeCustomBible({ translation: entry.translation, books }, otherIds) ?? entry
+      }),
+    }))
+  }
+  queueBibleTextSync(useAppStore.getState().customBibles)
+  useAppStore.subscribe((state, previous) => {
+    if (state.customBibles !== previous.customBibles) queueBibleTextSync(state.customBibles)
+  })
 })
 
 export { flatSlides }

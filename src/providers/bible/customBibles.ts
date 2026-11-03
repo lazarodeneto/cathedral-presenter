@@ -156,6 +156,7 @@ export function countBibleVerses(books: BibleBookTexts): number {
 export function normalizeCustomBible(
   value: unknown,
   existingIds: Set<string> = new Set(),
+  { textStoredElsewhere = false }: { textStoredElsewhere?: boolean } = {},
 ): CustomBibleTranslation | null {
   if (!isRecord(value)) return null
   const translation = isRecord(value.translation) ? value.translation : null
@@ -203,7 +204,11 @@ export function normalizeCustomBible(
     if (Object.keys(chapters).length > 0) books[bookId] = chapters
     if (verseCount >= MAX_VERSES_PER_CUSTOM_BIBLE) break
   }
-  if (verseCount === 0) return null
+  // Persisted workspaces keep large Scripture text in IndexedDB (see bibleTextStore), so an
+  // entry may arrive without verses; its text is loaded back in after startup.
+  const storedVerseCount = Number(translation.verseCount)
+  const awaitingText = textStoredElsewhere && verseCount === 0 && Object.keys(rawBooks).length === 0
+  if (verseCount === 0 && !awaitingText) return null
 
   const licenseText = sanitizeText(translation.licenseText, 2_000)
   const copyrightNotice =
@@ -225,7 +230,7 @@ export function normalizeCustomBible(
       copyrightNotice,
       bundled: false,
       sample: false,
-      verseCount,
+      verseCount: awaitingText && Number.isInteger(storedVerseCount) && storedVerseCount > 0 ? storedVerseCount : verseCount,
       availability: 'bundled',
     },
     books,
@@ -233,12 +238,15 @@ export function normalizeCustomBible(
 }
 
 /** Repairs persisted custom Bibles. Invalid or duplicate entries are dropped. */
-export function sanitizeCustomBibleTranslations(value: unknown): CustomBibleTranslation[] {
+export function sanitizeCustomBibleTranslations(
+  value: unknown,
+  options: { textStoredElsewhere?: boolean } = {},
+): CustomBibleTranslation[] {
   if (!Array.isArray(value)) return []
   const entries: CustomBibleTranslation[] = []
   const ids = new Set(BIBLE_TRANSLATIONS.map((translation) => translation.id))
   for (const candidate of value.slice(0, MAX_CUSTOM_BIBLES)) {
-    const entry = normalizeCustomBible(candidate, ids)
+    const entry = normalizeCustomBible(candidate, ids, options)
     if (!entry) continue
     ids.add(entry.translation.id)
     entries.push(entry)

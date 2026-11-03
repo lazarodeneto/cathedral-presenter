@@ -4,6 +4,7 @@ import { useAppStore, DEFAULT_SETTINGS } from '../store/useAppStore'
 import {
   allBibleTranslations,
   bibleVersesFor,
+  countBibleVerses,
   sanitizeCustomBibleTranslations,
 } from '../providers/bible/customBibles'
 import { listBibleTranslations, resolveBibleProvider } from '../providers/bible/BibleProviderRegistry'
@@ -171,5 +172,70 @@ describe('Bible text import', () => {
       reason: 'invalid-format',
     })
     expect(parseBibleTextJson('{"john":{}}')).toEqual({ ok: false, reason: 'no-verses' })
+  })
+})
+
+describe('full Bible imports', () => {
+  // 66 books, as in common Portuguese Almeida downloads: `[{ abbrev, chapters: [[verse, ...]] }]`.
+  function bookList(chapterCount = 1, versesPerChapter = 1, padding = '') {
+    return Array.from({ length: 66 }, (_, index) => ({
+      abbrev: index === 0 ? 'gn' : `b${index}`,
+      chapters: Array.from({ length: chapterCount }, () =>
+        Array.from({ length: versesPerChapter }, (_, verse) => `Livro ${index + 1}, versículo ${verse + 1}.${padding}`),
+      ),
+    }))
+  }
+
+  it('knows all 66 canonical books, Genesis to Revelation', async () => {
+    const { BIBLE_BOOKS } = await import('../data/bible')
+    expect(BIBLE_BOOKS).toHaveLength(66)
+    expect(BIBLE_BOOKS[0].id).toBe('genesis')
+    expect(BIBLE_BOOKS[65].id).toBe('revelation')
+  })
+
+  it('reads a list of books by canonical position and strips a byte-order mark', () => {
+    const result = parseBibleTextJson(`\uFEFF${JSON.stringify(bookList())}`)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(Object.keys(result.books)).toHaveLength(66)
+    expect(result.books.genesis[1][1]).toBe('Livro 1, versículo 1.')
+    expect(result.books.revelation[1][1]).toBe('Livro 66, versículo 1.')
+  })
+
+  it('reads verse rows keyed by book name or number', () => {
+    const rows = [
+      { book: 'Gênesis', chapter: 1, verse: 1, text: 'No princípio criou Deus os céus e a terra.' },
+      { book_id: 43, chapter: 3, verse: 16, text: 'Porque Deus amou o mundo de tal maneira.' },
+    ]
+    const result = parseBibleTextJson(JSON.stringify({ verses: rows }))
+    expect(result.ok && result.books.genesis[1][1]).toBe('No princípio criou Deus os céus e a terra.')
+    expect(result.ok && result.books.john[3][16]).toBe('Porque Deus amou o mundo de tal maneira.')
+  })
+
+  it('reads a SQL-style resultset export', () => {
+    const json = { resultset: { row: [{ field: [1001001, 1, 1, 1, 'In the beginning.'] }] } }
+    const result = parseBibleTextJson(JSON.stringify(json))
+    expect(result.ok && result.books.genesis[1][1]).toBe('In the beginning.')
+  })
+
+  it('reads a books map keyed by Portuguese names with array chapters', () => {
+    const result = parseBibleTextJson(JSON.stringify({ 'Jó': [['Havia um homem na terra de Uz.']], 'João': { '3': { '16': 'Porque Deus amou.' } } }))
+    expect(result.ok && result.books.job[1][1]).toBe('Havia um homem na terra de Uz.')
+    expect(result.ok && result.books.john[3][16]).toBe('Porque Deus amou.')
+  })
+
+  it('accepts a complete Bible of about 31,000 verses', () => {
+    const raw = JSON.stringify(bookList(18, 26, ' E disse Deus: Haja luz; e houve luz, e viu Deus que era boa a luz.'))
+    expect(raw.length).toBeGreaterThan(2_000_000)
+    const result = parseBibleTextJson(raw)
+    expect(result.ok).toBe(true)
+    expect(result.ok && countBibleVerses(result.books)).toBe(66 * 18 * 26)
+  })
+
+  it('keeps persisted Bibles whose text was moved to IndexedDB', () => {
+    const entry = { ...sampleEntry(), books: {} }
+    const [kept] = sanitizeCustomBibleTranslations([entry], { textStoredElsewhere: true })
+    expect(kept?.translation.id).toBe(entry.translation.id)
+    expect(sanitizeCustomBibleTranslations([entry])).toEqual([])
   })
 })
