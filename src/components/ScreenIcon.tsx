@@ -9,7 +9,7 @@ import {
   Settings,
 } from 'lucide-react'
 
-export type ScreenTone = 'blue' | 'violet' | 'rose' | 'amber' | 'cyan' | 'wash'
+export type ScreenTone = 'blue' | 'indigo' | 'violet' | 'rose' | 'amber' | 'orange' | 'cyan' | 'wash'
 
 /**
  * One icon and category tone per screen, shared by the sidebar and each
@@ -18,8 +18,8 @@ export type ScreenTone = 'blue' | 'violet' | 'rose' | 'amber' | 'cyan' | 'wash'
  */
 export const SCREEN_META = {
   home: { icon: House, tone: 'blue' },
-  services: { icon: ListChecks, tone: 'blue' },
-  calendar: { icon: CalendarDays, tone: 'violet' },
+  services: { icon: ListChecks, tone: 'indigo' },
+  calendar: { icon: CalendarDays, tone: 'orange' },
   bible: { icon: BookOpen, tone: 'amber' },
   songs: { icon: Music4, tone: 'rose' },
   media: { icon: ImageIcon, tone: 'cyan' },

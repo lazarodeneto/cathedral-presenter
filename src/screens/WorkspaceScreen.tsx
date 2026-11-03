@@ -31,10 +31,8 @@ import {
   Monitor,
   PanelRight,
   Music4,
-  Play,
   Plus,
   QrCode,
-  Radio,
   Snowflake,
   Square,
   Trash2,
@@ -81,6 +79,8 @@ import {
   type QrVariant,
 } from '../providers/media/mediaWorkflow'
 import { useContainFit } from '../hooks/useContainFit'
+import { OutputStatusCard } from '../components/editor/OutputStatusCard'
+import { useShortcutLabel } from '../shortcuts/useShortcutLabel'
 
 // Same bounds the canvas uses for pointer and keyboard move/resize.
 const GEOMETRY_FIELDS = [
@@ -260,6 +260,16 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
     activeItem?.slides.find((slide) => slide.id === selectedSlideId) ?? activeItem?.slides[0] ?? null
   const activeSlideRef = useRef(activeSlide)
   activeSlideRef.current = activeSlide
+  const presentShortcut = useShortcutLabel('editor.present')
+  const audienceOutputName = useAppStore((state) => {
+    const audience = state.monitors.find((monitor) => monitor.role === 'audience')
+    return audience ? `${t('output.audience')} · ${audience.name}` : null
+  })
+  /** While this service is live, a double click puts that slide on the audience screen. */
+  const sendSlideLive = (slideId: string) => {
+    if (!isLive || live?.currentSlideId === slideId) return
+    if (jumpLive(slideId)) push(t('live.sentLive'), 'success')
+  }
   const isLiveRef = useRef(isLive)
   isLiveRef.current = isLive
   const goLiveRef = useRef<() => void>(() => {})
@@ -695,6 +705,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                                   key={slide.id}
                                   className={`rundown-slide ${slide.id === activeSlide?.id ? 'is-active' : ''}`}
                                   onClick={() => { selectSlide(item.id, slide.id); setMobileRundown(false) }}
+                                  onDoubleClick={() => sendSlideLive(slide.id)}
+                                  title={isLive ? t('live.doubleClickHint') : undefined}
                                 >
                                   <span>{index + 1}</span>
                                   <span>{slideLabel(slide, slide.text.slice(0, 42)) || t('editor.blankSlide')}</span>
@@ -972,6 +984,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
             <div className="slide-strip">
               <div className="slide-strip-head">
                 <span className="eyebrow">{t('common.slides')}</span>
+                {isLive && <span className="slide-strip-live-hint">{t('live.doubleClickHint')}</span>}
                 <button
                   className="text-link"
                   onClick={() => activeItem && addBlankSlide(service.id, activeItem.id)}
@@ -1009,7 +1022,9 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                           selectItem(entry.item.id)
                           selectSlide(entry.item.id, entry.slide.id)
                           selectElement(null)
+                          sendSlideLive(entry.slide.id)
                         }}
+                        title={isLive ? t('live.doubleClickHint') : undefined}
                       >
                         <span className="slide-thumb-canvas">
                           <SlideRenderer slide={entry.slide} branding={branding} aspectRatio={slideAspectRatio} compact thumbnail />
@@ -1086,73 +1101,63 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
 
         <aside className={`inspector panel ${mobileInspector ? 'is-drawer-open' : ''}`}>
           <div className="pane-grip" aria-label={t('editor.resizeInspector')} {...inspectorPane.gripProps} />
-          <div className="inspector-present">
-            <div className="inspector-present-left">
-              <div className="workspace-aspect-picker">
-                <button
-                  className="btn btn-secondary btn-sm"
-                  onClick={() => setAspectMenuOpen((open) => !open)}
-                  aria-label={t('editor.slideFormat')}
-                  aria-haspopup="menu"
-                  aria-expanded={aspectMenuOpen}
-                >
-                  <Monitor size={14} />
-                  <span>{slideAspectRatio === 'wide' ? '1920 × 1080' : '4:3'}</span>
-                  <ChevronDown size={13} />
-                </button>
-                {aspectMenuOpen && (
-                  <div className="workspace-aspect-menu" role="menu" aria-label={t('editor.slideFormat')}>
-                    {([
-                      ['wide', '1920 × 1080'],
-                      ['classic', '4:3'],
-                    ] as const).map(([value, label]) => (
-                      <button
-                        key={value}
-                        className={`workspace-aspect-option ${slideAspectRatio === value ? 'is-active' : ''}`}
-                        role="menuitemradio"
-                        aria-checked={slideAspectRatio === value}
-                        onClick={() => {
-                          setSlideAspectRatio(value)
-                          setAspectMenuOpen(false)
-                        }}
-                      >
-                        <span>{label}</span>
-                        {slideAspectRatio === value && <Check size={13} />}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+          <OutputStatusCard
+            isLive={isLive}
+            startedAt={live?.startedAt ?? null}
+            outputName={audienceOutputName}
+            problem={presentationProblem(service) ? t(`culto.problem.${presentationProblem(service)}`) : null}
+            presentShortcut={presentShortcut}
+            onPresent={() => { if (!isLive) goLive() }}
+            onEnd={() => setEndOpen(true)}
+            tools={
+              <>
+            <div className="workspace-aspect-picker">
               <button
-                className="btn btn-secondary btn-sm inspector-edit-details-btn"
-                onClick={() => setDetailsOpen(true)}
-                title={t('culto.editDetails')}
-                aria-label={t('culto.editDetails')}
+                className="btn btn-secondary btn-sm"
+                onClick={() => setAspectMenuOpen((open) => !open)}
+                aria-label={t('editor.slideFormat')}
+                aria-haspopup="menu"
+                aria-expanded={aspectMenuOpen}
               >
-                <Pencil size={13} />
-                <span className="inspector-edit-details-text">{t('common.edit')}</span>
+                <Monitor size={14} />
+                <span>{slideAspectRatio === 'wide' ? '1920 × 1080' : '4:3'}</span>
+                <ChevronDown size={13} />
               </button>
+              {aspectMenuOpen && (
+                <div className="workspace-aspect-menu" role="menu" aria-label={t('editor.slideFormat')}>
+                  {([
+                    ['wide', '1920 × 1080'],
+                    ['classic', '4:3'],
+                  ] as const).map(([value, label]) => (
+                    <button
+                      key={value}
+                      className={`workspace-aspect-option ${slideAspectRatio === value ? 'is-active' : ''}`}
+                      role="menuitemradio"
+                      aria-checked={slideAspectRatio === value}
+                      onClick={() => {
+                        setSlideAspectRatio(value)
+                        setAspectMenuOpen(false)
+                      }}
+                    >
+                      <span>{label}</span>
+                      {slideAspectRatio === value && <Check size={13} />}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-          <div className="inspector-live-row">
             <button
-              className={`btn btn-sm live-btn-go ${isLive ? 'is-active' : 'is-muted'}`}
-              onClick={() => { if (!isLive) goLive() }}
-              disabled={isLive || Boolean(presentationProblem(service))}
-              title={!isLive && presentationProblem(service) ? t(`culto.problem.${presentationProblem(service)}`) : undefined}
+              className="btn btn-secondary btn-sm inspector-edit-details-btn"
+              onClick={() => setDetailsOpen(true)}
+              title={t('culto.editDetails')}
+              aria-label={t('culto.editDetails')}
             >
-              <Radio size={14} />
-              {t('status.live')}
+              <Pencil size={13} />
+              <span className="inspector-edit-details-text">{t('common.edit')}</span>
             </button>
-            <button
-              className={`btn btn-sm live-btn-off ${!isLive ? 'is-active' : 'is-muted'}`}
-              onClick={() => { if (isLive) setEndOpen(true) }}
-              disabled={!isLive}
-            >
-              <Play size={14} />
-              {t('editor.offline')}
-            </button>
-          </div>
+              </>
+            }
+          />
           {isLive && liveCurrentSlide && (
             <div className="inspector-output-preview">
               <SlideRenderer

@@ -27,6 +27,7 @@ import { getLocalPassageSync } from '../providers/bible/LocalBibleProvider'
 import { BrandMark } from '../components/BrandMark'
 import { SlideRenderer } from '../components/SlideRenderer'
 import { NewServiceDialog } from '../components/NewServiceDialog'
+import { SCREEN_META, ScreenIcon } from '../components/ScreenIcon'
 import { serviceReadiness, timeUntilService } from '../utils/serviceReadiness'
 
 function greetingKey(): string {
@@ -122,9 +123,10 @@ export function HomeScreen() {
   }
 
   return (
-    <div className="screen home-screen">
+    <div className="screen home-screen" data-tone={SCREEN_META.home.tone}>
       <div className="screen-heading home-heading">
         <div>
+          <ScreenIcon screen="home" />
           <h1>{t(greetingKey())}</h1>
           <p>
             {branding.name.trim() || t('app.name')} · {formatLongDate(today, locale)}

@@ -274,12 +274,12 @@ A graphite, monochrome palette where three saturated colors each own exactly one
 - **Text on tint** (`selection-violet-text`, `live-green-text`, `danger-text`): the readable light variant used for the label inside a chip or button filled with that family's tint (the LIVE chip, a selected tab, the danger button).
 
 ### Category tones
-Five decorative tones give sections and content types a recognisable colour: **Blue** (`--tone-blue-rgb`, slides, services, readiness), **Violet** (`--tone-violet-rgb`, history, setup), **Rose** (`--tone-rose-rgb`, songs), **Amber** (`--tone-amber-rgb`, Scripture, time), and **Cyan** (`--tone-cyan-rgb`, data and media). Set `data-tone="blue"` (etc.) on an element and use `rgb(var(--tone-rgb) / alpha)` inside it.
+Seven decorative tones give sections and content types a recognisable colour: **Blue** (`--tone-blue-rgb`, Home, slides, readiness), **Indigo** (`--tone-indigo-rgb`, Services), **Orange** (`--tone-orange-rgb`, Calendar), **Violet** (`--tone-violet-rgb`, Templates, history, setup), **Rose** (`--tone-rose-rgb`, songs), **Amber** (`--tone-amber-rgb`, Scripture, time), and **Cyan** (`--tone-cyan-rgb`, data and media). Green and red are never tones: they mean live and danger. Set `data-tone="blue"` (etc.) on an element and use `rgb(var(--tone-rgb) / alpha)` inside it.
 - **Icon chip** (`.tone-chip`): a 32px rounded square with a tone gradient fill, a tone hairline and the icon in the tone. Panel headers, stat tiles, the backup and setup panels use one.
 - **Stat tiles** carry a chip, the label, a large number and one tinted line of context, with a faint tone glow in the corner.
-- **Sidebar** icons take their section's tone; the selected white pill keeps Ink.
+- **Sidebar** icons sit on tinted glass tiles (`.nav-app-icon`), the same style as the screen heading chip: a 28px rounded square with a soft gradient of the section tone, a tone hairline (brighter on hover and on the selected row), a bright top edge and the glyph in the tone. Settings uses a neutral tile. The selected row is a lit glass pill.
 - The readiness ring is a blue-to-violet gradient; completed checks are blue.
-- **Screen tones** come from one map, `SCREEN_META` in `src/components/ScreenIcon.tsx`: Home and Services blue, Calendar and Templates violet, Bible amber, Songs rose, Media cyan, Settings neutral. The sidebar icon and the 52px heading chip beside each screen title use it, so a section has the same colour everywhere.
+- **Screen tones** come from one map, `SCREEN_META` in `src/components/ScreenIcon.tsx`: Home blue, Services indigo, Calendar orange, Templates violet, Bible amber, Songs rose, Media cyan, Settings graphite, so every sidebar tile has its own colour. The sidebar icon and the 52px heading chip beside each screen title use it, so a section has the same colour everywhere.
 - Each screen root carries `data-tone`, which drives a faint tone wash behind the heading, a 4px tone bar before panel headings, and tinted icon discs in empty states.
 - Settings tabs each have their own tone; the active tab is a tinted pill.
 

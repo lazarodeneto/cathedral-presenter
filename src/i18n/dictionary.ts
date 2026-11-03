@@ -7,8 +7,11 @@ import { bibleAdminStrings } from './bibleAdminStrings'
 type Dict = Record<string, string>
 
 const en: Dict = {
+  'editor.notLive': 'Not live',
+  'editor.outputStatus': 'Audience output',
+  'live.doubleClickHint': 'Double-click a slide to show it live',
+  'live.sentLive': 'Slide on the audience screen.',
   'live.alertOnScreen': 'Alert on screen',
-  'live.alertActive': 'Alert on',
   'live.hideAlert': 'Hide alert',
   'live.alertHidden': 'Alert hidden.',
   'editor.layerSlideText': 'Slide text',
@@ -1082,8 +1085,11 @@ const en: Dict = {
 }
 
 const pt: Dict = {
+  'editor.notLive': 'Fora do ar',
+  'editor.outputStatus': 'Saída para a congregação',
+  'live.doubleClickHint': 'Clique duas vezes num slide para o mostrar ao vivo',
+  'live.sentLive': 'Slide na tela da congregação.',
   'live.alertOnScreen': 'Alerta na tela',
-  'live.alertActive': 'Alerta ativo',
   'live.hideAlert': 'Ocultar alerta',
   'live.alertHidden': 'Alerta ocultado.',
   'editor.layerSlideText': 'Texto do slide',
@@ -1542,6 +1548,7 @@ const pt: Dict = {
 
 const ptBR: Dict = {
   ...pt,
+  'live.doubleClickHint': 'Clique duas vezes em um slide para mostrá-lo ao vivo',
   'common.save': 'Salvar',
   'common.saved': 'Salvo',
   'common.delete': 'Excluir',
@@ -1563,8 +1570,11 @@ const ptBR: Dict = {
 }
 
 const es: Dict = {
+  'editor.notLive': 'Fuera del aire',
+  'editor.outputStatus': 'Salida para la congregación',
+  'live.doubleClickHint': 'Haz doble clic en una diapositiva para mostrarla en vivo',
+  'live.sentLive': 'Diapositiva en la pantalla de la congregación.',
   'live.alertOnScreen': 'Alerta en pantalla',
-  'live.alertActive': 'Alerta activa',
   'live.hideAlert': 'Ocultar alerta',
   'live.alertHidden': 'Alerta ocultada.',
   'editor.layerSlideText': 'Texto de la diapositiva',
@@ -1943,8 +1953,11 @@ const es: Dict = {
 }
 
 const fr: Dict = {
+  'editor.notLive': 'Hors antenne',
+  'editor.outputStatus': 'Sortie pour l’assemblée',
+  'live.doubleClickHint': 'Double-cliquez sur une diapositive pour l’afficher en direct',
+  'live.sentLive': 'Diapositive sur l’écran de l’assemblée.',
   'live.alertOnScreen': 'Alerte à l’écran',
-  'live.alertActive': 'Alerte active',
   'live.hideAlert': 'Masquer l’alerte',
   'live.alertHidden': 'Alerte masquée.',
   'editor.layerSlideText': 'Texte de la diapositive',
@@ -2322,8 +2335,11 @@ const fr: Dict = {
 }
 
 const de: Dict = {
+  'editor.notLive': 'Nicht live',
+  'editor.outputStatus': 'Ausgabe für die Gemeinde',
+  'live.doubleClickHint': 'Doppelklick auf eine Folie zeigt sie live',
+  'live.sentLive': 'Folie auf dem Gemeindebildschirm.',
   'live.alertOnScreen': 'Hinweis auf dem Bildschirm',
-  'live.alertActive': 'Hinweis aktiv',
   'live.hideAlert': 'Hinweis ausblenden',
   'live.alertHidden': 'Hinweis ausgeblendet.',
   'editor.layerSlideText': 'Folientext',
@@ -2701,8 +2717,11 @@ const de: Dict = {
 }
 
 const it: Dict = {
+  'editor.notLive': 'Non in onda',
+  'editor.outputStatus': 'Uscita per la congregazione',
+  'live.doubleClickHint': 'Doppio clic su una diapositiva per mostrarla dal vivo',
+  'live.sentLive': 'Diapositiva sullo schermo della congregazione.',
   'live.alertOnScreen': 'Avviso sullo schermo',
-  'live.alertActive': 'Avviso attivo',
   'live.hideAlert': 'Nascondi avviso',
   'live.alertHidden': 'Avviso nascosto.',
   'editor.layerSlideText': 'Testo della diapositiva',

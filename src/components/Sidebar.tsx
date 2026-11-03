@@ -70,7 +70,9 @@ export function Sidebar({ current }: { current: RouteName }) {
             title={t(key)}
             onClick={() => navigate(`/${name}`)}
           >
-            <Icon size={18} strokeWidth={1.7} />
+            <span className="nav-app-icon" aria-hidden="true">
+              <Icon size={15} strokeWidth={1.9} />
+            </span>
             <span>{t(key)}</span>
           </button>
           )

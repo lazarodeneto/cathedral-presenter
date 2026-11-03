@@ -117,7 +117,7 @@ export function LiveControlBar() {
           aria-pressed={alertOn}
         >
           {alertOn ? <TriangleAlert size={17} strokeWidth={2.4} /> : <MessageSquare size={17} />}
-          <span>{t(alertOn ? 'live.alertActive' : 'live.message')}</span>
+          <span>{t('live.message')}</span>
         </button>
         <button className="live-control" onClick={() => { setJumpQuery(''); setJumpOpen(true) }}>
           <Search size={17} />

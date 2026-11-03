@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { CalendarDays, CheckCircle2, Clock3, Languages, Search, X } from 'lucide-react'
+import { CalendarDays, CheckCircle2, Clock3, Languages, Search, TriangleAlert, X } from 'lucide-react'
 import type { Locale } from '../types'
 import { LOCALE_OPTIONS } from '../i18n/dictionary'
 import { useT } from '../i18n/useT'
@@ -146,6 +146,7 @@ export function TopBar({ route }: { route: Route }) {
     state.services.find((service) => service.id === state.activeServiceId),
   )
   const live = useAppStore((state) => state.live)
+  const clearAudienceMessage = useAppStore((state) => state.clearAudienceMessage)
   const [clock, setClock] = useState(() => new Date())
   const [commandOpen, setCommandOpen] = useState(false)
 
@@ -173,6 +174,19 @@ export function TopBar({ route }: { route: Route }) {
             <button className="live-chip" onClick={() => navigate(`/service/${live.serviceId}`)}>
               <span className="live-dot" />
               {t('status.live')}
+            </button>
+          )}
+          {live?.messageVisible && live.message && (
+            <button
+              type="button"
+              className="topbar-alert-chip"
+              onClick={() => clearAudienceMessage()}
+              title={`${live.message} — ${t('live.hideAlert')}`}
+              aria-label={`${t('live.alertOnScreen')}: ${live.message}. ${t('live.hideAlert')}`}
+            >
+              <TriangleAlert size={14} strokeWidth={2.6} aria-hidden="true" />
+              <span>{t('live.alertOnScreen')}</span>
+              <X size={13} aria-hidden="true" />
             </button>
           )}
         </div>

@@ -30,6 +30,8 @@
   --tone-rose-rgb: 244 114 160;
   --tone-amber-rgb: 245 180 84;
   --tone-cyan-rgb: 72 196 226;
+  --tone-indigo-rgb: 108 112 245;
+  --tone-orange-rgb: 255 132 70;
   /* Danger: destructive actions and errors */
   --ink-rgb: 0 0 0;
   /* recessed field and well fills */
@@ -13545,6 +13547,8 @@ body:not(.output-mode) .recent-thumb {
 [data-tone="rose"] { --tone-rgb: var(--tone-rose-rgb); }
 [data-tone="amber"] { --tone-rgb: var(--tone-amber-rgb); }
 [data-tone="cyan"] { --tone-rgb: var(--tone-cyan-rgb); }
+[data-tone="indigo"] { --tone-rgb: var(--tone-indigo-rgb); }
+[data-tone="orange"] { --tone-rgb: var(--tone-orange-rgb); }
 /* Neutral tone for Settings and other tool sections. */
 
 
@@ -14500,4 +14504,491 @@ body:not(.output-mode) .live-alert-banner-hide {
 
 .live-alert-banner-text {
   grid-row: 2;
+}
+
+/* Top bar: while an alert is on the audience screen a red chip sits beside
+   LIVE on every screen; clicking it hides the alert. */
+.topbar-alert-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  margin-left: 8px;
+  padding: 0 9px 0 8px;
+  border: 1.5px solid rgb(255 59 48 / 0.8);
+  border-radius: var(--rounded-pill);
+  color: #ffffff;
+  background: rgb(255 59 48 / 0.85);
+  box-shadow: 0 0 0 3px rgb(255 59 48 / 0.18);
+  font-size: var(--text-meta);
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  animation: live-alert-glow 1.8s ease-in-out infinite;
+}
+
+.topbar-alert-chip:hover {
+  background: #ff3b30;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topbar-alert-chip {
+    animation: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .topbar-alert-chip span {
+    display: none;
+  }
+}
+
+/* ── Live panel responsiveness ──────────────────────────────────────
+   The live controls live in the inspector, which can be 260-420px wide, so
+   the alert banner and tool row adapt to the panel, not the window. */
+.live-alert-banner {
+  margin: 0 10px 8px;
+}
+
+/* The title never competes with the button for width: the button takes the
+   full width on its own row under the message, a large touch target. */
+.live-alert-banner {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.live-alert-banner-title {
+  overflow: visible;
+  white-space: normal;
+  line-height: 1.2;
+}
+
+body:not(.output-mode) .live-alert-banner-hide {
+  grid-row: 3;
+  grid-column: 1 / -1;
+  justify-content: center;
+  width: 100%;
+  min-height: 34px;
+  margin-top: 2px;
+}
+
+/* Tool row: four equal buttons of one height; labels stay inside their
+   button (up to two balanced lines) instead of making the row uneven. */
+body:not(.output-mode) .live-control-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  padding: 6px 10px;
+}
+
+body:not(.output-mode) .live-control-actions .live-control {
+  position: relative;
+  min-height: 58px;
+  padding: 6px 4px;
+  border-radius: var(--rounded-sm);
+  font-size: 11.5px;
+  line-height: 1.15;
+  text-align: center;
+}
+
+body:not(.output-mode) .live-control-actions .live-control span {
+  display: -webkit-box;
+  overflow: hidden;
+  max-width: 100%;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  text-wrap: balance;
+}
+
+/* Active alert button: a solid red tint (no inner outline fighting the
+   label), with the pulsing dot pinned beside the icon. */
+body:not(.output-mode) .live-control.is-alert-on {
+  color: #ffffff;
+  background: rgb(255 59 48 / 0.28);
+  box-shadow: inset 0 0 0 1px rgb(255 59 48 / 0.55);
+}
+
+body:not(.output-mode) .live-control.is-alert-on::after {
+  top: 7px;
+  right: auto;
+  left: calc(50% + 9px);
+}
+
+/* Live: a quiet reminder in the slide strip header that a double click sends a slide live. */
+.slide-strip-live-hint {
+  overflow: hidden;
+  margin-right: auto;
+  margin-left: 10px;
+  color: var(--muted);
+  font-size: var(--text-meta);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Inspector output status card ───────────────────────────────────
+   One place answers "is this on the audience screen?" and offers the one
+   action that changes it. Quiet when not live; green (the LIVE colour)
+   only when live. Format and service details sit in a small row below. */
+.output-status {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 12px 4px;
+  padding: 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--rounded-lg);
+  background: rgb(var(--wash-rgb) / 0.04);
+  box-shadow: inset 0 1px 0 rgb(var(--wash-rgb) / 0.08);
+  transition: border-color 0.2s var(--ease-out), background 0.2s var(--ease-out);
+}
+
+.output-status.is-live {
+  border-color: rgb(var(--green-rgb) / 0.55);
+  background: linear-gradient(180deg, rgb(var(--green-rgb) / 0.12), rgb(var(--green-rgb) / 0.04));
+  box-shadow: inset 0 1px 0 rgb(var(--green-rgb) / 0.2), 0 0 0 3px rgb(var(--green-rgb) / 0.08);
+}
+
+.output-status-line {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-meta);
+}
+
+.output-status-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: var(--faint);
+  box-shadow: 0 0 0 3px rgb(var(--wash-rgb) / 0.06);
+}
+
+.output-status-dot.is-live {
+  background: var(--green);
+  box-shadow: 0 0 0 3px rgb(var(--green-rgb) / 0.22);
+  animation: live-dot-pulse 1.6s ease-in-out infinite;
+}
+
+.output-status-state {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  color: var(--text);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.output-status.is-live .output-status-state {
+  color: var(--green-text);
+}
+
+.output-status-meta {
+  min-width: 0;
+  overflow: hidden;
+  margin-left: auto;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.output-status-action {
+  display: inline-flex;
+  width: 100%;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: var(--text-ui);
+  font-weight: 650;
+}
+
+.output-status-action kbd {
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: var(--rounded-xs);
+  color: inherit;
+  background: rgb(0 0 0 / 0.12);
+  font-family: inherit;
+  font-size: var(--text-micro);
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+body:not(.output-mode) .output-status-action.is-end {
+  border: 1px solid rgb(var(--danger-rgb) / 0.55);
+  color: var(--danger-text);
+  background: rgb(var(--danger-rgb) / 0.12);
+}
+
+body:not(.output-mode) .output-status-action.is-end:hover {
+  background: rgb(var(--danger-rgb) / 0.2);
+}
+
+.output-status-problem {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: -2px 0 0;
+  color: var(--amber-bright);
+  font-size: var(--text-meta);
+  line-height: 1.35;
+}
+
+.output-status-problem svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.output-status-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.output-status-tools .workspace-aspect-picker {
+  position: relative;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.output-status-tools .workspace-aspect-picker > button {
+  display: flex;
+  width: 100%;
+  min-height: 30px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 0 9px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.output-status-tools .workspace-aspect-picker > button svg:last-child {
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+
+.output-status-tools .workspace-aspect-picker > button[aria-expanded="true"] svg:last-child {
+  transform: rotate(180deg);
+}
+
+.output-status-tools .inspector-edit-details-btn {
+  min-height: 30px;
+}
+
+@keyframes live-dot-pulse {
+  50% {
+    box-shadow: 0 0 0 5px rgb(var(--green-rgb) / 0.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .output-status-dot.is-live {
+    animation: none;
+  }
+}
+
+/* ── Sidebar app icons ──────────────────────────────────────────────
+   Each section icon sits on a tinted glass tile in its tone, the same
+   style as the screen heading chip: a soft gradient of the tone, a tone
+   hairline, a bright top edge and the glyph in the tone. The selected row
+   keeps the lit glass pill; the tile itself does not change. */
+.nav-app-icon {
+  position: relative;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  place-items: center;
+  border: 1px solid rgb(var(--tone-rgb, var(--wash-rgb)) / 0.38);
+  border-radius: 8px;
+  color: rgb(var(--tone-rgb, var(--wash-rgb)));
+  background: linear-gradient(160deg, rgb(var(--tone-rgb, var(--wash-rgb)) / 0.3), rgb(var(--tone-rgb, var(--wash-rgb)) / 0.08));
+  box-shadow:
+    inset 0 1px 0 rgb(var(--wash-rgb) / 0.12),
+    0 4px 12px rgb(var(--tone-rgb, var(--wash-rgb)) / 0.14);
+  transition: transform 0.16s var(--ease-out), border-color 0.16s var(--ease-out);
+}
+
+/* The glyph takes the tone on every row, whatever earlier rules set. */
+body:not(.output-mode) .nav-item .nav-app-icon svg,
+body:not(.output-mode) .nav-item.is-active .nav-app-icon svg,
+body:not(.output-mode) .nav-item[data-tone]:not(.is-active) .nav-app-icon svg {
+  color: rgb(var(--tone-rgb, var(--wash-rgb)));
+}
+
+/* Settings: a neutral tile with a light glyph. */
+body:not(.output-mode) .nav-item[data-tone="wash"] .nav-app-icon svg {
+  color: var(--text-2);
+}
+
+body:not(.output-mode) .nav-item {
+  gap: 10px;
+}
+
+body:not(.output-mode) .nav-item:hover .nav-app-icon,
+body:not(.output-mode) .nav-item.is-active .nav-app-icon {
+  border-color: rgb(var(--tone-rgb, var(--wash-rgb)) / 0.6);
+}
+
+body:not(.output-mode) .nav-item:hover .nav-app-icon {
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-app-icon {
+    transition: none;
+  }
+}
+
+/* ── Page frame ─────────────────────────────────────────────────────
+   Every screen (except the workspace, which has its own card gutter) uses
+   the same frame: centred, at most 1600px wide, with one horizontal gutter
+   and the same top and bottom space, so content never touches the sidebar,
+   the window edge or the bottom of the window. */
+:root {
+  --page-gutter: 32px;
+  --page-top: 28px;
+  --page-bottom: 32px;
+}
+
+@media (max-width: 1240px) {
+  :root {
+    --page-gutter: 24px;
+    --page-top: 24px;
+  }
+}
+
+@media (max-width: 820px) {
+  :root {
+    --page-gutter: 16px;
+    --page-top: 18px;
+    --page-bottom: 24px;
+  }
+}
+
+body:not(.output-mode) .app-content .screen:not(.workspace-screen) {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: var(--page-top) var(--page-gutter) var(--page-bottom);
+}
+
+/* Bible fills the window height; its panels end one gutter above the bottom.
+   It drops its old full-bleed margins and dark backdrop so it sits in the
+   same frame and on the same glass field as every other screen. */
+body:not(.output-mode) .app-content .screen.bible-screen {
+  height: calc(100dvh - var(--topbar-h));
+  margin: 0 auto;
+  background: transparent;
+}
+
+/* Keep the scrollbar's space reserved so centred pages do not shift sideways
+   when a page starts or stops scrolling. */
+@media (min-width: 821px) {
+  body:not(.output-mode) .app-content {
+    scrollbar-gutter: stable;
+  }
+}
+
+/* Bible selectors: centred text with equal room on both sides, and a
+   custom chevron set in from the edge instead of the native arrow. */
+body:not(.output-mode) .bible-screen :is(.bible-selector, .bible-language-field) select {
+  padding: 0 26px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23c9c9ce' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px 12px;
+  text-align: center;
+  text-align-last: center;
+  text-overflow: ellipsis;
+}
+
+body:not(.output-mode) .bible-screen :is(.bible-selector, .bible-language-field) select:hover {
+  border-color: var(--glass-border-strong);
+}
+
+/* Options in the open list stay left-aligned for scanning. */
+body:not(.output-mode) .bible-screen :is(.bible-selector, .bible-language-field) select option {
+  text-align: left;
+}
+
+/* ── Dropdowns everywhere ───────────────────────────────────────────
+   Every select in the app uses the same custom chevron, set in from the
+   edge with room before it, instead of the native arrow that sits tight
+   against the border. Slides and the audience output are untouched. */
+body:not(.output-mode) select:not([multiple]):not([size]) {
+  padding-right: 34px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23c9c9ce' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px 12px;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+body:not(.output-mode) select:not([multiple]):not([size]):disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/* Bible bar keeps its centred text with equal room on both sides. */
+body:not(.output-mode) .bible-screen :is(.bible-selector, .bible-language-field) select {
+  padding: 0 26px;
+  background-position: right 10px center;
+}
+
+/* Dropdown arrow as a visible control: a brighter, larger chevron on its
+   own tinted end-cap. Both are background layers, so this works on every
+   native select. */
+body:not(.output-mode) select:not([multiple]):not([size]) {
+  --select-cap: 34px;
+  padding-right: calc(var(--select-cap) + 10px);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23f4f4f6' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"),
+    linear-gradient(rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.07));
+  background-repeat: no-repeat;
+  background-position:
+    right calc((var(--select-cap) - 14px) / 2) center,
+    right center;
+  background-size: 14px 14px, var(--select-cap) 100%;
+  transition: border-color 0.15s ease;
+}
+
+body:not(.output-mode) select:not([multiple]):not([size]):hover:not(:disabled) {
+  border-color: var(--glass-border-strong);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"),
+    linear-gradient(rgb(255 255 255 / 0.12), rgb(255 255 255 / 0.12));
+}
+
+/* Bible bar: centred text with equal room on both sides of the value. */
+body:not(.output-mode) .bible-screen :is(.bible-selector, .bible-language-field) select {
+  --select-cap: 24px;
+  padding: 0 calc(var(--select-cap) + 3px);
+}
+
+/* Bible bar columns: chapter and each verse field are wide enough for a
+   three-digit number centred between the padding and the arrow cap. */
+@media (min-width: 1121px) {
+  body:not(.output-mode) .bible-screen .bible-selector-grid {
+    grid-template-columns: minmax(130px, 1.1fr) 92px minmax(200px, 1fr) minmax(170px, 1.3fr) minmax(170px, 1.3fr);
+  }
+}
+
+body:not(.output-mode) .bible-screen .bible-selector-grid .verse-range select,
+body:not(.output-mode) .bible-screen .bible-selector-grid select {
+  min-width: 0;
+}
+
+@media (min-width: 821px) and (max-width: 1120px) {
+  body:not(.output-mode) .bible-screen .bible-selector-grid {
+    grid-template-columns: minmax(105px, 1.1fr) 88px minmax(180px, 1fr) minmax(125px, 1.2fr) minmax(125px, 1.2fr);
+  }
 }
