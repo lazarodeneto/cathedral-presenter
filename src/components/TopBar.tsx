@@ -10,6 +10,7 @@ import { useShortcutHandlers } from '../shortcuts/registry'
 import { useShortcutLabel } from '../shortcuts/useShortcutLabel'
 import { formatClock, formatLongDate, formatToolbarDate } from '../utils/dates'
 import { BrandMark } from './BrandMark'
+import { SCREEN_META, type ScreenName } from './ScreenIcon'
 
 const LABELS: Record<string, string> = {
   home: 'nav.home',
@@ -35,6 +36,18 @@ const DESTINATIONS = [
   { path: '/templates', key: 'nav.templates', icon: 'template' },
   { path: '/settings', key: 'nav.settings', icon: 'settings' },
 ]
+
+/** A destination's section icon in its tone, as in the sidebar. */
+function CommandIcon({ path }: { path: string }) {
+  const meta = SCREEN_META[path.slice(1) as ScreenName]
+  if (!meta) return <span className="command-icon" />
+  const Icon = meta.icon
+  return (
+    <span className="command-icon tone-chip" data-tone={meta.tone} aria-hidden="true">
+      <Icon size={14} />
+    </span>
+  )
+}
 
 function CommandPalette({ onClose }: { onClose: () => void }) {
   const t = useT()
@@ -92,7 +105,7 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
           <span className="eyebrow">{t('common.settings')}</span>
           {filtered.destinations.map((entry) => (
             <button key={entry.path} className="command-row" onClick={() => open(entry.path)}>
-              <span className="command-icon">{t(entry.key).slice(0, 1)}</span>
+              <CommandIcon path={entry.path} />
               <span>{t(entry.key)}</span>
               <span className="command-hint">↵</span>
             </button>

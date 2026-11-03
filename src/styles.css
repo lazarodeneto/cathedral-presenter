@@ -13851,3 +13851,193 @@ body:not(.output-mode) .slide-thumb.is-active .slide-thumb-label small,
 body:not(.output-mode) .slide-thumb.is-active .slide-thumb-number {
   color: var(--text);
 }
+
+/* ── Frosted glass ──────────────────────────────────────────────────
+   Glass only reads as glass when something moves behind it, so a soft
+   field of category-tone light sits under the whole app and every shell
+   surface blurs it. Three blur tiers (chrome 12px, shell 20px, sheet 24px),
+   a rim (bright top edge, dim bottom edge, hairline border) for thickness,
+   and fine grain so frost reads as etched, not plastic. Slides stay opaque.
+   Settings → Glass opacity scales every tint; Reduce Transparency removes it. */
+:root {
+  --glass-tint-rgb: 16 17 24;
+  --glass-alpha: calc(var(--glass-opacity) * 0.5);
+  --glass-alpha-strong: calc(var(--glass-opacity) * 0.82);
+  --glass-chrome: blur(12px) saturate(150%);
+  --glass-shell: blur(20px) saturate(160%);
+  --glass-sheet: blur(24px) saturate(165%);
+  --glass-border: rgb(var(--wash-rgb) / 0.13);
+  --glass-border-strong: rgb(var(--wash-rgb) / 0.2);
+  --glass-rim: inset 0 1px 0 rgb(var(--wash-rgb) / 0.16), inset 0 -1px 0 rgb(0 0 0 / 0.28);
+  --glass-lift: 0 18px 48px rgb(0 0 0 / 0.32);
+  --glass-sheen: linear-gradient(160deg, rgb(var(--wash-rgb) / 0.07), rgb(var(--wash-rgb) / 0.015) 42%, transparent 70%);
+  --glass-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* The light field behind the glass. `isolation` keeps the field above the
+   body's own background while staying behind everything else. */
+body:not(.output-mode) {
+  isolation: isolate;
+  background: #07080c;
+}
+
+body:not(.output-mode)::before {
+  position: fixed;
+  z-index: -1;
+  inset: -10%;
+  background:
+    radial-gradient(42% 46% at 78% 6%, rgb(var(--tone-blue-rgb) / 0.7), transparent 70%),
+    radial-gradient(38% 44% at 10% 20%, rgb(var(--tone-violet-rgb) / 0.55), transparent 72%),
+    radial-gradient(40% 42% at 86% 90%, rgb(var(--tone-rose-rgb) / 0.45), transparent 72%),
+    radial-gradient(32% 36% at 18% 94%, rgb(var(--tone-amber-rgb) / 0.3), transparent 72%),
+    radial-gradient(30% 34% at 52% 50%, rgb(var(--tone-cyan-rgb) / 0.2), transparent 75%);
+  filter: blur(30px);
+  animation: glass-field-drift 40s ease-in-out infinite alternate;
+  content: "";
+  pointer-events: none;
+}
+
+@keyframes glass-field-drift {
+  to {
+    transform: translate3d(2%, -2%, 0) scale(1.06);
+  }
+}
+
+body:not(.output-mode) .app-shell,
+body:not(.output-mode) .bible-screen {
+  background: transparent;
+}
+
+/* Shell: sidebar and inspector panes. */
+body:not(.output-mode) .sidebar,
+body:not(.output-mode) .app-content .inspector,
+body:not(.output-mode) .app-content .rundown,
+body:not(.output-mode) .settings-nav {
+  border: 1px solid var(--glass-border);
+  background: var(--glass-grain), var(--glass-sheen), rgb(var(--glass-tint-rgb) / var(--glass-alpha));
+  box-shadow: var(--glass-rim), var(--glass-lift);
+  -webkit-backdrop-filter: var(--glass-shell);
+  backdrop-filter: var(--glass-shell);
+}
+
+/* Chrome: the toolbar and sticky bars. */
+body:not(.output-mode) .topbar,
+body:not(.output-mode) .editor-toolbar {
+  border-bottom: 1px solid var(--glass-border);
+  background: var(--glass-grain), rgb(var(--glass-tint-rgb) / calc(var(--glass-alpha) * 0.7));
+  box-shadow: inset 0 -1px 0 rgb(0 0 0 / 0.2);
+  -webkit-backdrop-filter: var(--glass-chrome);
+  backdrop-filter: var(--glass-chrome);
+}
+
+/* Sheet: content panels and cards. */
+body:not(.output-mode) .app-content .panel,
+body:not(.output-mode) .app-content .home-hero,
+body:not(.output-mode) .stat-tile,
+body:not(.output-mode) .bible-screen .panel {
+  border: 1px solid var(--glass-border);
+  background: var(--glass-grain), var(--glass-sheen), rgb(var(--glass-tint-rgb) / var(--glass-alpha));
+  box-shadow: var(--glass-rim), var(--glass-lift);
+  -webkit-backdrop-filter: var(--glass-sheet);
+  backdrop-filter: var(--glass-sheet);
+}
+
+body:not(.output-mode) .app-content .panel:hover,
+body:not(.output-mode) .stat-tile:hover {
+  border-color: var(--glass-border-strong);
+}
+
+/* Dialogs, command palette and menus: the strongest frost, nearly opaque. */
+body:not(.output-mode) .modal,
+body:not(.output-mode) .command-palette,
+body:not(.output-mode) .popover {
+  border: 1px solid var(--glass-border-strong);
+  background: var(--glass-grain), var(--glass-sheen), rgb(var(--glass-tint-rgb) / max(var(--glass-alpha-strong), 0.86));
+  box-shadow: var(--glass-rim), 0 30px 90px rgb(0 0 0 / 0.55);
+  -webkit-backdrop-filter: var(--glass-sheet);
+  backdrop-filter: var(--glass-sheet);
+}
+
+/* Inner controls: lighter glass wells. */
+body:not(.output-mode) .field input,
+body:not(.output-mode) .field select,
+body:not(.output-mode) .field textarea,
+body:not(.output-mode) .search-field,
+body:not(.output-mode) .command-trigger,
+body:not(.output-mode) .date-field > input[type="text"] {
+  border-color: var(--glass-border);
+  background: rgb(0 0 0 / 0.24);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.25);
+}
+
+body:not(.output-mode) .btn-secondary,
+body:not(.output-mode) .segmented {
+  border-color: var(--glass-border);
+  background: rgb(var(--wash-rgb) / 0.06);
+  box-shadow: inset 0 1px 0 rgb(var(--wash-rgb) / 0.08);
+}
+
+/* Selected sidebar item: a lit glass pill with a rim, as in the reference. */
+body:not(.output-mode) .nav-item.is-active {
+  border-radius: var(--rounded-md);
+  color: var(--text);
+  background: linear-gradient(180deg, rgb(var(--wash-rgb) / 0.2), rgb(var(--wash-rgb) / 0.1));
+  box-shadow: inset 0 1px 0 rgb(var(--wash-rgb) / 0.28), inset 0 0 0 1px rgb(var(--wash-rgb) / 0.16), 0 6px 18px rgb(0 0 0 / 0.25);
+}
+
+body:not(.output-mode) .nav-item.is-active svg {
+  color: rgb(var(--tone-rgb, var(--wash-rgb)));
+}
+
+body:not(.output-mode) .sidebar-service {
+  border: 1px solid var(--glass-border);
+  background: rgb(var(--wash-rgb) / 0.05);
+  box-shadow: var(--glass-rim);
+}
+
+/* Slides keep their own opaque art, so verses stay crisp over the field. */
+body:not(.output-mode) .slide-canvas {
+  box-shadow: 0 0 0 1px var(--glass-border), 0 14px 40px rgb(0 0 0 / 0.4);
+}
+
+/* Reduce Transparency (app setting or OS): no field, no blur, opaque surfaces. */
+body.reduced-transparency::before {
+  display: none;
+}
+
+body.reduced-transparency {
+  --glass-alpha: 1;
+  --glass-alpha-strong: 1;
+  --glass-tint-rgb: 28 28 31;
+  --glass-grain: none;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  body:not(.output-mode)::before {
+    display: none;
+  }
+
+  :root {
+    --glass-alpha: 1;
+    --glass-alpha-strong: 1;
+    --glass-tint-rgb: 28 28 31;
+    --glass-grain: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:not(.output-mode)::before {
+    animation: none;
+  }
+}
+
+body.reduced-motion::before {
+  animation: none;
+}
+
+.command-icon.tone-chip {
+  width: 26px;
+  height: 26px;
+  flex-basis: 26px;
+  border-radius: var(--rounded-xs);
+}

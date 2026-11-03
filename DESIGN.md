@@ -356,7 +356,15 @@ Panels reflow at narrower widths rather than disappearing:
 
 ## Elevation & Depth
 
-Depth comes from layered glass, used on chrome only. The toolbar, sidebar, rundown, inspector, popovers, and sheets share one glass recipe: tint `rgb(var(--chrome-rgb) / var(--glass-opacity))`, `--glass-filter` (26px blur, 140% saturation), and a top-edge hairline highlight (`--glass-edge`). Content panels inside screens (slides, lyrics, Scripture, cards) sit on opaque `--surface-solid` so text stays crisp on any background. Settings → General → Glass opacity (55–100%, default 80%) writes `--glass-opacity`; sheets and popovers never go below 92–94%. Shadows are ambient and soft. They separate layers, but they never carry hierarchy on their own. When Reduce Transparency is on (in Settings or from the OS `prefers-reduced-transparency`), the blur disappears everywhere, `--glass-opacity` becomes 1, and surfaces become opaque. The layering still reads through borders and tone.
+Depth comes from frosted glass over a light field. A soft field of category-tone light (blue top right, violet top left, rose bottom right, amber bottom left, a little cyan in the middle) sits fixed behind the whole app and drifts slowly; glass only reads as glass when something moves behind it. Every shell surface blurs it:
+- **Chrome** (12px blur, 150% saturation): the toolbar and editor toolbar. The lightest tint.
+- **Shell** (20px): the sidebar, rundown, inspector and Settings tabs.
+- **Sheet** (24px): content panels, the Home hero, stat tiles and Bible panels.
+- **Dialogs, command palette, menus**: sheet blur with a near-opaque tint (at least 86%) so long copy stays readable.
+
+Every glass surface has a **rim**: a 1px border at 13% white (20% on hover and dialogs), a bright inset top edge (16% white) and a dim inset bottom edge (28% black). That bevel sells the thickness. A fine **grain** (SVG fractal noise at 8%) sits over the tint so frost reads as etched, not plastic. Tokens: `--glass-tint-rgb`, `--glass-alpha`, `--glass-chrome`, `--glass-shell`, `--glass-sheet`, `--glass-border`, `--glass-rim`, `--glass-sheen`, `--glass-grain`.
+
+Settings → Glass opacity scales every tint (`--glass-alpha` is 50% of it). **Slides never frost**: canvases keep their own opaque art and a soft shadow, so verses stay crisp. With Reduce Transparency (app setting or OS), the light field is removed, blur is off and every surface is opaque; with Reduce Motion the field stops drifting. Selected sidebar items are a lit glass pill (white gradient, bright rim) with the section-tone icon.
 
 ### Shadow Vocabulary
 - **Panel ambient** (`box-shadow: 0 8px 30px rgba(0, 0, 0, 0.22)`): default under every panel.
