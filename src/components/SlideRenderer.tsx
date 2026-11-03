@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react'
 import * as QRCode from 'qrcode'
 import type { Branding, Slide, SlideElement } from '../types'
 import { BrandMark } from './BrandMark'
@@ -9,6 +9,51 @@ import { MessageBoxView } from './MessageBoxView'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import { SLIDE_TEXT_DEFAULTS } from '../utils/slides'
 
+/** Smallest auto-fit scale: 64 shrinks to about 19 before text is allowed to clip. */
+const MIN_FIT_SCALE = 0.3
+
+function overflows(element: HTMLElement): boolean {
+  return element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1
+}
+
+/**
+ * Auto-fit: when a slide's text is taller than its area, shrink it until it fits.
+ * Text sizes are written as `calc(size * var(--fit, 1))`; this finds the largest
+ * --fit (at most 1, so text never grows) that has no overflow, by binary search
+ * on the live layout. It reruns when the text or font settings change, when the
+ * canvas resizes, and once web fonts have loaded.
+ */
+export function useAutoFit(ref: RefObject<HTMLElement | null>, key: string) {
+  useLayoutEffect(() => {
+    const element = ref.current
+    if (!element) return
+    const fit = () => {
+      element.style.setProperty('--fit', '1')
+      if (!overflows(element)) return
+      let low = MIN_FIT_SCALE
+      let high = 1
+      for (let step = 0; step < 9; step += 1) {
+        const middle = (low + high) / 2
+        element.style.setProperty('--fit', middle.toFixed(4))
+        if (overflows(element)) high = middle
+        else low = middle
+      }
+      element.style.setProperty('--fit', low.toFixed(4))
+    }
+    fit()
+    let cancelled = false
+    void document.fonts?.ready.then(() => {
+      if (!cancelled) fit()
+    })
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(fit)
+    observer?.observe(element)
+    return () => {
+      cancelled = true
+      observer?.disconnect()
+    }
+  }, [ref, key])
+}
+
 /** Font, size and weight for slide text, falling back to the standard slide text. */
 function slideTextStyle(
   source: Pick<Slide, 'fontFamily' | 'fontSize' | 'fontWeight'>,
@@ -17,7 +62,7 @@ function slideTextStyle(
   const fontSize = source.fontSize ?? SLIDE_TEXT_DEFAULTS.fontSize
   return {
     fontFamily: source.fontFamily === 'serif' ? 'var(--font-slide-serif)' : 'var(--font-ui)',
-    fontSize: `${(fontSize * scale) / 12.8}cqw`,
+    fontSize: `calc(${(fontSize * scale) / 12.8}cqw * var(--fit, 1))`,
     fontWeight: source.fontWeight ?? SLIDE_TEXT_DEFAULTS.fontWeight,
   }
 }
@@ -227,6 +272,7 @@ export function SlideRenderer({
   const t = useT()
   const online = useOnlineStatus()
   const rootRef = useRef<HTMLDivElement>(null)
+  const fitRef = useRef<HTMLDivElement>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingSlideText, setEditingSlideText] = useState(false)
   const [drag, setDrag] = useState<{
@@ -246,6 +292,14 @@ export function SlideRenderer({
     originW: number
     originH: number
   } | null>(null)
+
+  // Refit whenever anything that changes the text's size changes.
+  useAutoFit(
+    fitRef,
+    slide
+      ? [slide.id, slide.kind, slide.text, slide.bible?.primary.text, slide.bible?.secondary?.text, slide.fontFamily, slide.fontSize, slide.fontWeight, aspectRatio].join('|')
+      : '',
+  )
 
   if (!slide) {
     return <div className={`slide-canvas slide-empty ${className}`} />
@@ -570,7 +624,7 @@ export function SlideRenderer({
             <span className="scripture-ornament" />
             <span className="eyebrow">{primary.translationName}</span>
           </div>
-          <div className="scripture-stack">
+          <div className="scripture-stack" ref={fitRef}>
             <section className="scripture-block scripture-primary">
               <span className="translation-tag">
                 {primary.abbreviation} · {primary.reference}
@@ -601,6 +655,7 @@ export function SlideRenderer({
         <TimerFace slide={slide} smooth={!compact} />
       ) : slide.kind === 'title' ? (
         <div
+          ref={fitRef}
           className="slide-title-layout"
           style={{
             justifyContent: slide.textVerticalAlign === 'top' ? 'flex-start' : slide.textVerticalAlign === 'bottom' ? 'flex-end' : undefined,
@@ -647,6 +702,7 @@ export function SlideRenderer({
         </div>
       ) : (
         <div
+          ref={fitRef}
           className={`slide-text-layout ${slide.text.length > 240 ? 'is-long' : ''} ${
             slide.kind === 'lyrics' ? `is-lyrics is-lyrics-${lyricsDensity}` : ''
           }`}

@@ -21,7 +21,7 @@ describe('standard slide text', () => {
       <SlideRenderer slide={makeSlide({ kind: 'title', text: 'Welcome' })} branding={branding} />,
     )
     const heading = () => container.querySelector('.slide-title-layout h1') as HTMLElement
-    expect(heading().style.fontSize).toBe('5cqw')
+    expect(heading().style.fontSize).toBe('calc(5cqw * var(--fit, 1))')
     expect(heading().style.fontWeight).toBe('500')
     expect(heading().style.fontFamily).toBe('var(--font-ui)')
 
@@ -31,7 +31,7 @@ describe('standard slide text', () => {
         branding={branding}
       />,
     )
-    expect(heading().style.fontSize).toBe('7.5cqw')
+    expect(heading().style.fontSize).toBe('calc(7.5cqw * var(--fit, 1))')
     expect(heading().style.fontWeight).toBe('700')
     expect(heading().style.fontFamily).toBe('var(--font-slide-serif)')
   })
