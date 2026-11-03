@@ -2,7 +2,9 @@ import { useState } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
+  EyeOff,
   MessageSquare,
+  TriangleAlert,
   Search,
   Snowflake,
   Square,
@@ -54,6 +56,9 @@ export function LiveControlBar() {
     )
   })()
 
+  // The alert is on the audience screen: the operator must see that at a glance.
+  const alertOn = Boolean(live.messageVisible && live.message)
+
   const sendMessage = () => {
     setAudienceMessage(messageDraft)
     setMessageOpen(false)
@@ -62,6 +67,24 @@ export function LiveControlBar() {
 
   return (
     <>
+      {alertOn && (
+        <div className="live-alert-banner" role="status">
+          <TriangleAlert size={18} strokeWidth={2.4} className="live-alert-banner-icon" aria-hidden="true" />
+          <strong className="live-alert-banner-title">{t('live.alertOnScreen')}</strong>
+          <span className="live-alert-banner-text">{live.message}</span>
+          <button
+            type="button"
+            className="btn btn-sm live-alert-banner-hide"
+            onClick={() => {
+              clearAudienceMessage()
+              push(t('live.alertHidden'), 'info')
+            }}
+          >
+            <EyeOff size={14} />
+            {t('live.hideAlert')}
+          </button>
+        </div>
+      )}
       <div className="live-control-actions">
         <button
           className={`live-control ${live.blank ? 'is-active' : ''}`}
@@ -86,14 +109,15 @@ export function LiveControlBar() {
           <span>{live.frozen ? t('live.unfreeze') : t('live.freeze')}</span>
         </button>
         <button
-          className="live-control"
+          className={`live-control ${alertOn ? 'is-alert-on' : ''}`}
           onClick={() => {
             setMessageDraft(live.message ?? '')
             setMessageOpen(true)
           }}
+          aria-pressed={alertOn}
         >
-          <MessageSquare size={17} />
-          <span>{t('live.message')}</span>
+          {alertOn ? <TriangleAlert size={17} strokeWidth={2.4} /> : <MessageSquare size={17} />}
+          <span>{t(alertOn ? 'live.alertActive' : 'live.message')}</span>
         </button>
         <button className="live-control" onClick={() => { setJumpQuery(''); setJumpOpen(true) }}>
           <Search size={17} />

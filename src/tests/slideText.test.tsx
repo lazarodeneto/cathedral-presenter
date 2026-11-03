@@ -36,3 +36,18 @@ describe('standard slide text', () => {
     expect(heading().style.fontFamily).toBe('var(--font-slide-serif)')
   })
 })
+
+describe('live alert', () => {
+  afterEach(cleanup)
+
+  it('shows a labelled red warning icon instead of a text pill, and fades the slide', () => {
+    const branding = useAppStore.getState().branding
+    const { container } = render(
+      <SlideRenderer slide={makeSlide({ kind: 'title', text: 'Welcome' })} branding={branding} message="Car AB-12" messageVisible />,
+    )
+    const alert = container.querySelector('.slide-message[role="alert"]')
+    expect(alert?.querySelector('svg.slide-message-icon')?.getAttribute('aria-label')).toBe('Message')
+    expect(alert?.querySelector('.eyebrow')).toBeNull()
+    expect(container.querySelector('.slide-canvas')?.classList.contains('has-alert')).toBe(true)
+  })
+})

@@ -7,6 +7,10 @@ import { bibleAdminStrings } from './bibleAdminStrings'
 type Dict = Record<string, string>
 
 const en: Dict = {
+  'live.alertOnScreen': 'Alert on screen',
+  'live.alertActive': 'Alert on',
+  'live.hideAlert': 'Hide alert',
+  'live.alertHidden': 'Alert hidden.',
   'editor.layerSlideText': 'Slide text',
   'editor.layerScripture': 'Scripture text',
   'editor.layerLyrics': 'Song lyrics',
@@ -1078,6 +1082,10 @@ const en: Dict = {
 }
 
 const pt: Dict = {
+  'live.alertOnScreen': 'Alerta na tela',
+  'live.alertActive': 'Alerta ativo',
+  'live.hideAlert': 'Ocultar alerta',
+  'live.alertHidden': 'Alerta ocultado.',
   'editor.layerSlideText': 'Texto do slide',
   'editor.layerScripture': 'Texto bíblico',
   'editor.layerLyrics': 'Letra da música',
@@ -1555,6 +1563,10 @@ const ptBR: Dict = {
 }
 
 const es: Dict = {
+  'live.alertOnScreen': 'Alerta en pantalla',
+  'live.alertActive': 'Alerta activa',
+  'live.hideAlert': 'Ocultar alerta',
+  'live.alertHidden': 'Alerta ocultada.',
   'editor.layerSlideText': 'Texto de la diapositiva',
   'editor.layerScripture': 'Texto bíblico',
   'editor.layerLyrics': 'Letra de la canción',
@@ -1931,6 +1943,10 @@ const es: Dict = {
 }
 
 const fr: Dict = {
+  'live.alertOnScreen': 'Alerte à l’écran',
+  'live.alertActive': 'Alerte active',
+  'live.hideAlert': 'Masquer l’alerte',
+  'live.alertHidden': 'Alerte masquée.',
   'editor.layerSlideText': 'Texte de la diapositive',
   'editor.layerScripture': 'Texte biblique',
   'editor.layerLyrics': 'Paroles du chant',
@@ -2306,6 +2322,10 @@ const fr: Dict = {
 }
 
 const de: Dict = {
+  'live.alertOnScreen': 'Hinweis auf dem Bildschirm',
+  'live.alertActive': 'Hinweis aktiv',
+  'live.hideAlert': 'Hinweis ausblenden',
+  'live.alertHidden': 'Hinweis ausgeblendet.',
   'editor.layerSlideText': 'Folientext',
   'editor.layerScripture': 'Bibeltext',
   'editor.layerLyrics': 'Liedtext',
@@ -2681,6 +2701,10 @@ const de: Dict = {
 }
 
 const it: Dict = {
+  'live.alertOnScreen': 'Avviso sullo schermo',
+  'live.alertActive': 'Avviso attivo',
+  'live.hideAlert': 'Nascondi avviso',
+  'live.alertHidden': 'Avviso nascosto.',
   'editor.layerSlideText': 'Testo della diapositiva',
   'editor.layerScripture': 'Testo biblico',
   'editor.layerLyrics': 'Testo del canto',

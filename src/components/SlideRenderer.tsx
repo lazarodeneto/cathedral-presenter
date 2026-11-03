@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react'
 import * as QRCode from 'qrcode'
+import { TriangleAlert } from 'lucide-react'
 import type { Branding, Slide, SlideElement } from '../types'
 import { BrandMark } from './BrandMark'
 import { isSafeQrPayload } from '../security/url'
@@ -598,7 +599,7 @@ export function SlideRenderer({
       ref={rootRef}
       className={`slide-canvas is-aspect-${aspectRatio} bg-${background.preset ?? 'graphite'} tone-${tone} align-${align} ${
         compact ? 'is-compact' : ''
-      } ${thumbnail ? 'is-thumbnail' : ''} ${interactive ? 'is-interactive' : ''} ${interactive && selectedElementId ? 'has-selection' : ''} ${className}`}
+      } ${thumbnail ? 'is-thumbnail' : ''} ${interactive ? 'is-interactive' : ''} ${interactive && selectedElementId ? 'has-selection' : ''} ${messageVisible && message ? 'has-alert' : ''} ${className}`}
       style={
         backgroundImage
           ? {
@@ -760,8 +761,8 @@ export function SlideRenderer({
       )}
 
       {messageVisible && message && (
-        <div className="slide-message">
-          <span className="eyebrow">{t('live.message')}</span>
+        <div className="slide-message" role="alert">
+          <TriangleAlert className="slide-message-icon" aria-label={t('live.message')} strokeWidth={2.4} />
           <p>{message}</p>
         </div>
       )}
