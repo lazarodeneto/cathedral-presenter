@@ -101,8 +101,6 @@ export function BibleScreen() {
     validTranslationId(translations, settings.secondaryTranslationId, 'blivre'),
   )
   const [bilingual, setBilingual] = useState(true)
-  const [format, setFormat] = useState<'verse' | 'multi' | 'single'>('verse')
-  const [versesPerSlide, setVersesPerSlide] = useState(3)
   const [results, setResults] = useState<BiblePassage[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
@@ -271,16 +269,12 @@ export function BibleScreen() {
   }, [provider, query, translationId, t])
 
   const selected = results.find((passage) => passage.id === selectedId) ?? results[0] ?? null
-  const slideCount = useMemo(() => {
-    if (!selected) return 0
-    if (format === 'single' || (bilingual && format === 'verse')) return 1
-    if (format === 'multi') return Math.ceil(selected.verses.length / Math.max(2, versesPerSlide))
-    return selected.verses.length
-  }, [bilingual, format, selected, versesPerSlide])
+  // Always one verse per slide (see createBibleSlides).
+  const slideCount = selected?.verses.length ?? 0
   const overflow = useMemo(() => {
     if (!selected) return false
-    return createBibleSlides({ primary: selected, format, bilingual: false }).some(isLikelyOverflow)
-  }, [format, selected])
+    return createBibleSlides({ primary: selected, bilingual: false }).some(isLikelyOverflow)
+  }, [selected])
 
   useEffect(() => {
     let active = true
@@ -399,9 +393,7 @@ export function BibleScreen() {
       const slides = createBibleSlides({
         primary: selected,
         secondary,
-        format,
         bilingual,
-        versesPerSlide,
       })
       const item = createBibleItem(
         `${selected.reference} · ${primaryTranslation.abbreviation}${secondary ? ` + ${secondary.translationAbbreviation}` : ''}`,
@@ -793,38 +785,7 @@ export function BibleScreen() {
                     </label>
                   </div>
                 )}
-                <div className="segmented segmented-format">
-                  {(['verse', 'multi', 'single'] as const).map((value) => (
-                    <button
-                      key={value}
-                      className={format === value ? 'is-active' : ''}
-                      onClick={() => setFormat(value)}
-                      aria-pressed={format === value}
-                    >
-                      {t(
-                        value === 'verse'
-                          ? 'bible.formatVerse'
-                          : value === 'multi'
-                            ? 'bible.formatMulti'
-                            : 'bible.formatSingle',
-                      )}
-                    </button>
-                  ))}
-                </div>
-                {format === 'multi' && (
-                  <label className="field compact">
-                    <span>{t('bible.versesPerSlide')}</span>
-                    <input
-                      type="number"
-                      min={2}
-                      max={6}
-                      value={versesPerSlide}
-                      onChange={(event) =>
-                        setVersesPerSlide(Math.min(6, Math.max(2, Number(event.target.value))))
-                      }
-                    />
-                  </label>
-                )}
+                <p className="bible-format-note">{t('bible.formatVerse')}</p>
                 <div className="bible-option-foot">
                   {overflow && <span className="inline-warning">{t('bible.overflowNote')}</span>}
                   <span className="slide-count-note">

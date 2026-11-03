@@ -25,3 +25,22 @@ describe('presentation canvas', () => {
     expect(slides[0].text).toBe('Primeiro verso\nSegundo verso\nTerceiro verso')
   })
 })
+
+describe('Bible slides', () => {
+  it('always puts one verse on each slide, bilingual included', async () => {
+    const { createBibleSlides } = await import('../utils/slides')
+    const { getLocalPassageSync } = await import('../providers/bible/LocalBibleProvider')
+    const primary = getLocalPassageSync('Psalm 23:1-6', 'web')
+    const secondary = getLocalPassageSync('Psalm 23:1-6', 'blivre')
+    expect(primary.verses).toHaveLength(6)
+
+    const single = createBibleSlides({ primary, bilingual: false })
+    expect(single).toHaveLength(6)
+    expect(single.map((slide) => slide.reference)).toEqual(primary.verses.map((verse) => `${verse.bookName} ${verse.chapter}:${verse.verse}`))
+    expect(single[0].text).toBe(primary.verses[0].text)
+
+    const bilingual = createBibleSlides({ primary, secondary, bilingual: true })
+    expect(bilingual).toHaveLength(6)
+    expect(bilingual[1].bible?.secondary?.text).toBe(secondary.verses[1].text)
+  })
+})

@@ -139,14 +139,16 @@ function secondaryTextForVerse(
 export interface CreateBibleSlideOptions {
   primary: BiblePassage
   secondary?: BiblePassage
-  format: 'verse' | 'multi' | 'single'
   bilingual: boolean
-  versesPerSlide?: number
 }
 
+/**
+ * One slide per verse, always: a passage never shares a slide, so long
+ * readings cannot overflow the canvas. A bilingual slide pairs the verse with
+ * the same verse in the secondary translation.
+ */
 export function createBibleSlides(options: CreateBibleSlideOptions): Slide[] {
-  const { primary, secondary, bilingual, format } = options
-  const versesPerSlide = Math.min(Math.max(options.versesPerSlide ?? 3, 2), 6)
+  const { primary, secondary, bilingual } = options
   const secondaryFor = (verseIndex: number, verseNumber: number | null) => {
     if (!bilingual || !secondary) return undefined
     const secondaryVerse = secondaryTextForVerse(secondary, verseNumber, verseIndex)
@@ -161,84 +163,6 @@ export function createBibleSlides(options: CreateBibleSlideOptions): Slide[] {
       copyrightNotice: secondary.copyrightNotice,
       sourceUrl: secondary.sourceUrl,
     } satisfies ScriptureBlock
-  }
-
-  if (format === 'single' || (bilingual && format === 'verse')) {
-    const primaryBlock = blockForVerse(
-      primary,
-      0,
-      primary.verses.map((verse) => `${verse.verse} ${verse.text}`).join('\n\n'),
-    )
-    const secondaryBlock =
-      bilingual && secondary
-        ? {
-            translationId: secondary.translationId,
-            translationName: secondary.translationName,
-            abbreviation: secondary.translationAbbreviation,
-            language: secondary.language,
-            reference: secondary.reference,
-            text: secondary.verses.map((verse) => `${verse.verse} ${verse.text}`).join('\n\n'),
-            licenseType: secondary.licenseType,
-            copyrightNotice: secondary.copyrightNotice,
-            sourceUrl: secondary.sourceUrl,
-          }
-        : undefined
-    return [
-      makeSlide({
-        kind: 'scripture',
-        title: primary.reference,
-        text: primary.verses.map((verse) => verse.text).join(' '),
-        reference: primary.reference,
-        translationId: primary.translationId,
-        bible: { primary: primaryBlock, secondary: secondaryBlock },
-        background: { type: 'preset', preset: 'aurora', tone: 'dark' },
-        notes: `Source: ${primary.translationName} (${primary.licenseType}).`,
-      }),
-    ]
-  }
-
-  if (format === 'multi') {
-    const slides: Slide[] = []
-    for (let start = 0; start < primary.verses.length; start += versesPerSlide) {
-      const group = primary.verses.slice(start, start + versesPerSlide)
-      const primaryBlock: ScriptureBlock = {
-        ...blockForVerse(primary, start),
-        reference: `${group[0].bookName} ${group[0].chapter}:${group[0].verse}–${group[group.length - 1].verse}`,
-        text: group.map((verse) => `${verse.verse} ${verse.text}`).join('\n\n'),
-      }
-      const secondaryBlock =
-        bilingual && secondary
-          ? (() => {
-              const secondaryVerses = group.map((verse, index) =>
-                secondaryTextForVerse(secondary, verse.verse, start + index),
-              )
-              return {
-                translationId: secondary.translationId,
-                translationName: secondary.translationName,
-                abbreviation: secondary.translationAbbreviation,
-                language: secondary.language,
-                reference: secondaryVerses[0].reference,
-                text: secondaryVerses.map((item) => item.text).join('\n\n'),
-                licenseType: secondary.licenseType,
-                copyrightNotice: secondary.copyrightNotice,
-                sourceUrl: secondary.sourceUrl,
-              } satisfies ScriptureBlock
-            })()
-          : undefined
-      slides.push(
-        makeSlide({
-          kind: 'scripture',
-          title: primary.reference,
-          text: group.map((verse) => verse.text).join(' '),
-          reference: primaryBlock.reference,
-          translationId: primary.translationId,
-          bible: { primary: primaryBlock, secondary: secondaryBlock },
-          background: { type: 'preset', preset: 'aurora', tone: 'dark' },
-          notes: `Source: ${primary.translationName} (${primary.licenseType}).`,
-        }),
-      )
-    }
-    return slides
   }
 
   return primary.verses.map((verse, index) => {

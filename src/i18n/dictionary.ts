@@ -217,7 +217,7 @@ const en: Dict = {
   'bible.importCopy': 'The desktop build will validate USFM, OSIS, Zefania XML, and documented JSON before indexing. Imports require a name, language, source, license, and attribution. Nothing is fetched from the web in this browser prototype.',
   'bible.added': 'Scripture added to the service.',
   'bible.noResults': 'No passages found.',
-  'bible.overflowNote': 'This passage is long. Consider multiple verses per slide.',
+  'bible.overflowNote': 'One of the verses is long. Check that it fits the slide or reduce the text size.',
   'bible.slideCount': '{count} slides will be created.',
   'bible.slideCountOne': '1 slide will be created.',
   'bible.searchOffline': 'Search runs entirely on bundled text.',

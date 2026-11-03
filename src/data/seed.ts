@@ -77,7 +77,6 @@ function buildSundayService(): SeedService {
   const psalmSlides = createBibleSlides({
     primary: psalmPrimary,
     secondary: psalmSecondary,
-    format: 'verse',
     bilingual: true,
   })
 
@@ -247,7 +246,7 @@ function buildPastService(): SeedService {
   const johnPassage = getLocalPassageSync('John 3:16', 'web')
   const scripture = createBibleItem(
     'John 3:16 · WEB',
-    createBibleSlides({ primary: johnPassage, format: 'single', bilingual: false }),
+    createBibleSlides({ primary: johnPassage, bilingual: false }),
     johnPassage,
   )
   scripture.id = 'item_past_john'
@@ -299,7 +298,7 @@ function buildMidweekService(): SeedService {
   const passage = getLocalPassageSync('Matthew 5:1-12', 'web')
   const scripture = createBibleItem(
     'Matthew 5:1–12 · WEB',
-    createBibleSlides({ primary: passage, format: 'multi', bilingual: false, versesPerSlide: 3 }),
+    createBibleSlides({ primary: passage, bilingual: false }),
     passage,
   )
   scripture.id = 'item_midweek_scripture'
@@ -353,7 +352,7 @@ function buildChristmasService(): SeedService {
   const passage = getLocalPassageSync('Isaiah 40:31', 'web')
   const scripture = createBibleItem(
     'Isaiah 40:31 · WEB',
-    createBibleSlides({ primary: passage, format: 'single', bilingual: false }),
+    createBibleSlides({ primary: passage, bilingual: false }),
     passage,
   )
   scripture.id = 'item_christmas_scripture'
@@ -420,7 +419,7 @@ function buildYouthService(): SeedService {
   const passage = getLocalPassageSync('Philippians 4:6-7', 'web')
   const scripture = createBibleItem(
     'Philippians 4:6–7 · WEB',
-    createBibleSlides({ primary: passage, format: 'single', bilingual: false }),
+    createBibleSlides({ primary: passage, bilingual: false }),
     passage,
   )
   scripture.id = 'item_youth_scripture'
@@ -464,7 +463,7 @@ function buildNewBelieversService(): SeedService {
   const passage = getLocalPassageSync('Romans 8:28', 'web')
   const scripture = createBibleItem(
     'Romans 8:28 · WEB',
-    createBibleSlides({ primary: passage, format: 'single', bilingual: false }),
+    createBibleSlides({ primary: passage, bilingual: false }),
     passage,
   )
   scripture.id = 'item_new_scripture'
