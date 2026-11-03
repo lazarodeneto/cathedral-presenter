@@ -46,8 +46,9 @@ export function makeTextElement(text: string, overrides: Partial<SlideElement> =
     visible: true,
     text,
     settings: {
-      fontSize: 64,
-      fontWeight: 600,
+      fontFamily: SLIDE_TEXT_DEFAULTS.fontFamily,
+      fontSize: SLIDE_TEXT_DEFAULTS.fontSize,
+      fontWeight: SLIDE_TEXT_DEFAULTS.fontWeight,
       align: 'center',
       lineHeight: 1.1,
       letterSpacing: 0,
@@ -84,6 +85,12 @@ export function makeElement(type: ElementType, overrides: Partial<SlideElement> 
   }
   return { ...base, ...overrides, settings: { ...base.settings, ...overrides.settings } }
 }
+
+/**
+ * Standard text for every slide: Inter, 64 (on the 1280-wide reference canvas) and
+ * weight 500. A slide or text element uses these unless it sets its own value.
+ */
+export const SLIDE_TEXT_DEFAULTS = { fontFamily: 'sans', fontSize: 64, fontWeight: 500 } as const
 
 export function makeSlide(overrides: Partial<Slide> = {}): Slide {
   return {

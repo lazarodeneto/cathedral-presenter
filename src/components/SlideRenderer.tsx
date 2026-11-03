@@ -7,6 +7,20 @@ import { useT } from '../i18n/useT'
 import { TimerFace } from './timer/TimerFace'
 import { MessageBoxView } from './MessageBoxView'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
+import { SLIDE_TEXT_DEFAULTS } from '../utils/slides'
+
+/** Font, size and weight for slide text, falling back to the standard slide text. */
+function slideTextStyle(
+  source: Pick<Slide, 'fontFamily' | 'fontSize' | 'fontWeight'>,
+  scale = 1,
+): React.CSSProperties {
+  const fontSize = source.fontSize ?? SLIDE_TEXT_DEFAULTS.fontSize
+  return {
+    fontFamily: source.fontFamily === 'serif' ? 'var(--font-slide-serif)' : 'var(--font-ui)',
+    fontSize: `${(fontSize * scale) / 12.8}cqw`,
+    fontWeight: source.fontWeight ?? SLIDE_TEXT_DEFAULTS.fontWeight,
+  }
+}
 
 export function QrImage({ payload, className }: { payload: string; className?: string }) {
   const [src, setSrc] = useState('')
@@ -50,7 +64,7 @@ function safeSource(source?: string): string | undefined {
 }
 
 function elementTextClass(element: SlideElement): string {
-  const weight = element.settings?.fontWeight ?? 500
+  const weight = element.settings?.fontWeight ?? SLIDE_TEXT_DEFAULTS.fontWeight
   return weight >= 700 ? 'is-bold' : weight >= 600 ? 'is-semibold' : weight <= 300 ? 'is-light' : ''
 }
 
@@ -409,18 +423,13 @@ export function SlideRenderer({
         }}
       >
         {element.type === 'text' && (() => {
-          const fontFamily = settings.fontFamily === 'sans'
-            ? 'var(--font-ui)'
-            : 'var(--font-slide-serif)'
           const textStyle: React.CSSProperties = {
-            fontSize: `${(settings.fontSize ?? 64) / 12.8}cqw`,
-            fontFamily,
+            ...slideTextStyle(settings),
             color: settings.color || undefined,
             textAlign: settings.align,
             lineHeight: settings.lineHeight,
             letterSpacing: settings.letterSpacing ? `${settings.letterSpacing}px` : undefined,
             textTransform: settings.uppercase ? 'uppercase' : undefined,
-            fontWeight: settings.fontWeight,
             textShadow: settings.textShadow ? undefined : 'none',
           }
           return editingId === element.id ? (
@@ -514,6 +523,9 @@ export function SlideRenderer({
 
   const primary = slide.bible?.primary
   const secondary = slide.bible?.secondary
+  // Every layout uses the slide's font, size and weight (or the standard ones), so
+  // inspector changes show live. A bilingual slide's second language is 80% of the first.
+  const scriptureTextStyle = (scale: number) => slideTextStyle(slide, scale)
   const titleLines = slide.kind === 'title' ? slide.text.split('\n') : []
   const titleHeadline = titleLines[0] ?? ''
   const titleSub = titleLines.slice(1).join(' ').trim()
@@ -563,7 +575,7 @@ export function SlideRenderer({
               <span className="translation-tag">
                 {primary.abbreviation} · {primary.reference}
               </span>
-              <p>{primary.text}</p>
+              <p style={scriptureTextStyle(1)}>{primary.text}</p>
             </section>
             {secondary && (
               <>
@@ -572,7 +584,7 @@ export function SlideRenderer({
                   <span className="translation-tag">
                     {secondary.abbreviation} · {secondary.reference}
                   </span>
-                  <p>{secondary.text}</p>
+                  <p style={scriptureTextStyle(0.8)}>{secondary.text}</p>
                 </section>
               </>
             )}
@@ -610,11 +622,7 @@ export function SlideRenderer({
               className="slide-text-inline-edit"
               value={slide.text}
               autoFocus
-              style={slide.fontFamily || slide.fontSize || slide.fontWeight ? {
-                fontFamily: slide.fontFamily === 'sans' ? 'var(--font-ui)' : 'var(--font-slide-serif)',
-                fontSize: `${(slide.fontSize ?? 64) / 12.8}cqw`,
-                fontWeight: slide.fontWeight ?? 400,
-              } : undefined}
+              style={slideTextStyle(slide)}
               onChange={(event) => onEditSlideText(event.target.value)}
               onBlur={() => setEditingSlideText(false)}
               onKeyDown={(event) => {
@@ -631,11 +639,7 @@ export function SlideRenderer({
               <span className="eyebrow slide-eyebrow">
                 {branding.name.trim() || 'Church Presenter'}
               </span>
-              <h1 style={slide.fontFamily || slide.fontSize || slide.fontWeight ? {
-                fontFamily: slide.fontFamily === 'sans' ? 'var(--font-ui)' : slide.fontFamily === 'serif' ? 'var(--font-slide-serif)' : undefined,
-                fontSize: slide.fontSize ? `${slide.fontSize / 12.8}cqw` : undefined,
-                fontWeight: slide.fontWeight ?? undefined,
-              } : undefined}>{titleHeadline}</h1>
+              <h1 style={slideTextStyle(slide)}>{titleHeadline}</h1>
               {titleSub && <p>{titleSub}</p>}
               <span className="title-rule" />
             </>
@@ -666,11 +670,7 @@ export function SlideRenderer({
               className="slide-text-inline-edit"
               value={slide.text}
               autoFocus
-              style={slide.fontFamily || slide.fontSize || slide.fontWeight ? {
-                fontFamily: slide.fontFamily === 'sans' ? 'var(--font-ui)' : 'var(--font-slide-serif)',
-                fontSize: `${(slide.fontSize ?? 64) / 12.8}cqw`,
-                fontWeight: slide.fontWeight ?? 400,
-              } : undefined}
+              style={slideTextStyle(slide)}
               onChange={(event) => onEditSlideText(event.target.value)}
               onBlur={() => setEditingSlideText(false)}
               onKeyDown={(event) => {
@@ -683,11 +683,7 @@ export function SlideRenderer({
               onPointerDown={(event) => event.stopPropagation()}
             />
           ) : (
-            <p style={slide.fontFamily || slide.fontSize || slide.fontWeight ? {
-              fontFamily: slide.fontFamily === 'sans' ? 'var(--font-ui)' : slide.fontFamily === 'serif' ? 'var(--font-slide-serif)' : undefined,
-              fontSize: slide.fontSize ? `${slide.fontSize / 12.8}cqw` : undefined,
-              fontWeight: slide.fontWeight ?? undefined,
-            } : undefined}>{slide.text}</p>
+            <p style={slideTextStyle(slide)}>{slide.text}</p>
           )}
         </div>
       )}

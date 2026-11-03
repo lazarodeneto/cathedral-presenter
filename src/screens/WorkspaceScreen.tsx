@@ -51,7 +51,7 @@ import { useToasts } from '../store/useToasts'
 import { useT } from '../i18n/useT'
 import { navigate } from '../hooks/useHashRoute'
 import { flatSlides, serviceSectionForItem } from '../store/serviceUtils'
-import { isLikelyOverflow, makeElement, makeTextElement } from '../utils/slides'
+import { isLikelyOverflow, makeElement, makeTextElement, SLIDE_TEXT_DEFAULTS } from '../utils/slides'
 import { sanitizeEditableText, sanitizeText } from '../security/text'
 import { webOutputProvider } from '../providers/output/WebOutputProvider'
 import { SlideRenderer } from '../components/SlideRenderer'
@@ -1246,7 +1246,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     <label className="field compact">
                       <span>{t('editor.fontFamily')}</span>
                       <select
-                        value={selectedElement.settings?.fontFamily ?? 'serif'}
+                        value={selectedElement.settings?.fontFamily ?? SLIDE_TEXT_DEFAULTS.fontFamily}
                         onChange={(event) =>
                           updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
                             settings: {
@@ -1257,7 +1257,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                         }
                       >
                         <option value="serif">Serif (Noto Serif)</option>
-                        <option value="sans">Sans (Open Sans)</option>
+                        <option value="sans">Sans (Inter)</option>
                       </select>
                     </label>
                     <div className="field-grid">
@@ -1267,7 +1267,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                           type="number"
                           min={8}
                           max={200}
-                          value={selectedElement.settings?.fontSize ?? 64}
+                          value={selectedElement.settings?.fontSize ?? SLIDE_TEXT_DEFAULTS.fontSize}
                           onChange={(event) =>
                             updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
                               settings: {
@@ -1281,7 +1281,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                       <label className="field compact">
                         <span>{t('editor.weight')}</span>
                         <select
-                          value={selectedElement.settings?.fontWeight ?? 600}
+                          value={selectedElement.settings?.fontWeight ?? SLIDE_TEXT_DEFAULTS.fontWeight}
                           onChange={(event) =>
                             updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
                               settings: {
@@ -1714,7 +1714,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     <label className="field compact">
                       <span>{t('editor.fontFamily')}</span>
                       <select
-                        value={activeSlide.fontFamily ?? 'serif'}
+                        value={activeSlide.fontFamily ?? SLIDE_TEXT_DEFAULTS.fontFamily}
                         onChange={(event) => {
                           const patch = { fontFamily: event.target.value as 'serif' | 'sans' }
                           updateSlide(service.id, activeItem.id, activeSlide.id, patch)
@@ -1722,7 +1722,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                         }}
                       >
                         <option value="serif">Serif (Noto Serif)</option>
-                        <option value="sans">Sans (Open Sans)</option>
+                        <option value="sans">Sans (Inter)</option>
                       </select>
                     </label>
                     <div className="field-grid">
@@ -1732,7 +1732,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                           type="number"
                           min={16}
                           max={200}
-                          value={activeSlide.fontSize ?? 64}
+                          value={activeSlide.fontSize ?? SLIDE_TEXT_DEFAULTS.fontSize}
                           onChange={(event) => {
                             const patch = { fontSize: Number(event.target.value) }
                             updateSlide(service.id, activeItem.id, activeSlide.id, patch)
@@ -1747,7 +1747,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                           min={100}
                           max={900}
                           step={100}
-                          value={activeSlide.fontWeight ?? 400}
+                          value={activeSlide.fontWeight ?? SLIDE_TEXT_DEFAULTS.fontWeight}
                           onChange={(event) => {
                             const patch = { fontWeight: Number(event.target.value) }
                             updateSlide(service.id, activeItem.id, activeSlide.id, patch)

@@ -92,11 +92,10 @@
   /* list titles, controls, field labels */
   --text-body: 14px;
   /* body copy, inputs */
-  /* Open Sans everywhere: one family with weight (300–800) and width (75–100%) axes.
-     Narrow (--stretch-narrow) is for dense numbers and uppercase labels. */
-  --font-ui: "Open Sans Variable", "Open Sans", system-ui, sans-serif;
-  --font-display: "Open Sans Variable", "Open Sans", system-ui, sans-serif;
-  --stretch-narrow: 87.5%;
+  /* Inter everywhere: one family with weight (100–900) and optical-size axes, so large
+     titles use Inter Display shapes automatically. */
+  --font-ui: "Inter Variable", Inter, system-ui, sans-serif;
+  --font-display: "Inter Variable", Inter, system-ui, sans-serif;
   /* Slide text keeps the serif option; UI headings use the geometric display face. */
   --font-slide-serif: "Noto Serif Variable", "Noto Serif", serif;
   --topbar-h: 52px;
@@ -237,8 +236,9 @@ blockquote {
   margin: 0;
 }
 
-/* Headings use the operator UI face; long-form worship content keeps its display face. */
-:is(h1, h2, h3, h4, h5, h6) {
+/* Headings use the operator UI face. Slide content is excluded so the inspector's
+   font, size and weight reach slide titles. */
+:is(h1, h2, h3, h4, h5, h6):not(.slide-canvas *) {
   font-family: var(--font-ui) !important;
   font-weight: 600 !important;
 }
@@ -1620,7 +1620,7 @@ dialog.modal::backdrop {
 }
 
 .add-slide-preview-canvas strong {
-  font-family: var(--font-slide-serif);
+  font-family: var(--font-ui);
   font-size: 20px;
   font-weight: 500;
 }
@@ -2233,9 +2233,9 @@ dialog.modal::backdrop {
 
 .slide-title-layout h1 {
   max-width: 92%;
-  font-family: var(--font-slide-serif);
+  font-family: var(--font-ui);
   font-size: clamp(16px, 7.2cqw, 110px);
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: -0.045em;
   line-height: 1;
   text-wrap: balance;
@@ -2245,7 +2245,7 @@ dialog.modal::backdrop {
   max-width: 70%;
   margin-top: 2.3%;
   color: currentColor;
-  font-family: var(--font-slide-serif);
+  font-family: var(--font-ui);
   font-size: clamp(8px, 2.25cqw, 36px);
   font-style: italic;
   opacity: 0.72;
@@ -2279,7 +2279,7 @@ dialog.modal::backdrop {
 
 .slide-text-layout p {
   max-width: 92%;
-  font-family: var(--font-slide-serif);
+  font-family: var(--font-ui);
   font-size: clamp(10px, 4.2cqw, 68px);
   font-weight: 400;
   letter-spacing: -0.022em;
@@ -2337,7 +2337,7 @@ dialog.modal::backdrop {
   border-radius: var(--rounded-sm);
   background: rgba(0, 0, 0, 0.55);
   color: inherit;
-  font-family: var(--font-slide-serif);
+  font-family: var(--font-ui);
   font-size: clamp(10px, 4.2cqw, 68px);
   font-weight: 400;
   letter-spacing: -0.022em;
@@ -2631,7 +2631,7 @@ dialog.modal::backdrop {
   border: none;
   background: none;
   color: #eeeeee;
-  font-family: var(--font-slide-serif);
+  font-family: var(--font-ui);
   font-weight: 500;
   line-height: 1.15;
   text-align: center;
@@ -2839,7 +2839,7 @@ dialog.modal::backdrop {
 
 .slide-message p {
   margin-top: 1.2%;
-  font-family: var(--font-slide-serif);
+  font-family: var(--font-ui);
   font-size: clamp(7px, 2.3cqw, 36px);
   line-height: 1.3;
   white-space: pre-wrap;
@@ -13734,9 +13734,10 @@ body:not(.output-mode) .settings-nav-item[data-tone].is-active {
   }
 }
 
-/* ── Open Sans: weights and narrow width ────────────────────────────
-   Bold for titles, semibold for panel and dialog headings; the narrow
-   width keeps dense numbers, uppercase labels and chips compact. */
+/* ── Inter: weights and compact numbers ────────────────────────────
+   Bold for titles, semibold for panel and dialog headings. Inter has no
+   width axis, so dense numbers and uppercase labels stay compact with
+   tabular figures and tighter tracking instead. */
 body:not(.output-mode) .app-shell :is(h1, h2):not(.slide-title-layout *, .slide-message *) {
   font-weight: 700 !important;
   letter-spacing: -0.025em;
@@ -13757,7 +13758,7 @@ body:not(.output-mode) .app-shell :is(h3, h4):not(.slide-title-layout *, .slide-
 .translation-tag,
 .service-date span,
 .command-trigger kbd {
-  font-stretch: var(--stretch-narrow);
+  font-variant-numeric: tabular-nums;
 }
 
 .stat-value,
@@ -13765,8 +13766,9 @@ body:not(.output-mode) .app-shell :is(h3, h4):not(.slide-title-layout *, .slide-
 .service-date strong,
 .topbar-clock,
 .calendar-day-number {
-  font-stretch: var(--stretch-narrow);
+  font-variant-numeric: tabular-nums;
   font-weight: 700;
+  letter-spacing: -0.035em;
 }
 
 body:not(.output-mode) .nav-item.is-active,
