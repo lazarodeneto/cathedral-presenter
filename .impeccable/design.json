@@ -1,0 +1,638 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-28T11:24:44.161921+00:00",
+  "title": "Design System: Church Presenter",
+  "extensions": {
+    "colorMeta": {
+      "sanctuary-dark": {
+        "role": "neutral",
+        "displayName": "Sanctuary Dark",
+        "canonical": "#0a0908",
+        "tonalRamp": [
+          "oklch(15% 0.003 69.4)",
+          "oklch(25% 0.003 69.4)",
+          "oklch(35% 0.003 69.4)",
+          "oklch(45% 0.003 69.4)",
+          "oklch(57% 0.003 69.4)",
+          "oklch(69% 0.003 69.4)",
+          "oklch(81% 0.003 69.4)",
+          "oklch(95% 0.003 69.4)"
+        ]
+      },
+      "sanctuary-deep": {
+        "role": "neutral",
+        "displayName": "Sanctuary Deep",
+        "canonical": "#070605",
+        "tonalRamp": [
+          "oklch(15% 0.004 70.2)",
+          "oklch(25% 0.004 70.2)",
+          "oklch(35% 0.004 70.2)",
+          "oklch(45% 0.004 70.2)",
+          "oklch(57% 0.004 70.2)",
+          "oklch(69% 0.004 70.2)",
+          "oklch(81% 0.004 70.2)",
+          "oklch(95% 0.004 70.2)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "canonical": "rgba(27, 23, 19, 0.72)",
+        "tonalRamp": [
+          "oklch(15% 0.010 67.2)",
+          "oklch(25% 0.010 67.2)",
+          "oklch(35% 0.010 67.2)",
+          "oklch(45% 0.010 67.2)",
+          "oklch(57% 0.010 67.2)",
+          "oklch(69% 0.010 67.2)",
+          "oklch(81% 0.010 67.2)",
+          "oklch(95% 0.010 67.2)"
+        ]
+      },
+      "surface-raised": {
+        "role": "neutral",
+        "displayName": "Surface Raised",
+        "canonical": "rgba(38, 32, 26, 0.66)",
+        "tonalRamp": [
+          "oklch(15% 0.014 67.1)",
+          "oklch(25% 0.014 67.1)",
+          "oklch(35% 0.014 67.1)",
+          "oklch(45% 0.014 67.1)",
+          "oklch(57% 0.014 67.1)",
+          "oklch(69% 0.014 67.1)",
+          "oklch(81% 0.014 67.1)",
+          "oklch(95% 0.014 67.1)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "canonical": "rgba(255, 243, 222, 0.08)",
+        "tonalRamp": [
+          "oklch(15% 0.030 81.8)",
+          "oklch(25% 0.030 81.8)",
+          "oklch(35% 0.030 81.8)",
+          "oklch(45% 0.030 81.8)",
+          "oklch(57% 0.030 81.8)",
+          "oklch(69% 0.030 81.8)",
+          "oklch(81% 0.030 81.8)",
+          "oklch(95% 0.030 81.8)"
+        ]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Line Strong",
+        "canonical": "rgba(255, 243, 222, 0.15)",
+        "tonalRamp": [
+          "oklch(15% 0.030 81.8)",
+          "oklch(25% 0.030 81.8)",
+          "oklch(35% 0.030 81.8)",
+          "oklch(45% 0.030 81.8)",
+          "oklch(57% 0.030 81.8)",
+          "oklch(69% 0.030 81.8)",
+          "oklch(81% 0.030 81.8)",
+          "oklch(95% 0.030 81.8)"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Text",
+        "canonical": "#f5eee2",
+        "tonalRamp": [
+          "oklch(15% 0.018 81.3)",
+          "oklch(25% 0.018 81.3)",
+          "oklch(35% 0.018 81.3)",
+          "oklch(45% 0.018 81.3)",
+          "oklch(57% 0.018 81.3)",
+          "oklch(69% 0.018 81.3)",
+          "oklch(81% 0.018 81.3)",
+          "oklch(95% 0.018 81.3)"
+        ]
+      },
+      "text-secondary": {
+        "role": "neutral",
+        "displayName": "Text Secondary",
+        "canonical": "#cfc3b2",
+        "tonalRamp": [
+          "oklch(15% 0.027 76.8)",
+          "oklch(25% 0.027 76.8)",
+          "oklch(35% 0.027 76.8)",
+          "oklch(45% 0.027 76.8)",
+          "oklch(57% 0.027 76.8)",
+          "oklch(69% 0.027 76.8)",
+          "oklch(81% 0.027 76.8)",
+          "oklch(95% 0.027 76.8)"
+        ]
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Text Muted",
+        "canonical": "#b3a796",
+        "tonalRamp": [
+          "oklch(15% 0.028 76.7)",
+          "oklch(25% 0.028 76.7)",
+          "oklch(35% 0.028 76.7)",
+          "oklch(45% 0.028 76.7)",
+          "oklch(57% 0.028 76.7)",
+          "oklch(69% 0.028 76.7)",
+          "oklch(81% 0.028 76.7)",
+          "oklch(95% 0.028 76.7)"
+        ]
+      },
+      "text-faint": {
+        "role": "neutral",
+        "displayName": "Text Faint",
+        "canonical": "#9a8f80",
+        "tonalRamp": [
+          "oklch(15% 0.025 75.7)",
+          "oklch(25% 0.025 75.7)",
+          "oklch(35% 0.025 75.7)",
+          "oklch(45% 0.025 75.7)",
+          "oklch(57% 0.025 75.7)",
+          "oklch(69% 0.025 75.7)",
+          "oklch(81% 0.025 75.7)",
+          "oklch(95% 0.025 75.7)"
+        ]
+      },
+      "brass-fader-amber": {
+        "role": "primary",
+        "displayName": "Brass Fader Amber",
+        "canonical": "#e5a44f",
+        "tonalRamp": [
+          "oklch(15% 0.127 71.1)",
+          "oklch(25% 0.127 71.1)",
+          "oklch(35% 0.127 71.1)",
+          "oklch(45% 0.127 71.1)",
+          "oklch(57% 0.127 71.1)",
+          "oklch(69% 0.127 71.1)",
+          "oklch(81% 0.127 71.1)",
+          "oklch(95% 0.127 71.1)"
+        ]
+      },
+      "brass-fader-amber-bright": {
+        "role": "primary",
+        "displayName": "Amber Bright",
+        "canonical": "#f2bc74",
+        "tonalRamp": [
+          "oklch(15% 0.109 73.3)",
+          "oklch(25% 0.109 73.3)",
+          "oklch(35% 0.109 73.3)",
+          "oklch(45% 0.109 73.3)",
+          "oklch(57% 0.109 73.3)",
+          "oklch(69% 0.109 73.3)",
+          "oklch(81% 0.109 73.3)",
+          "oklch(95% 0.109 73.3)"
+        ]
+      },
+      "brass-fader-amber-soft": {
+        "role": "primary",
+        "displayName": "Amber Soft",
+        "canonical": "rgba(229, 164, 79, 0.14)",
+        "tonalRamp": [
+          "oklch(15% 0.127 71.1)",
+          "oklch(25% 0.127 71.1)",
+          "oklch(35% 0.127 71.1)",
+          "oklch(45% 0.127 71.1)",
+          "oklch(57% 0.127 71.1)",
+          "oklch(69% 0.127 71.1)",
+          "oklch(81% 0.127 71.1)",
+          "oklch(95% 0.127 71.1)"
+        ]
+      },
+      "amber-ink": {
+        "role": "primary",
+        "displayName": "Amber Ink",
+        "canonical": "#251708",
+        "tonalRamp": [
+          "oklch(15% 0.034 66.5)",
+          "oklch(25% 0.034 66.5)",
+          "oklch(35% 0.034 66.5)",
+          "oklch(45% 0.034 66.5)",
+          "oklch(57% 0.034 66.5)",
+          "oklch(69% 0.034 66.5)",
+          "oklch(81% 0.034 66.5)",
+          "oklch(95% 0.034 66.5)"
+        ]
+      },
+      "selection-violet": {
+        "role": "secondary",
+        "displayName": "Selection Violet",
+        "canonical": "#9a8bdd",
+        "tonalRamp": [
+          "oklch(15% 0.119 291.3)",
+          "oklch(25% 0.119 291.3)",
+          "oklch(35% 0.119 291.3)",
+          "oklch(45% 0.119 291.3)",
+          "oklch(57% 0.119 291.3)",
+          "oklch(69% 0.119 291.3)",
+          "oklch(81% 0.119 291.3)",
+          "oklch(95% 0.119 291.3)"
+        ]
+      },
+      "live-green": {
+        "role": "tertiary",
+        "displayName": "Live Green",
+        "canonical": "#65c98a",
+        "tonalRamp": [
+          "oklch(15% 0.132 154.1)",
+          "oklch(25% 0.132 154.1)",
+          "oklch(35% 0.132 154.1)",
+          "oklch(45% 0.132 154.1)",
+          "oklch(57% 0.132 154.1)",
+          "oklch(69% 0.132 154.1)",
+          "oklch(81% 0.132 154.1)",
+          "oklch(95% 0.132 154.1)"
+        ]
+      },
+      "danger": {
+        "role": "neutral",
+        "displayName": "Danger",
+        "canonical": "#e07a6c",
+        "tonalRamp": [
+          "oklch(15% 0.129 29.0)",
+          "oklch(25% 0.129 29.0)",
+          "oklch(35% 0.129 29.0)",
+          "oklch(45% 0.129 29.0)",
+          "oklch(57% 0.129 29.0)",
+          "oklch(69% 0.129 29.0)",
+          "oklch(81% 0.129 29.0)",
+          "oklch(95% 0.129 29.0)"
+        ]
+      },
+      "danger-soft": {
+        "role": "neutral",
+        "displayName": "Danger Soft",
+        "canonical": "rgba(224, 122, 108, 0.12)",
+        "tonalRamp": [
+          "oklch(15% 0.129 29.0)",
+          "oklch(25% 0.129 29.0)",
+          "oklch(35% 0.129 29.0)",
+          "oklch(45% 0.129 29.0)",
+          "oklch(57% 0.129 29.0)",
+          "oklch(69% 0.129 29.0)",
+          "oklch(81% 0.129 29.0)",
+          "oklch(95% 0.129 29.0)"
+        ]
+      },
+      "surface-solid": {
+        "role": "neutral",
+        "displayName": "Surface Solid",
+        "canonical": "#1b1713",
+        "tonalRamp": [
+          "oklch(15% 0.010 67.2)",
+          "oklch(25% 0.010 67.2)",
+          "oklch(35% 0.010 67.2)",
+          "oklch(45% 0.010 67.2)",
+          "oklch(57% 0.010 67.2)",
+          "oklch(69% 0.010 67.2)",
+          "oklch(81% 0.010 67.2)",
+          "oklch(95% 0.010 67.2)"
+        ]
+      },
+      "surface-solid-raised": {
+        "role": "neutral",
+        "displayName": "Surface Solid Raised",
+        "canonical": "#26201a",
+        "tonalRamp": [
+          "oklch(15% 0.014 67.1)",
+          "oklch(25% 0.014 67.1)",
+          "oklch(35% 0.014 67.1)",
+          "oklch(45% 0.014 67.1)",
+          "oklch(57% 0.014 67.1)",
+          "oklch(69% 0.014 67.1)",
+          "oklch(81% 0.014 67.1)",
+          "oklch(95% 0.014 67.1)"
+        ]
+      },
+      "surface-well": {
+        "role": "neutral",
+        "displayName": "Surface Well",
+        "canonical": "#181511",
+        "tonalRamp": [
+          "oklch(15% 0.009 75.1)",
+          "oklch(25% 0.009 75.1)",
+          "oklch(35% 0.009 75.1)",
+          "oklch(45% 0.009 75.1)",
+          "oklch(57% 0.009 75.1)",
+          "oklch(69% 0.009 75.1)",
+          "oklch(81% 0.009 75.1)",
+          "oklch(95% 0.009 75.1)"
+        ]
+      },
+      "selection-violet-text": {
+        "role": "secondary",
+        "displayName": "Violet Text on Tint",
+        "canonical": "#b4a7ef",
+        "tonalRamp": [
+          "oklch(15% 0.102 292.1)",
+          "oklch(25% 0.102 292.1)",
+          "oklch(35% 0.102 292.1)",
+          "oklch(45% 0.102 292.1)",
+          "oklch(57% 0.102 292.1)",
+          "oklch(69% 0.102 292.1)",
+          "oklch(81% 0.102 292.1)",
+          "oklch(95% 0.102 292.1)"
+        ]
+      },
+      "live-green-text": {
+        "role": "tertiary",
+        "displayName": "Green Text on Tint",
+        "canonical": "#b3eac5",
+        "tonalRamp": [
+          "oklch(15% 0.076 155.2)",
+          "oklch(25% 0.076 155.2)",
+          "oklch(35% 0.076 155.2)",
+          "oklch(45% 0.076 155.2)",
+          "oklch(57% 0.076 155.2)",
+          "oklch(69% 0.076 155.2)",
+          "oklch(81% 0.076 155.2)",
+          "oklch(95% 0.076 155.2)"
+        ]
+      },
+      "danger-text": {
+        "role": "neutral",
+        "displayName": "Danger Text on Tint",
+        "canonical": "#f0a396",
+        "tonalRamp": [
+          "oklch(15% 0.094 29.9)",
+          "oklch(25% 0.094 29.9)",
+          "oklch(35% 0.094 29.9)",
+          "oklch(45% 0.094 29.9)",
+          "oklch(57% 0.094 29.9)",
+          "oklch(69% 0.094 29.9)",
+          "oklch(81% 0.094 29.9)",
+          "oklch(95% 0.094 29.9)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Screen titles and service names."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Dialog titles."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Panel headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Body copy and inputs."
+      },
+      "ui": {
+        "displayName": "UI",
+        "purpose": "Buttons, list titles, field labels."
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Secondary lines, timestamps, captions."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Uppercase section eyebrows."
+      },
+      "micro": {
+        "displayName": "Micro",
+        "purpose": "Badges, counts, key caps, tool labels. The 11px floor."
+      },
+      "headingSteps": {
+        "displayName": "Heading steps",
+        "purpose": "Serif sizes 16–36px plus 58px clock; pick the nearest existing step."
+      }
+    },
+    "shadows": [
+      {
+        "name": "panel-ambient",
+        "value": "0 8px 30px rgba(0, 0, 0, 0.22)",
+        "purpose": "Default under every panel."
+      },
+      {
+        "name": "overlay",
+        "value": "0 20px 60px rgba(0, 0, 0, 0.38)",
+        "purpose": "Popovers and floating menus."
+      },
+      {
+        "name": "dialog",
+        "value": "0 35px 100px rgba(0, 0, 0, 0.6)",
+        "purpose": "Modals and command palette."
+      },
+      {
+        "name": "amber-lift",
+        "value": "inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 17px rgba(190, 120, 42, 0.2)",
+        "purpose": "Primary button only."
+      },
+      {
+        "name": "live-glow",
+        "value": "0 0 0 1px rgba(101, 201, 138, 0.05), inset 0 0 26px rgba(101, 201, 138, 0.025)",
+        "purpose": "Current-output frame only."
+      },
+      {
+        "name": "focus-ring",
+        "value": "0 0 0 4px rgba(229, 164, 79, 0.12)",
+        "purpose": "Paired with a 2px amber outline on keyboard focus."
+      }
+    ],
+    "motion": [
+      {
+        "name": "state-fast",
+        "value": "0.15s ease",
+        "purpose": "Hover and color changes on controls."
+      },
+      {
+        "name": "state-switch",
+        "value": "0.18s ease",
+        "purpose": "Switch knobs and toggles."
+      },
+      {
+        "name": "dialog-in",
+        "value": "0.17s ease",
+        "purpose": "Backdrop fade and modal rise (7px)."
+      },
+      {
+        "name": "reduced",
+        "value": "120ms (opacity/color only)",
+        "purpose": "Reduce Motion: no movement, short fades stay."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "phone",
+        "value": "620px"
+      },
+      {
+        "name": "narrow",
+        "value": "820px"
+      },
+      {
+        "name": "tablet",
+        "value": "980px"
+      },
+      {
+        "name": "icon-rail",
+        "value": "1180px"
+      },
+      {
+        "name": "editor-rail",
+        "value": "1360px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one lit action per view: Present, Open service, Search, Add to slide.",
+      "html": "<button class=\"ds-btn-primary\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M7 4v16l13-8z\"/></svg>Present</button>",
+      "css": ".ds-btn-primary { display:inline-flex; align-items:center; gap:7px; min-height:38px; padding:0 14px; border:1px solid transparent; border-radius:9px; color:#251708; background:linear-gradient(180deg,#f0bb70,#dfa04b); box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 6px 17px rgba(190,120,42,.2); font:550 13px/1 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", sans-serif; cursor:pointer; transition:filter .15s ease; } .ds-btn-primary:hover { filter:brightness(1.06); } .ds-btn-primary:focus-visible { outline:2px solid rgba(229,164,79,.78); outline-offset:1px; box-shadow:0 0 0 4px rgba(229,164,79,.12); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined supporting action: Duplicate, New service, Add URL media.",
+      "html": "<button class=\"ds-btn-secondary\">Duplicate</button>",
+      "css": ".ds-btn-secondary { min-height:38px; padding:0 14px; border:1px solid rgba(255,243,222,.15); border-radius:9px; color:#cfc3b2; background:rgba(255,245,230,.045); font:550 13px/1 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", sans-serif; cursor:pointer; transition:color .15s ease, background .15s ease; } .ds-btn-secondary:hover { color:#f5eee2; background:rgba(255,245,230,.075); } .ds-btn-secondary:focus-visible { outline:2px solid rgba(229,164,79,.78); outline-offset:1px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Quiet tertiary action that recedes into the surface.",
+      "html": "<button class=\"ds-btn-ghost\">Cancel</button>",
+      "css": ".ds-btn-ghost { min-height:38px; padding:0 14px; border:1px solid transparent; border-radius:9px; color:#b3a796; background:transparent; font:550 13px/1 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", sans-serif; cursor:pointer; transition:color .15s ease, background .15s ease; } .ds-btn-ghost:hover { color:#f5eee2; background:rgba(255,245,230,.05); } .ds-btn-ghost:focus-visible { outline:2px solid rgba(229,164,79,.78); outline-offset:1px; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive actions: End live, Delete slide.",
+      "html": "<button class=\"ds-btn-danger\">End live</button>",
+      "css": ".ds-btn-danger { min-height:38px; padding:0 14px; border:1px solid rgba(224,122,108,.22); border-radius:9px; color:#f0a396; background:rgba(224,122,108,.1); font:550 13px/1 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", sans-serif; cursor:pointer; transition:background .15s ease; } .ds-btn-danger:hover { background:rgba(224,122,108,.16); } .ds-btn-danger:focus-visible { outline:2px solid rgba(229,164,79,.78); outline-offset:1px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Recessed dark field with label above; violet border on focus.",
+      "html": "<label class=\"ds-field\"><span>Title</span><input class=\"ds-input\" value=\"Welcome Home\"></label>",
+      "css": ".ds-field { display:flex; flex-direction:column; gap:6px; color:#b3a796; font:550 13px/1.2 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", sans-serif; } .ds-input { height:35px; padding:0 10px; border:1px solid rgba(255,243,222,.08); border-radius:8px; color:#f5eee2; background:rgba(8,7,6,.38); font:400 13px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", sans-serif; transition:border-color .15s ease, background .15s ease; } .ds-input:hover { border-color:rgba(255,243,222,.15); } .ds-input:focus { outline:none; border-color:rgba(154,139,221,.5); background:rgba(8,7,6,.52); }"
+    },
+    {
+      "name": "Live State Chip",
+      "kind": "chip",
+      "refersTo": "live-state",
+      "description": "Signature status chip; green only when the audience sees it.",
+      "html": "<span class=\"ds-live\"><span class=\"ds-live-dot\"></span>LIVE</span> <span class=\"ds-live ds-live-frozen\"><span class=\"ds-live-dot\"></span>FROZEN</span>",
+      "css": ".ds-live { display:inline-flex; align-items:center; gap:6px; height:25px; padding:0 9px; border:1px solid rgba(101,201,138,.3); border-radius:999px; color:#b3eac5; background:rgba(101,201,138,.12); font:700 12px/1 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", sans-serif; letter-spacing:.1em; } .ds-live-dot { width:6px; height:6px; border-radius:50%; background:#65c98a; box-shadow:0 0 0 3px rgba(101,201,138,.12); } .ds-live-frozen { border-color:rgba(154,139,221,.3); color:#c6baf5; background:rgba(154,139,221,.12); } .ds-live-frozen .ds-live-dot { background:#9a8bdd; box-shadow:0 0 0 3px rgba(154,139,221,.12); }"
+    },
+    {
+      "name": "Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Pill metadata badge; amber variant for highlights.",
+      "html": "<span class=\"ds-badge\">WEB</span> <span class=\"ds-badge ds-badge-amber\">Offline ready</span>",
+      "css": ".ds-badge { display:inline-flex; align-items:center; height:22px; padding:0 8px; border:1px solid rgba(255,243,222,.08); border-radius:999px; color:#b3a796; background:rgba(255,245,230,.035); font:550 12px/1 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", sans-serif; } .ds-badge-amber { border-color:rgba(229,164,79,.24); color:#f2bc74; background:rgba(229,164,79,.14); }"
+    },
+    {
+      "name": "Sidebar Nav Item",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Sidebar row; violet bar and tint mark the current screen.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item is-active\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\"><path d=\"M3 10l9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z\"/></svg>Home</a><a class=\"ds-nav-item\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\"><path d=\"M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z\"/></svg>Bible</a></nav>",
+      "css": ".ds-nav { display:flex; flex-direction:column; gap:2px; width:220px; padding-left:15px; } .ds-nav-item { position:relative; display:flex; align-items:center; gap:11px; min-height:40px; padding:0 11px; border-radius:9px; color:#b3a796; font:400 14px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", sans-serif; text-decoration:none; transition:color .15s ease, background .15s ease; } .ds-nav-item:hover { color:#f5eee2; background:rgba(255,244,226,.045); } .ds-nav-item.is-active { color:#f7eee0; background:linear-gradient(90deg,rgba(154,139,221,.14),rgba(154,139,221,.045)); } .ds-nav-item.is-active::before { content:\"\"; position:absolute; left:-15px; width:2px; height:19px; border-radius:0 2px 2px 0; background:#9a8bdd; } .ds-nav-item:focus-visible { outline:2px solid rgba(229,164,79,.78); outline-offset:1px; }"
+    },
+    {
+      "name": "Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Frosted glass container with serif title and uppercase eyebrow.",
+      "html": "<section class=\"ds-panel\"><span class=\"ds-eyebrow\">Live service</span><h3 class=\"ds-panel-title\">Next output</h3><p class=\"ds-panel-copy\">Queued after the current slide.</p></section>",
+      "css": ".ds-panel { width:300px; padding:15px; border:1px solid rgba(255,243,222,.08); border-radius:14px; background:linear-gradient(150deg,rgba(255,246,230,.025),transparent 46%),rgba(27,23,19,.72); box-shadow:0 8px 30px rgba(0,0,0,.22); backdrop-filter:blur(20px) saturate(115%); } .ds-eyebrow { color:#9a8f80; font:650 12px/1.2 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", sans-serif; letter-spacing:.16em; text-transform:uppercase; } .ds-panel-title { margin:5px 0 0; color:#f5eee2; font:500 19px \"Iowan Old Style\",Charter,Georgia,serif; letter-spacing:-.02em; } .ds-panel-copy { margin:4px 0 0; color:#9a8f80; font:400 12px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", sans-serif; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Quiet Control Room",
+    "overview": "Church Presenter is the room behind the room. The sanctuary is dim, the service is happening, and the operator's screen must glow just enough to work by without spilling light or attention. Everything sits on a warm, brown-tinted near-black, and frosted panels float a layer above it. Light is spent only where hands and eyes are needed: Brass Fader Amber on the one action that matters, Live Green on the slide the congregation is seeing, and nothing else competing.\n\nThe system is dense, like a mixing console, but never cramped. Labels are small and uppercase, controls are compact, and the canvas or current-output frame is always the largest, brightest thing on screen. A serif display face (Iowan Old Style) gives the headings a reverent, printed-page voice. The system sans carries every control, so the tool still reads as precise software.\n\nControls are quiet until needed. Ghost and outlined buttons recede into the surface. Only the primary amber action and the live state carry visual weight, so a volunteer can find \"what do I press next\" at a glance.",
+    "keyCharacteristics": [
+      "Warm dark base (Sanctuary Dark) with translucent frosted panels layered above it.",
+      "One accent voice: Brass Fader Amber for action, icons, and focus.",
+      "Three reserved state colors: green means live, violet means selected, red means destructive.",
+      "Serif display headings over a system-sans operator interface.",
+      "Dense, console-like spacing on a 4px rhythm. The 16:9 canvas is always the focal point."
+    ],
+    "rules": [
+      {
+        "name": "The One Source Rule",
+        "body": "Never hand-type an `rgba()` of an existing family. Use `rgb(var(--family-rgb) / alpha)`. Only shadow black, highlight white, button gradient stops and slide background art stay literal.",
+        "section": "colors"
+      },
+      {
+        "name": "The Green Means Live Rule",
+        "body": "Live Green appears only on the slide, output, or chip that is on the audience screen at this moment. Selected, saved, success, and \"ready\" states use amber or violet. Green is always paired with a visible \"LIVE\" label or dot, never color alone.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Voice Rule",
+        "body": "Brass Fader Amber is the only accent that asks for action. A screen has one filled amber button at most. Every other action is secondary, ghost, or a text link.",
+        "section": "colors"
+      },
+      {
+        "name": "The No Pure White Rule",
+        "body": "Text tops out at warm off-white (`text`). Pure `#fff` is reserved for slide content rendered on the audience canvas.",
+        "section": "colors"
+      },
+      {
+        "name": "The 11px Floor Rule",
+        "body": "No operator-facing text is smaller than 11px. The booth is dim, and the screen is often a laptop across a desk. Slide content on the canvas is exempt because it scales with the canvas.",
+        "section": "typography"
+      },
+      {
+        "name": "The Steady Digits Rule",
+        "body": "Clocks, timers, slide positions, and counts use tabular numerals so they don't shift while live.",
+        "section": "typography"
+      },
+      {
+        "name": "The Canvas Is the Center Rule",
+        "body": "In the editor and in live mode, the 16:9 slide is the largest element on screen at every width. Panels give up space before the canvas does.",
+        "section": "layout"
+      },
+      {
+        "name": "The Reflow, Never Hide Rule",
+        "body": "Narrow widths move panels; they never remove a feature. The inspector, rundown, next slide, and history must be reachable at every size.",
+        "section": "layout"
+      },
+      {
+        "name": "The Ambient Only Rule",
+        "body": "Shadows are soft and offset downward. No hard offset shadows and no colored halos, except the amber lift on the primary button and the live glow on the output frame.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Seven Corners Rule",
+        "body": "Use a `--rounded-*` step, never a raw pixel radius. Slide content on the canvas is exempt because it scales with the canvas.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "**Do** keep Live Green exclusively for audience-visible state, always with a \"LIVE\" word or dot.",
+      "**Do** use Selection Violet for selected or editing state: rundown row, canvas element, active tab.",
+      "**Do** limit each view to one filled amber button. Make everything else secondary, ghost, or a link.",
+      "**Do** set screen titles, service names, dialog titles, and panel titles in the serif. Set everything interactive in the system sans.",
+      "**Do** keep operator text at 11px or larger, and use tabular numerals for anything that counts or ticks.",
+      "**Do** use warm off-white hairlines (8–15% opacity) for borders and the 9px / 14px radius pair for controls and panels.",
+      "**Do** reflow panels at narrow widths. The canvas stays the largest thing on screen.",
+      "**Do** respect the Reduce Transparency and Reduce Motion settings. Both must keep working."
+    ],
+    "donts": [
+      "**Don't** use green for success toasts, \"saved\" states, or selection.",
+      "**Don't** use pure white UI text, solid grey borders, or a light theme surface.",
+      "**Don't** leave native grey form controls. Every select and input takes the recessed dark field style.",
+      "**Don't** add hard offset shadows or colored glows beyond the amber lift and the live frame glow.",
+      "**Don't** hide the inspector, rundown, next slide, or history at small widths. Move them instead.",
+      "**Don't** set operator UI text below 11px, and don't put a second framed focus box inside an already-framed field."
+    ]
+  }
+}

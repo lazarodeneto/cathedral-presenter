@@ -1,0 +1,39 @@
+{
+  "buildPath": "code",
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-color",
+        "value": "#0b1020",
+        "createdAt": "2026-10-28T12:29:08.962Z",
+        "reason": "Claude: test fixture for a custom church background in src/tests/branding.test.ts, not app UI"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "sans",
+        "createdAt": "2026-10-28T12:34:28.400Z",
+        "reason": "Claude: 'sans' is a message-box setting key that maps to var(--font-ui) (DESIGN.md body font), not a CSS font family"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#123",
+        "createdAt": "2026-10-28T12:39:25.201Z",
+        "reason": "Claude: colour-normalization fixture in src/tests/messageBox.test.tsx, not app UI"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#112233",
+        "createdAt": "2026-10-28T12:39:25.237Z",
+        "reason": "Claude: colour-normalization fixture in src/tests/messageBox.test.tsx, not app UI"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "comic sans",
+        "createdAt": "2026-10-28T12:39:25.271Z",
+        "reason": "Claude: tampered-data fixture proving unknown fonts are rejected in src/tests/messageBox.test.tsx"
+      }
+    ]
+  }
+}

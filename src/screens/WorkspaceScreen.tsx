@@ -1,0 +1,1945 @@
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useResizablePane } from '../hooks/useResizablePane'
+import {
+  AlignCenter,
+  AlignCenterHorizontal,
+  AlignEndHorizontal,
+  AlignLeft,
+  AlignRight,
+  AlignStartHorizontal,
+  ArrowDown,
+  Archive,
+  ArrowLeft,
+  Pencil,
+  ArrowUp,
+  BookOpen,
+  Check,
+  Clipboard,
+  ClipboardPaste,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Circle,
+  Copy,
+  Film,
+  Image as ImageIcon,
+  Layers,
+  LayoutGrid,
+  Menu,
+  Megaphone,
+  Mic2,
+  Monitor,
+  PanelRight,
+  Music4,
+  Play,
+  Plus,
+  QrCode,
+  Radio,
+  Snowflake,
+  Square,
+  Trash2,
+  Type,
+  Video,
+  X,
+  ImagePlus,
+  Timer as TimerIcon,
+} from 'lucide-react'
+import type { ContentType, ElementType, Slide, SlideElement } from '../types'
+import { BACKGROUND_PRESETS } from '../data/templates'
+import { useAppStore } from '../store/useAppStore'
+import { useToasts } from '../store/useToasts'
+import { useT } from '../i18n/useT'
+import { navigate } from '../hooks/useHashRoute'
+import { flatSlides, serviceSectionForItem } from '../store/serviceUtils'
+import { isLikelyOverflow, makeElement, makeTextElement } from '../utils/slides'
+import { sanitizeEditableText, sanitizeText } from '../security/text'
+import { webOutputProvider } from '../providers/output/WebOutputProvider'
+import { SlideRenderer } from '../components/SlideRenderer'
+import { AddContentModal } from '../components/AddContentModal'
+import { ConfirmDialog, Modal } from '../components/Modal'
+import { EditorToolbar, ElementActionRail } from '../components/editor/EditorToolbar'
+import { EditorMediaDialog, mediaError, type MediaDialogMode } from '../components/editor/EditorMediaDialog'
+import { EditorBackgroundDialog } from '../components/editor/EditorBackgroundDialog'
+import { LogoPlacementDialog, type LogoCorner, type LogoShape } from '../components/editor/LogoPlacementDialog'
+import { QrComposer } from '../components/editor/QrComposer'
+import { LayersPanel } from '../components/editor/LayersPanel'
+import { TimerControls } from '../components/timer/TimerControls'
+import { MessageBoxInspector } from '../components/editor/MessageBoxInspector'
+import { makeMessageElement } from '../utils/messageBox'
+import { itemOrigin, presentationProblem } from '../utils/culto'
+import { CultoFormDialog } from '../components/culto/CultoFormDialog'
+import { StatusChip } from '../components/culto/StatusChip'
+import { LiveControlBar } from '../components/editor/LiveControlBar'
+import { useShortcutHandlers } from '../shortcuts/registry'
+import { redo, undo } from '../store/history'
+import { createTimer, timerStatusAt } from '../utils/timer'
+import { TimerDurationField } from '../components/timer/TimerDurationField'
+import {
+  mediaElementFromAsset,
+  prepareUploadedMedia,
+  qrElement,
+  type QrVariant,
+} from '../providers/media/mediaWorkflow'
+
+// Same bounds the canvas uses for pointer and keyboard move/resize.
+const GEOMETRY_FIELDS = [
+  { key: 'x', label: 'X', min: -10, max: 100 },
+  { key: 'y', label: 'Y', min: -10, max: 100 },
+  { key: 'width', label: 'editor.width', min: 4, max: 160 },
+  { key: 'height', label: 'editor.height', min: 4, max: 160 },
+] as const
+
+const TYPE_ICONS: Record<ContentType, typeof BookOpen> = {
+  bible: BookOpen,
+  song: Music4,
+  announcement: Megaphone,
+  sermon: Mic2,
+  blank: Square,
+  media: ImageIcon,
+  timer: TimerIcon,
+}
+
+function shapeColorValue(value: string | undefined): { hex: string; alpha: number } {
+  const rgba = value?.match(
+    /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\s*\)$/i,
+  )
+  if (rgba) {
+    const channels = rgba.slice(1, 4).map((channel) => Math.min(255, Math.max(0, Number(channel))))
+    return {
+      hex: '#' + channels.map((channel) => channel.toString(16).padStart(2, '0')).join(''),
+      alpha: rgba[4] ? Math.min(1, Math.max(0, Number(rgba[4]))) : 1,
+    }
+  }
+  if (/^#[0-9a-f]{6}$/i.test(value ?? '')) {
+    return { hex: value as string, alpha: 1 }
+  }
+  return { hex: '#e8a44a', alpha: 0.22 }
+}
+
+function rgbaColor(hex: string, alpha: number): string {
+  const channels = hex
+    .slice(1)
+    .match(/.{2}/g)
+    ?.map((channel) => Number.parseInt(channel, 16)) ?? [232, 164, 74]
+  return 'rgba(' + channels.join(',') + ',' + alpha.toFixed(2) + ')'
+}
+
+function ElementIcon({ type }: { type: ElementType }) {
+  if (type === 'image') return <ImageIcon size={13} />
+  if (type === 'video') return <Film size={13} />
+  if (type === 'shape') return <Circle size={13} />
+  if (type === 'qr') return <QrCode size={13} />
+  if (type === 'embed') return <Video size={13} />
+  return <Type size={13} />
+}
+
+export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceId?: string; presentOnOpen?: boolean }) {
+  const t = useT()
+  const services = useAppStore((state) => state.services)
+  const activeServiceId = useAppStore((state) => state.activeServiceId)
+  const selectedItemId = useAppStore((state) => state.selectedItemId)
+  const selectedSlideId = useAppStore((state) => state.selectedSlideId)
+  const selectedElementId = useAppStore((state) => state.selectedElementId)
+  const branding = useAppStore((state) => state.branding)
+  const pasteSlide = useAppStore((state) => state.pasteSlide)
+  const selectService = useAppStore((state) => state.selectService)
+  const selectItem = useAppStore((state) => state.selectItem)
+  const selectSlide = useAppStore((state) => state.selectSlide)
+  const selectElement = useAppStore((state) => state.selectElement)
+  const updateSlide = useAppStore((state) => state.updateSlide)
+  const updateNotes = useAppStore((state) => state.updateNotes)
+  const setSlideBackground = useAppStore((state) => state.setSlideBackground)
+  const addBlankSlide = useAppStore((state) => state.addBlankSlide)
+  const duplicateSlide = useAppStore((state) => state.duplicateSlide)
+  const deleteSlide = useAppStore((state) => state.deleteSlide)
+  const removeItem = useAppStore((state) => state.removeItem)
+  const addElement = useAppStore((state) => state.addElement)
+  const updateElement = useAppStore((state) => state.updateElement)
+  const addMediaAsset = useAppStore((state) => state.addMedia)
+  const removeElement = useAppStore((state) => state.removeElement)
+  const duplicateElement = useAppStore((state) => state.duplicateElement)
+  const reorderElement = useAppStore((state) => state.reorderElement)
+  const addSection = useAppStore((state) => state.addSection)
+  const deleteSection = useAppStore((state) => state.deleteSection)
+  const moveItem = useAppStore((state) => state.moveItem)
+  const startLive = useAppStore((state) => state.startLive)
+  const live = useAppStore((state) => state.live)
+  const endLive = useAppStore((state) => state.endLive)
+  const nextLive = useAppStore((state) => state.nextLive)
+  const prevLive = useAppStore((state) => state.prevLive)
+  const jumpLive = useAppStore((state) => state.jumpLive)
+  const toggleBlank = useAppStore((state) => state.toggleBlank)
+  const toggleFreeze = useAppStore((state) => state.toggleFreeze)
+  const setMessageVisible = useAppStore((state) => state.setMessageVisible)
+  const updateItemTitle = useAppStore((state) => state.updateItemTitle)
+  const push = useToasts((state) => state.push)
+
+  const service = services.find((entry) => entry.id === serviceId) ?? null
+  const [addOpen, setAddOpen] = useState(false)
+  const inspectorPane = useResizablePane('church-presenter:inspector-width', { initial: 288, min: 260, max: 420 })
+  const [sectionForAdd, setSectionForAdd] = useState('')
+  const [addElementOpen, setAddElementOpen] = useState(false)
+  const [mediaDialog, setMediaDialog] = useState<{ open: boolean; mode: MediaDialogMode }>({
+    open: false,
+    mode: 'image',
+  })
+  const [qrOpen, setQrOpen] = useState(false)
+  const [layersOpen, setLayersOpen] = useState(false)
+  const [backgroundOpen, setBackgroundOpen] = useState(false)
+  const [logoPlacementOpen, setLogoPlacementOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+  const [aspectMenuOpen, setAspectMenuOpen] = useState(false)
+  const [copiedSlide, setCopiedSlide] = useState<Slide | null>(null)
+  const [slideAspectRatio, setSlideAspectRatio] = useState<'wide' | 'classic'>('wide')
+  const [sectionInputOpen, setSectionInputOpen] = useState(false)
+  const [sectionTitle, setSectionTitle] = useState('')
+  const [confirm, setConfirm] = useState<
+    | { kind: 'item'; itemId: string }
+    | { kind: 'slide'; itemId: string; slideId: string }
+    | { kind: 'section'; sectionId: string }
+    | null
+  >(null)
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const restoreService = useAppStore((state) => state.restoreService)
+  const duplicateItem = useAppStore((state) => state.duplicateItem)
+  const [canvasDrop, setCanvasDrop] = useState<'idle' | 'over' | 'uploading'>('idle')
+  /** How much each message box shrank its text to fit, reported by the canvas. */
+  const [messageFit, setMessageFit] = useState<Record<string, number>>({})
+  const [mobileRundown, setMobileRundown] = useState(false)
+  const [mobileInspector, setMobileInspector] = useState(false)
+  const [endOpen, setEndOpen] = useState(false)
+  const thumbsRef = useRef<HTMLDivElement>(null)
+  const [fontApplyAll, setFontApplyAll] = useState<{
+    itemId: string
+    patch: Partial<Pick<Slide, 'fontFamily' | 'fontSize' | 'fontWeight'>>
+  } | null>(null)
+  const isLive = Boolean(live && live.serviceId === serviceId)
+
+  useEffect(() => {
+    if (serviceId && activeServiceId !== serviceId) {
+      selectService(serviceId)
+    }
+  }, [activeServiceId, selectService, serviceId])
+
+  const activeItem = useMemo(() => {
+    if (!service) return null
+    const direct = service.items.find((item) => item.id === selectedItemId)
+    if (direct) return direct
+    const firstId = service.sections[0]?.itemIds[0]
+    return service.items.find((item) => item.id === firstId) ?? service.items[0] ?? null
+  }, [selectedItemId, service])
+
+  const activeSlide =
+    activeItem?.slides.find((slide) => slide.id === selectedSlideId) ?? activeItem?.slides[0] ?? null
+  const activeSlideRef = useRef(activeSlide)
+  activeSlideRef.current = activeSlide
+  const isLiveRef = useRef(isLive)
+  isLiveRef.current = isLive
+  const goLiveRef = useRef<() => void>(() => {})
+
+  useEffect(() => {
+    if (!presentOnOpen || !serviceId || !activeSlideRef.current || isLiveRef.current) return
+    goLiveRef.current()
+    window.history.replaceState(null, '', `#/service/${serviceId}`)
+  }, [presentOnOpen, serviceId])
+
+  const activeSection = service && activeItem ? serviceSectionForItem(service, activeItem.id) : null
+  const selectedElement =
+    activeSlide?.elements.find((element) => element.id === selectedElementId) ?? null
+  const allSlides = service ? flatSlides(service) : []
+  const itemSlideIndex = activeSlide && activeItem ? activeItem.slides.findIndex((slide) => slide.id === activeSlide.id) : -1
+  const overflow = activeSlide ? isLikelyOverflow(activeSlide) : false
+
+  // Editor shortcuts (configurable in Settings → Shortcuts). They run the same
+  // actions as the Present button, the timer controls, and the undo history.
+  const timerCommand = useAppStore((state) => state.timerCommand)
+  const timers = useAppStore((state) => state.timers)
+  const timerOnSlide = (command: 'pause' | 'reset') => {
+    if (activeSlide?.kind !== 'timer') return false
+    timerCommand(activeSlide.id, command)
+  }
+  useShortcutHandlers('editor', {
+    'editor.present': () => {
+      if (!activeSlide) return false
+      toggleLive()
+    },
+    'timer.start': () => {
+      if (activeSlide?.kind !== 'timer') return false
+      const runtime = timers[activeSlide.id] ?? createTimer(activeSlide.timer?.durationSeconds ?? 0)
+      timerCommand(activeSlide.id, timerStatusAt(runtime, Date.now()) === 'paused' ? 'resume' : 'start')
+    },
+    'timer.pause': () => timerOnSlide('pause'),
+    'timer.reset': () => timerOnSlide('reset'),
+    'app.undo': () => {
+      push(undo() ? t('shortcuts.undone') : t('shortcuts.nothingToUndo'), 'info')
+    },
+    'app.redo': () => {
+      push(redo() ? t('shortcuts.redone') : t('shortcuts.nothingToRedo'), 'info')
+    },
+  })
+
+  const liveSlides = service ? flatSlides(service) : []
+  const liveCurrentSlide = live ? liveSlides.find((s) => s.slide.id === live.currentSlideId) ?? null : null
+  useShortcutHandlers(
+    'presentation',
+    {
+      'live.next': () => nextLive(),
+      'live.prev': () => prevLive(),
+      'live.first': () => { if (liveSlides[0]) jumpLive(liveSlides[0].slide.id) },
+      'live.last': () => { const last = liveSlides.at(-1); if (last) jumpLive(last.slide.id) },
+      'live.blank': () => toggleBlank(),
+      'live.freeze': () => toggleFreeze(),
+      'live.message': () => {
+        if (live?.message && live.messageVisible) setMessageVisible(false)
+        else if (live?.message) setMessageVisible(true)
+      },
+      'live.exit': () => setEndOpen(true),
+      'timer.start': () => {
+        if (liveCurrentSlide?.slide.kind !== 'timer') return false
+        const runtime = timers[liveCurrentSlide.slide.id] ?? createTimer(liveCurrentSlide.slide.timer?.durationSeconds ?? 0)
+        timerCommand(liveCurrentSlide.slide.id, timerStatusAt(runtime, Date.now()) === 'paused' ? 'resume' : 'start')
+      },
+      'timer.pause': () => {
+        if (liveCurrentSlide?.slide.kind !== 'timer') return false
+        timerCommand(liveCurrentSlide.slide.id, 'pause')
+      },
+      'timer.reset': () => {
+        if (liveCurrentSlide?.slide.kind !== 'timer') return false
+        timerCommand(liveCurrentSlide.slide.id, 'reset')
+      },
+    },
+    isLive,
+  )
+
+  const confirmEndLive = () => {
+    endLive()
+    setEndOpen(false)
+    push(t('live.ended'), 'info')
+  }
+
+  const deleteSelected = useCallback(() => {
+    if (!service || !selectedElement || !activeItem || !activeSlide) return
+    removeElement(service.id, activeItem.id, activeSlide.id, selectedElement.id)
+    push(t('toast.elementDeleted'), 'success')
+  }, [activeItem, activeSlide, push, removeElement, selectedElement, service, t])
+
+  useEffect(() => {
+    const handleDeleteKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Backspace' && event.key !== 'Delete') return
+      if (!selectedElement || !activeItem || !activeSlide) return
+      const target = event.target
+      if (
+        target instanceof HTMLElement &&
+        target.closest('input, textarea, select, button, a, [contenteditable="true"], [role="dialog"]')
+      ) {
+        return
+      }
+      event.preventDefault()
+      deleteSelected()
+    }
+    window.addEventListener('keydown', handleDeleteKey)
+    return () => window.removeEventListener('keydown', handleDeleteKey)
+  }, [activeItem, activeSlide, deleteSelected, selectedElement])
+
+  const goLive = () => {
+    if (!service || !activeSlide) return
+    webOutputProvider.openOutput('audience')
+    startLive(service.id, activeSlide.id)
+  }
+  goLiveRef.current = goLive
+
+  if (!service) {
+    return (
+      <div className="empty-workspace">
+        <LayoutGrid size={34} />
+        <h2>{t('editor.noService')}</h2>
+        <p>{t('editor.serviceNotFoundCopy')}</p>
+        <button className="btn btn-primary" onClick={() => navigate('/home')}>
+          {t('editor.backHome')}
+        </button>
+      </div>
+    )
+  }
+
+  const openAdd = (sectionId: string) => {
+    setSectionForAdd(sectionId)
+    setAddOpen(true)
+  }
+
+  const commitBibleText = (which: 'primary' | 'secondary', value: string) => {
+    if (!activeItem || !activeSlide?.bible) return
+    const text = sanitizeText(value, 12000)
+    const bible = {
+      ...activeSlide.bible,
+      primary:
+        which === 'primary'
+          ? { ...activeSlide.bible.primary, text }
+          : activeSlide.bible.primary,
+      secondary:
+        which === 'secondary' && activeSlide.bible.secondary
+          ? { ...activeSlide.bible.secondary, text }
+          : activeSlide.bible.secondary,
+    }
+    updateSlide(service.id, activeItem.id, activeSlide.id, {
+      bible,
+      text: which === 'primary' ? text : activeSlide.text,
+    })
+  }
+
+  const insertElement = (element: SlideElement) => {
+    if (!activeItem || !activeSlide) return
+    addElement(service.id, activeItem.id, activeSlide.id, element)
+    setAddElementOpen(false)
+    push(t('toast.elementAdded'), 'success')
+  }
+
+  const addText = () => {
+    const element = makeTextElement(t('editor.text'), {
+      x: 22,
+      y: 44,
+      width: 56,
+      height: 9,
+      settings: { fontSize: 54, fontWeight: 600, align: 'center', lineHeight: 1.1, textShadow: true },
+    })
+    insertElement(element)
+  }
+
+  const addShape = () => {
+    const element = makeElement('shape', {
+      x: 34,
+      y: 34,
+      width: 32,
+      height: 26,
+      settings: { shape: 'rect', fill: 'rgba(232,164,74,0.22)', radius: 18 },
+    })
+    insertElement(element)
+  }
+
+  const addMessage = () => insertElement(makeMessageElement(t('message.defaultText')))
+
+  const addQrPayload = (payload: string, variant: QrVariant) => {
+    insertElement(qrElement(payload, variant))
+  }
+
+  const addMedia = (asset: Parameters<typeof mediaElementFromAsset>[0]) => {
+    insertElement(
+      mediaElementFromAsset(asset, {
+        providerLabel: t(
+          asset.provider === 'youtube'
+            ? 'editor.youtubeProvider'
+            : asset.provider === 'url'
+              ? 'media.remote'
+              : 'media.localOnly',
+        ),
+        fallbackText: t(asset.kind === 'image' ? 'editor.image' : 'editor.video'),
+      }),
+    )
+  }
+
+  const dropFilesOnCanvas = async (files: FileList) => {
+    if (!activeSlide || !files.length) return
+    setCanvasDrop('uploading')
+    for (const file of Array.from(files)) {
+      const result = await prepareUploadedMedia(file)
+      if (!result.ok || !result.asset) {
+        push(mediaError(result.reason, t), 'error')
+        continue
+      }
+      addMediaAsset(result.asset)
+      addMedia(result.asset)
+    }
+    setCanvasDrop('idle')
+  }
+
+  const toggleSelectedVisible = () => {
+    if (!selectedElement || !activeItem || !activeSlide) return
+    updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
+      visible: !selectedElement.visible,
+    })
+  }
+
+  const duplicateSelected = () => {
+    if (!selectedElement || !activeItem || !activeSlide) return
+    duplicateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id)
+  }
+
+  const fillBackgroundWithSelectedImage = () => {
+    if (
+      !selectedElement ||
+      selectedElement.type !== 'image' ||
+      !selectedElement.source ||
+      !activeItem ||
+      !activeSlide
+    ) {
+      return
+    }
+    setSlideBackground(service.id, activeItem.id, activeSlide.id, {
+      type: 'image',
+      source: selectedElement.source,
+      overlay: 0.46,
+      backgroundPosition: '50% 50%',
+      backgroundZoom: 100,
+      tone: 'dark',
+    })
+    removeElement(service.id, activeItem.id, activeSlide.id, selectedElement.id)
+    push(t('editor.useAsBackground'), 'success')
+  }
+
+  const addLogoToSlide = (corner: LogoCorner, shape: LogoShape) => {
+    if (!activeItem || !activeSlide || !branding.logoUrl) {
+      push(t('settings.uploadLogo'), 'error')
+      return
+    }
+    const margin = 4
+    const size = 11
+    // height% must compensate for the canvas aspect ratio so square/circle render as square/circle.
+    // Percentages are relative to canvas width and height independently; canvas is 1920:1080 (wide) or 4:3 (classic).
+    const [aw, ah] = slideAspectRatio === 'wide' ? [1920, 1080] : [4, 3]
+    const height = Math.round(size * aw / ah * 10) / 10
+    addElement(service.id, activeItem.id, activeSlide.id, makeElement('image', {
+      source: branding.logoUrl,
+      text: branding.name,
+      x: corner.includes('right') ? 100 - margin - size : margin,
+      y: corner.includes('bottom') ? 100 - margin - height : margin,
+      width: size,
+      height,
+      settings: {
+        fit: 'contain',
+        radius: shape === 'circle' ? 999 : 0,
+        cropX: 50,
+        cropY: 50,
+        cropZoom: 1,
+      },
+    }))
+  }
+
+  const alignSelected = (axis: 'horizontal' | 'vertical', value: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => {
+    if (!selectedElement || !activeItem || !activeSlide) return
+    const patch =
+      axis === 'horizontal'
+        ? { x: value === 'left' ? 4 : value === 'center' ? 50 - selectedElement.width / 2 : 96 - selectedElement.width }
+        : { y: value === 'top' ? 4 : value === 'middle' ? 50 - selectedElement.height / 2 : 96 - selectedElement.height }
+    updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, patch)
+  }
+
+  const toggleLive = () => {
+    if (isLive) {
+      setEndOpen(true)
+    } else {
+      goLive()
+    }
+  }
+
+  return (
+    <div className="screen workspace-screen">
+      {service.status === 'archived' && (
+        <div className="workspace-banner" role="status">
+          <Archive size={15} />
+          <span>{t('culto.archivedBanner')}</span>
+          <button
+            className="text-link"
+            onClick={() => {
+              if (restoreService(service.id)) push(t('culto.restored', { title: service.title }), 'success')
+            }}
+          >
+            {t('culto.restore')}
+          </button>
+        </div>
+      )}
+      <CultoFormDialog open={detailsOpen} service={service} onClose={() => setDetailsOpen(false)} />
+
+      <div className="workspace" style={{ '--inspector-w': `${inspectorPane.width}px` } as CSSProperties}>
+        {mobileRundown && <button className="drawer-scrim" onClick={() => setMobileRundown(false)} aria-label={t('common.close')} />}
+        {mobileInspector && <button className="drawer-scrim" onClick={() => setMobileInspector(false)} aria-label={t('common.close')} />}
+        <aside className={`rundown panel ${mobileRundown ? 'is-drawer-open' : ''}`}>
+          <div className="rundown-identity">
+            <button className="icon-btn" onClick={() => navigate('/services')} aria-label={t('nav.services')}>
+              <ArrowLeft size={16} />
+            </button>
+            <h1>{service.title}</h1>
+            <StatusChip status={service.status} />
+            <span className="save-state" title={t('editor.autosave')} aria-label={t('editor.autosave')}>
+              <Check size={13} />
+            </span>
+          </div>
+          <div className="rundown-head">
+            <div>
+              <h2>{t('editor.rundown')}</h2>
+            </div>
+            <button className="icon-btn" onClick={() => setSectionInputOpen(true)} aria-label={t('editor.addSection')}>
+              <Plus size={16} />
+            </button>
+          </div>
+          <div className="rundown-scroll">
+            {service.sections.map((section) => {
+              const isCollapsed = collapsed.has(section.id)
+              return (
+                <div key={section.id} className="rundown-section">
+                  <div className="rundown-section-head">
+                    <button
+                      className="section-collapse"
+                      onClick={() => {
+                        const next = new Set(collapsed)
+                        if (next.has(section.id)) next.delete(section.id)
+                        else next.add(section.id)
+                        setCollapsed(next)
+                      }}
+                    >
+                      {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                      <span>{section.title}</span>
+                      <small>{section.itemIds.length}</small>
+                    </button>
+                    <div className="section-actions">
+                      <button
+                        className="icon-btn icon-btn-xs"
+                        onClick={() => openAdd(section.id)}
+                        aria-label={t('editor.addContent')}
+                      >
+                        <Plus size={13} />
+                      </button>
+                      <button
+                        className="icon-btn icon-btn-xs"
+                        onClick={() => setConfirm({ kind: 'section', sectionId: section.id })}
+                        aria-label={t('common.delete')}
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  </div>
+                  {!isCollapsed &&
+                    section.itemIds.map((itemId) => {
+                      const item = service.items.find((entry) => entry.id === itemId)
+                      if (!item) return null
+                      const Icon = TYPE_ICONS[item.type] ?? Square
+                      const selected = item.id === activeItem?.id
+                      return (
+                        <div key={item.id} className={`rundown-item-wrap ${selected ? 'is-selected' : ''}`}>
+                          <div className="rundown-item">
+                            <button
+                              type="button"
+                              className="rundown-item-main"
+                              aria-current={selected ? 'true' : undefined}
+                              onClick={() => { selectItem(item.id); setMobileRundown(false) }}
+                            >
+                              <span className="rundown-type">
+                                <Icon size={15} />
+                              </span>
+                              <span className="rundown-copy">
+                                <strong>{item.title}</strong>
+                                <span>
+                                  {item.slides.length} {t(item.slides.length === 1 ? 'common.slide' : 'common.slides')} · {t(`type.${item.type}`)}
+                                </span>
+                              </span>
+                            </button>
+                            <span className="rundown-actions">
+                              <button
+                                type="button"
+                                className="icon-btn icon-btn-xs"
+                                onClick={() => moveItem(service.id, item.id, -1)}
+                                aria-label={`${t('common.moveUp')}: ${item.title}`}
+                              >
+                                <ArrowUp size={12} />
+                              </button>
+                              <button
+                                type="button"
+                                className="icon-btn icon-btn-xs"
+                                onClick={() => moveItem(service.id, item.id, 1)}
+                                aria-label={`${t('common.moveDown')}: ${item.title}`}
+                              >
+                                <ArrowDown size={12} />
+                              </button>
+                              <button
+                                type="button"
+                                className="icon-btn icon-btn-xs"
+                                onClick={() => {
+                                  if (duplicateItem(service.id, item.id)) push(t('culto.itemDuplicated'), 'success')
+                                }}
+                                aria-label={`${t('culto.duplicateItem')}: ${item.title}`}
+                                title={t('culto.duplicateItem')}
+                              >
+                                <Copy size={12} />
+                              </button>
+                            </span>
+                          </div>
+                          {selected && (
+                            <div className="rundown-slides">
+                              {item.slides.map((slide, index) => (
+                                <button
+                                  key={slide.id}
+                                  className={`rundown-slide ${slide.id === activeSlide?.id ? 'is-active' : ''}`}
+                                  onClick={() => { selectSlide(item.id, slide.id); setMobileRundown(false) }}
+                                >
+                                  <span>{index + 1}</span>
+                                  <span>{slide.title || slide.text.slice(0, 42) || t('editor.blankSlide')}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                </div>
+              )
+            })}
+            {sectionInputOpen && (
+              <form
+                className="new-section-form"
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  if (!sectionTitle.trim()) return
+                  addSection(service.id, sectionTitle.trim())
+                  setSectionTitle('')
+                  setSectionInputOpen(false)
+                  push(t('toast.sectionAdded'), 'success')
+                }}
+              >
+                <input
+                  autoFocus
+                  value={sectionTitle}
+                  onChange={(event) => setSectionTitle(event.target.value)}
+                  placeholder={t('editor.sectionTitle')}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Escape') setSectionInputOpen(false)
+                  }}
+                />
+                <button className="icon-btn" type="submit">
+                  <Check size={14} />
+                </button>
+              </form>
+            )}
+            <button className="rundown-add-section" onClick={() => setSectionInputOpen(true)}>
+              <Plus size={14} />
+              {t('editor.addSection')}
+            </button>
+          </div>
+        </aside>
+
+        <section className="editor-center">
+          <div className="editor-stage">
+            <div className="editor-stage-head">
+              <button className="mobile-drawer-toggle mobile-rundown-toggle" onClick={() => setMobileRundown(true)} aria-label={t('editor.rundown')}>
+                <Menu size={18} />
+              </button>
+              <div className="stage-breadcrumb">
+                <span>{activeSection?.title ?? t('editor.sectionTitle')}</span>
+                <ChevronRight size={12} />
+                <strong>{activeItem?.title ?? t('editor.noSelection')}</strong>
+              </div>
+              <div className="stage-actions">
+                <span className="muted-note">
+                  {activeSlide
+                    ? t('editor.slidePosition', {
+                        current: itemSlideIndex + 1,
+                        total: activeItem?.slides.length ?? 0,
+                      })
+                    : t('editor.noSelection')}
+                </span>
+                <div className="popover-wrap">
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => setAddElementOpen(!addElementOpen)}
+                    disabled={!activeSlide}
+                  >
+                    <Plus size={14} />
+                    {t('editor.element')}
+                    <ChevronDown size={13} />
+                  </button>
+                  {addElementOpen && (
+                    <>
+                      <button className="popover-scrim" onClick={() => setAddElementOpen(false)} aria-label={t('common.close')} />
+                      <div className="popover">
+                        <button onClick={addText}>
+                          <Type size={15} />
+                          {t('editor.text')}
+                        </button>
+                        <button onClick={addShape}>
+                          <Circle size={15} />
+                          {t('editor.shape')}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setAddElementOpen(false)
+                            setQrOpen(true)
+                          }}
+                        >
+                          <QrCode size={15} />
+                          {t('editor.qr')}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setAddElementOpen(false)
+                            setMediaDialog({ open: true, mode: 'image' })
+                          }}
+                        >
+                          <ImageIcon size={15} />
+                          {t('editor.image')}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setAddElementOpen(false)
+                            setMediaDialog({ open: true, mode: 'video' })
+                          }}
+                        >
+                          <Film size={15} />
+                          {t('editor.video')}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+                <button
+                  className="icon-btn"
+                  onClick={() => {
+                    if (!activeSlide) return
+                    setCopiedSlide(activeSlide)
+                    push(t('toast.copied'), 'success')
+                  }}
+                  disabled={!activeSlide}
+                  aria-label={t('editor.copySlide')}
+                  title={t('editor.copySlide')}
+                >
+                  <Clipboard size={15} />
+                </button>
+                <button
+                  className="icon-btn"
+                  onClick={() => {
+                    if (!activeItem || !copiedSlide) return
+                    pasteSlide(service.id, activeItem.id, copiedSlide)
+                    push(t('toast.slidePasted'), 'success')
+                  }}
+                  disabled={!activeItem || !copiedSlide}
+                  aria-label={t('editor.pasteSlide')}
+                  title={t('editor.pasteSlide')}
+                >
+                  <ClipboardPaste size={15} />
+                </button>
+                <button
+                  className="icon-btn"
+                  onClick={() => activeSlide && duplicateSlide(service.id, activeItem!.id, activeSlide.id)}
+                  disabled={!activeSlide}
+                  aria-label={t('editor.duplicate')}
+                >
+                  <Copy size={15} />
+                </button>
+                <button
+                  className="icon-btn danger-text"
+                  onClick={() =>
+                    activeSlide &&
+                    setConfirm({ kind: 'slide', itemId: activeItem!.id, slideId: activeSlide.id })
+                  }
+                  disabled={!activeSlide}
+                  aria-label={t('editor.delete')}
+                >
+                  <Trash2 size={15} />
+                </button>
+                <button className="mobile-drawer-toggle mobile-inspector-toggle" onClick={() => setMobileInspector(true)} aria-label={t('editor.inspector')}>
+                  <PanelRight size={18} />
+                </button>
+              </div>
+            </div>
+
+            <EditorToolbar
+              disabled={!activeSlide}
+              layersOpen={layersOpen}
+              onText={addText}
+              onMedia={(mode) => setMediaDialog({ open: true, mode })}
+              onLogo={() => setLogoPlacementOpen(true)}
+              logoAvailable={Boolean(branding.logoUrl)}
+              onQr={() => setQrOpen(true)}
+              onShape={addShape}
+              onMessage={addMessage}
+              onBackground={() => setBackgroundOpen(true)}
+              onToggleLayers={() => setLayersOpen((value) => !value)}
+            />
+
+            <div className="canvas-area">
+              <div className="canvas-stage-row">
+                <div
+                  className={`canvas-frame is-aspect-${slideAspectRatio} ${canvasDrop !== 'idle' ? `is-drop-${canvasDrop}` : ''}`}
+                  onDragOver={(event) => {
+                    if (!activeSlide || !event.dataTransfer.types.includes('Files')) return
+                    event.preventDefault()
+                    event.dataTransfer.dropEffect = 'copy'
+                    if (canvasDrop === 'idle') setCanvasDrop('over')
+                  }}
+                  onDragLeave={(event) => {
+                    if (event.currentTarget.contains(event.relatedTarget as Node | null)) return
+                    if (canvasDrop === 'over') setCanvasDrop('idle')
+                  }}
+                  onDrop={(event) => {
+                    if (!activeSlide || !event.dataTransfer.files.length) return
+                    event.preventDefault()
+                    void dropFilesOnCanvas(event.dataTransfer.files)
+                  }}
+                >
+                  <SlideRenderer
+                    slide={activeSlide}
+                    branding={branding}
+                    aspectRatio={slideAspectRatio}
+                    songFooter={activeItem?.type === 'song' ? {
+                      title: activeItem.title,
+                      author: activeItem.metadata?.author,
+                    } : undefined}
+                    interactive
+                    selectedElementId={selectedElementId}
+                    onSelectElement={selectElement}
+                    onMoveElement={(id, x, y) => {
+                      if (!activeItem || !activeSlide) return
+                      updateElement(service.id, activeItem.id, activeSlide.id, id, { x, y })
+                    }}
+                    onResizeElement={(id, box) => {
+                      if (!activeItem || !activeSlide) return
+                      updateElement(service.id, activeItem.id, activeSlide.id, id, box)
+                    }}
+                    onEditElementText={(id, text) => {
+                      if (!activeItem || !activeSlide) return
+                      updateElement(service.id, activeItem.id, activeSlide.id, id, {
+                        text: sanitizeEditableText(text, 12000),
+                      })
+                    }}
+                    onEditSlideText={(text) => {
+                      if (!activeItem || !activeSlide) return
+                      updateSlide(service.id, activeItem.id, activeSlide.id, { text })
+                    }}
+                    keyboardHintId="canvas-keyboard-hint"
+                    onMessageFit={(id, scale) => setMessageFit((current) => ({ ...current, [id]: scale }))}
+                  />
+                  {canvasDrop !== 'idle' && (
+                    <div className="canvas-drop-overlay" role="status" aria-live="polite">
+                      <ImagePlus size={22} />
+                      <span>{canvasDrop === 'uploading' ? t('media.uploading') : t('editor.dropHint')}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="canvas-rail-column">
+                  <ElementActionRail
+                    selectedElement={selectedElement}
+                    onAddContent={() => openAdd(activeSection?.id ?? service.sections[0]?.id ?? '')}
+                    onAddSlide={() => activeItem && addBlankSlide(service.id, activeItem.id)}
+                    onFillBackground={fillBackgroundWithSelectedImage}
+                    onToggleVisible={toggleSelectedVisible}
+                    onDuplicate={duplicateSelected}
+                    onDelete={deleteSelected}
+                  />
+                  <button
+                    className="editor-tool slide-delete-btn"
+                    disabled={!activeSlide || !activeItem}
+                    title={t('editor.delete')}
+                    aria-label={t('editor.delete')}
+                    onClick={() => {
+                      if (activeItem && activeSlide) {
+                        setConfirm({ kind: 'slide', itemId: activeItem.id, slideId: activeSlide.id })
+                      }
+                    }}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+              <span id="canvas-keyboard-hint" className="sr-only">
+                {t('editor.canvasHint')} · {t('editor.keyboardHint')}
+              </span>
+            </div>
+
+            <div className="slide-strip">
+              <div className="slide-strip-head">
+                <span className="eyebrow">{t('common.slides')}</span>
+                <button
+                  className="text-link"
+                  onClick={() => activeItem && addBlankSlide(service.id, activeItem.id)}
+                >
+                  <Plus size={13} />
+                  {t('editor.addSlide')}
+                </button>
+              </div>
+              <div className="slide-thumbs-row">
+                <button
+                  className="slide-thumbs-arrow slide-thumbs-arrow-left"
+                  onClick={() => thumbsRef.current?.scrollBy({ left: -280, behavior: 'smooth' })}
+                  aria-label={t('editor.scrollLeft')}
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <div className="slide-thumbs" ref={thumbsRef}>
+                {allSlides.map((entry, index) => {
+                  const isActive = entry.slide.id === activeSlide?.id && entry.item.id === activeItem?.id
+                  const isLiveSlide = live?.currentSlideId === entry.slide.id
+                  const prevItem = index > 0 ? allSlides[index - 1].item.id : null
+                  const showDivider = prevItem !== null && prevItem !== entry.item.id
+                  return (
+                    <div key={entry.slide.id} className="slide-thumb-wrap" style={showDivider ? { marginLeft: 12 } : undefined}>
+                      <button
+                        className={`slide-thumb ${isActive ? 'is-active' : ''} ${isLiveSlide ? 'is-live' : ''}`}
+                        onClick={() => {
+                          selectItem(entry.item.id)
+                          selectSlide(entry.item.id, entry.slide.id)
+                        }}
+                        onDoubleClick={() => {
+                          selectItem(entry.item.id)
+                          selectSlide(entry.item.id, entry.slide.id)
+                          selectElement(null)
+                        }}
+                      >
+                        <span className="slide-thumb-canvas">
+                          <SlideRenderer slide={entry.slide} branding={branding} aspectRatio={slideAspectRatio} compact />
+                        </span>
+                        <span className="slide-thumb-label">
+                          {index + 1}
+                          <small>{entry.item.title}</small>
+                        </span>
+                      </button>
+                    </div>
+                  )
+                })}
+                <button
+                  className="slide-thumb-add"
+                  onClick={() => activeItem && addBlankSlide(service.id, activeItem.id)}
+                  disabled={!activeItem}
+                >
+                  <Plus size={20} />
+                  {t('editor.addSlide')}
+                </button>
+                </div>
+                <button
+                  className="slide-thumbs-arrow slide-thumbs-arrow-right"
+                  onClick={() => thumbsRef.current?.scrollBy({ left: 280, behavior: 'smooth' })}
+                  aria-label={t('editor.scrollRight')}
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+          {layersOpen && activeSlide && (
+            <div className="layers-drawer panel">
+              <button
+                className="icon-btn layers-close"
+                onClick={() => setLayersOpen(false)}
+                aria-label={t('common.close')}
+              >
+                <X size={14} />
+              </button>
+              <LayersPanel
+                slide={activeSlide}
+                selectedElementId={selectedElementId}
+                onSelect={(id) => {
+                  selectElement(id)
+                  setLayersOpen(false)
+                }}
+                onToggleVisible={(element) => {
+                  if (!activeItem) return
+                  updateElement(service.id, activeItem.id, activeSlide.id, element.id, {
+                    visible: !element.visible,
+                  })
+                }}
+                onReorder={(id, action) => {
+                  if (!activeItem) return
+                  reorderElement(service.id, activeItem.id, activeSlide.id, id, action)
+                }}
+                onDuplicate={(id) => {
+                  if (!activeItem) return
+                  duplicateElement(service.id, activeItem.id, activeSlide.id, id)
+                }}
+                onDelete={(id) => {
+                  if (!activeItem) return
+                  removeElement(service.id, activeItem.id, activeSlide.id, id)
+                  push(t('toast.elementDeleted'), 'success')
+                }}
+              />
+            </div>
+          )}
+        </section>
+
+        <aside className={`inspector panel ${mobileInspector ? 'is-drawer-open' : ''}`}>
+          <div className="pane-grip" aria-label={t('editor.resizeInspector')} {...inspectorPane.gripProps} />
+          <div className="inspector-present">
+            <div className="inspector-present-left">
+              <div className="workspace-aspect-picker">
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setAspectMenuOpen((open) => !open)}
+                  aria-label={t('editor.slideFormat')}
+                  aria-haspopup="menu"
+                  aria-expanded={aspectMenuOpen}
+                >
+                  <Monitor size={14} />
+                  <span>{slideAspectRatio === 'wide' ? '1920 × 1080' : '4:3'}</span>
+                  <ChevronDown size={13} />
+                </button>
+                {aspectMenuOpen && (
+                  <div className="workspace-aspect-menu" role="menu" aria-label={t('editor.slideFormat')}>
+                    {([
+                      ['wide', '1920 × 1080'],
+                      ['classic', '4:3'],
+                    ] as const).map(([value, label]) => (
+                      <button
+                        key={value}
+                        className={`workspace-aspect-option ${slideAspectRatio === value ? 'is-active' : ''}`}
+                        role="menuitemradio"
+                        aria-checked={slideAspectRatio === value}
+                        onClick={() => {
+                          setSlideAspectRatio(value)
+                          setAspectMenuOpen(false)
+                        }}
+                      >
+                        <span>{label}</span>
+                        {slideAspectRatio === value && <Check size={13} />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button
+                className="btn btn-secondary btn-sm inspector-edit-details-btn"
+                onClick={() => setDetailsOpen(true)}
+                title={t('culto.editDetails')}
+                aria-label={t('culto.editDetails')}
+              >
+                <Pencil size={13} />
+                <span className="inspector-edit-details-text">{t('common.edit')}</span>
+              </button>
+            </div>
+          </div>
+          <div className="inspector-live-row">
+            <button
+              className={`btn btn-sm live-btn-go ${isLive ? 'is-active' : 'is-muted'}`}
+              onClick={() => { if (!isLive) goLive() }}
+              disabled={isLive || Boolean(presentationProblem(service))}
+              title={!isLive && presentationProblem(service) ? t(`culto.problem.${presentationProblem(service)}`) : undefined}
+            >
+              <Radio size={14} />
+              {t('status.live')}
+            </button>
+            <button
+              className={`btn btn-sm live-btn-off ${!isLive ? 'is-active' : 'is-muted'}`}
+              onClick={() => { if (isLive) setEndOpen(true) }}
+              disabled={!isLive}
+            >
+              <Play size={14} />
+              {t('editor.offline')}
+            </button>
+          </div>
+          {isLive && liveCurrentSlide && (
+            <div className="inspector-output-preview">
+              <SlideRenderer
+                slide={live?.blank ? { ...liveCurrentSlide.slide, elements: [] } : liveCurrentSlide.slide}
+                branding={branding}
+                compact
+                message={live?.message ?? undefined}
+                messageVisible={Boolean(live?.messageVisible && live.message && !live.blank)}
+              />
+              {live?.frozen && !live.blank && (
+                <span className="inspector-output-frozen"><Snowflake size={11} /></span>
+              )}
+            </div>
+          )}
+          <div className="inspector-head">
+            <span className="eyebrow">{t('editor.inspector')}</span>
+            <div className="segmented segmented-sm">
+              <button className={!selectedElement ? 'is-active' : ''} onClick={() => selectElement(null)}>
+                {t('editor.design')}
+              </button>
+              <button className={selectedElement ? 'is-active' : ''} disabled={!selectedElement}>
+                {t('editor.element')}
+              </button>
+            </div>
+          </div>
+
+          <div className="inspector-scroll">
+            {activeItem && activeSlide && selectedElement ? (
+              <>
+                <div className="element-type-row">
+                  <span className="element-type-icon">
+                    <ElementIcon type={selectedElement.type} />
+                  </span>
+                  <strong>{selectedElement.type}</strong>
+                  <span className="badge badge-quiet">z {selectedElement.zIndex}</span>
+                </div>
+                <label className="field">
+                  <span>{t('editor.elementText')}</span>
+                  <textarea
+                    rows={3}
+                    value={
+                      selectedElement.type === 'qr'
+                        ? selectedElement.settings?.payload ?? selectedElement.text ?? ''
+                        : selectedElement.text ?? ''
+                    }
+                    onChange={(event) => {
+                      if (selectedElement.type === 'qr') {
+                        updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
+                          text: sanitizeText(event.target.value, 1200),
+                          settings: {
+                            ...selectedElement.settings,
+                            payload: sanitizeText(event.target.value, 1200),
+                          },
+                        })
+                      } else {
+                        updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
+                          text: sanitizeEditableText(event.target.value, 12000),
+                        })
+                      }
+                    }}
+                  />
+                </label>
+                <div className="field-grid">
+                  {GEOMETRY_FIELDS.map(({ key, label, min, max }) => (
+                    <label key={key} className="field compact">
+                      <span>
+                        {label.startsWith('editor.') ? t(label) : label}
+                        <small className="field-unit">%</small>
+                      </span>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        min={min}
+                        max={max}
+                        step={1}
+                        value={Math.round(selectedElement[key])}
+                        onChange={(event) => {
+                          const value = event.target.valueAsNumber
+                          if (!Number.isFinite(value)) return
+                          updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
+                            [key]: Math.max(min, Math.min(max, value)),
+                          })
+                        }}
+                      />
+                    </label>
+                  ))}
+                </div>
+                <label className="field">
+                  <span>
+                    {t('editor.opacity')} · {Math.round(selectedElement.opacity * 100)}%
+                  </span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    value={selectedElement.opacity}
+                    onChange={(event) =>
+                      updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
+                        opacity: Number(event.target.value),
+                      })
+                    }
+                  />
+                </label>
+                <ToggleRow
+                  label={t('editor.visible')}
+                  value={selectedElement.visible}
+                  onChange={(value) =>
+                    updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
+                      visible: value,
+                    })
+                  }
+                />
+                {selectedElement.type === 'message' && (
+                  <MessageBoxInspector
+                    element={selectedElement}
+                    fitScale={messageFit[selectedElement.id] ?? 1}
+                    onChange={(patch) =>
+                      updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, patch)
+                    }
+                  />
+                )}
+                {selectedElement.type === 'text' && (
+                  <>
+                    <label className="field compact">
+                      <span>{t('editor.fontFamily')}</span>
+                      <select
+                        value={selectedElement.settings?.fontFamily ?? 'serif'}
+                        onChange={(event) =>
+                          updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
+                            settings: {
+                              ...selectedElement.settings,
+                              fontFamily: event.target.value as 'serif' | 'sans',
+                            },
+                          })
+                        }
+                      >
+                        <option value="serif">Serif (Noto Serif)</option>
+                        <option value="sans">Sans (Inter)</option>
+                      </select>
+                    </label>
+                    <div className="field-grid">
+                      <label className="field compact">
+                        <span>{t('editor.fontSize')}</span>
+                        <input
+                          type="number"
+                          min={8}
+                          max={200}
+                          value={selectedElement.settings?.fontSize ?? 64}
+                          onChange={(event) =>
+                            updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
+                              settings: {
+                                ...selectedElement.settings,
+                                fontSize: Number(event.target.value),
+                              },
+                            })
+                          }
+                        />
+                      </label>
+                      <label className="field compact">
+                        <span>{t('editor.weight')}</span>
+                        <select
+                          value={selectedElement.settings?.fontWeight ?? 600}
+                          onChange={(event) =>
+                            updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
+                              settings: {
+                                ...selectedElement.settings,
+                                fontWeight: Number(event.target.value),
+                              },
+                            })
+                          }
+                        >
+                          <option value={300}>300</option>
+                          <option value={400}>400</option>
+                          <option value={500}>500</option>
+                          <option value={600}>600</option>
+                          <option value={700}>700</option>
+                          <option value={800}>800</option>
+                        </select>
+                      </label>
+                    </div>
+                    <div className="align-row">
+                      {(['left', 'center', 'right'] as const).map((align) => (
+                        <button
+                          key={align}
+                          className={`icon-toggle ${selectedElement.settings?.align === align ? 'is-active' : ''}`}
+                          onClick={() =>
+                            updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
+                              settings: { ...selectedElement.settings, align },
+                            })
+                          }
+                          aria-label={align}
+                        >
+                          {align === 'left' ? <AlignLeft size={15} /> : align === 'center' ? <AlignCenter size={15} /> : <AlignRight size={15} />}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+                {selectedElement.type === 'shape' && (
+                  <>
+                    <div className="field-grid">
+                      <label className="field compact">
+                        <span>{t('editor.shapeType')}</span>
+                        <select
+                          value={
+                            selectedElement.settings?.shape === 'circle'
+                              ? 'circle'
+                              : (selectedElement.settings?.radius ?? 0) > 0
+                                ? 'rounded'
+                                : 'rectangle'
+                          }
+                          onChange={(event) => {
+                            const value = event.target.value
+                            updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
+                              settings: {
+                                ...selectedElement.settings,
+                                shape: value === 'circle' ? 'circle' : 'rect',
+                                radius: value === 'rounded' ? 18 : 0,
+                              },
+                            })
+                          }}
+                        >
+                          <option value="rectangle">{t('editor.rectangle')}</option>
+                          <option value="rounded">{t('editor.rounded')}</option>
+                          <option value="circle">{t('editor.circle')}</option>
+                        </select>
+                      </label>
+                      <label className="field compact">
+                        <span>{t('editor.cornerRadius')} · {selectedElement.settings?.radius ?? 0}px</span>
+                        <input
+                          type="range"
+                          min={0}
+                          max={50}
+                          value={selectedElement.settings?.radius ?? 0}
+                          disabled={selectedElement.settings?.shape === 'circle'}
+                          onChange={(event) =>
+                            updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
+                              settings: {
+                                ...selectedElement.settings,
+                                shape: 'rect',
+                                radius: Number(event.target.value),
+                              },
+                            })
+                          }
+                        />
+                      </label>
+                    </div>
+                    <label className="field">
+                      <span>{t('editor.color')}</span>
+                      <div className="shape-color-picker">
+                        <input
+                          type="color"
+                          value={shapeColorValue(selectedElement.settings?.fill).hex}
+                          onChange={(event) =>
+                            updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
+                              settings: {
+                                ...selectedElement.settings,
+                                fill: rgbaColor(
+                                  event.target.value,
+                                  shapeColorValue(selectedElement.settings?.fill).alpha,
+                                ),
+                              },
+                            })
+                          }
+                          aria-label={t('editor.color')}
+                        />
+                        <code>{selectedElement.settings?.fill ?? 'rgba(232,164,74,0.22)'}</code>
+                      </div>
+                      <span className="field-hint">
+                        {t('editor.opacity')} · {Math.round(shapeColorValue(selectedElement.settings?.fill).alpha * 100)}%
+                      </span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.01}
+                        value={shapeColorValue(selectedElement.settings?.fill).alpha}
+                        onChange={(event) =>
+                          updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
+                            settings: {
+                              ...selectedElement.settings,
+                              fill: rgbaColor(
+                                shapeColorValue(selectedElement.settings?.fill).hex,
+                                Number(event.target.value),
+                              ),
+                            },
+                          })
+                        }
+                        aria-label={t('editor.opacity')}
+                      />
+                    </label>
+                  </>
+                )}
+                <div className="inspector-label">
+                  <span>{t('editor.alignment')}</span>
+                </div>
+                <div className="align-row">
+                  {(['left', 'center', 'right'] as const).map((align) => (
+                    <button
+                      key={align}
+                      className="icon-toggle"
+                      onClick={() => alignSelected('horizontal', align)}
+                      aria-label={t(`editor.${align}`)}
+                    >
+                      {align === 'left' ? <AlignLeft size={15} /> : align === 'center' ? <AlignCenter size={15} /> : <AlignRight size={15} />}
+                    </button>
+                  ))}
+                  <span className="align-divider" />
+                  {(['top', 'middle', 'bottom'] as const).map((align) => (
+                    <button
+                      key={align}
+                      className="icon-toggle"
+                      onClick={() => alignSelected('vertical', align)}
+                      title={t(`editor.${align}`)}
+                      aria-label={t(`editor.${align}`)}
+                    >
+                      {align === 'top' ? <AlignStartHorizontal size={15} /> : align === 'middle' ? <AlignCenterHorizontal size={15} /> : <AlignEndHorizontal size={15} />}
+                    </button>
+                  ))}
+                </div>
+                {(selectedElement.type === 'image' || selectedElement.type === 'video') && (
+                  <>
+                    <div className="field-grid">
+                      <label className="field compact">
+                        <span>{t('editor.crop')}</span>
+                        <select
+                          value={selectedElement.settings?.fit ?? (selectedElement.type === 'image' ? 'cover' : 'contain')}
+                          onChange={(event) =>
+                            updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
+                              settings: {
+                                ...selectedElement.settings,
+                                fit: event.target.value as 'cover' | 'contain',
+                              },
+                            })
+                          }
+                        >
+                          <option value="cover">{t('editor.fitCover')}</option>
+                          <option value="contain">{t('editor.fitContain')}</option>
+                        </select>
+                      </label>
+                      <label className="field compact">
+                        <span>{t('editor.zoom')}</span>
+                        <input
+                          type="number"
+                          min={1}
+                          max={3}
+                          step={0.05}
+                          value={selectedElement.settings?.cropZoom ?? 1}
+                          onChange={(event) =>
+                            updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
+                              settings: {
+                                ...selectedElement.settings,
+                                cropZoom: Math.max(1, Math.min(3, Number(event.target.value))),
+                              },
+                            })
+                          }
+                        />
+                      </label>
+                    </div>
+                    <div className="field-grid">
+                      <label className="field compact">
+                        <span>X · {Math.round(selectedElement.settings?.cropX ?? 50)}%</span>
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          value={selectedElement.settings?.cropX ?? 50}
+                          onChange={(event) =>
+                            updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
+                              settings: { ...selectedElement.settings, cropX: Number(event.target.value) },
+                            })
+                          }
+                        />
+                      </label>
+                      <label className="field compact">
+                        <span>Y · {Math.round(selectedElement.settings?.cropY ?? 50)}%</span>
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          value={selectedElement.settings?.cropY ?? 50}
+                          onChange={(event) =>
+                            updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
+                              settings: { ...selectedElement.settings, cropY: Number(event.target.value) },
+                            })
+                          }
+                        />
+                      </label>
+                    </div>
+                    <div className="inline-note">
+                      {selectedElement.settings?.providerLabel ?? t('media.localOnly')}
+                      {selectedElement.settings?.status ? ` · ${selectedElement.settings.status}` : ''}
+                    </div>
+                  </>
+                )}
+                {selectedElement.type === 'qr' && (
+                  <div className="inline-note">
+                    {selectedElement.settings?.variant ?? 'text'} · {(selectedElement.settings?.payload ?? selectedElement.text ?? '').length} chars
+                  </div>
+                )}
+                {selectedElement.type === 'embed' && (
+                  <div className="inline-note">
+                    {selectedElement.settings?.providerLabel ?? t('editor.youtubeProvider')}
+                  </div>
+                )}
+                <div className="layer-buttons">
+                  <button className="btn btn-ghost btn-sm" onClick={() => reorderElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, 'front')}>
+                    <Layers size={13} />
+                    {t('editor.bringFront')}
+                  </button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => reorderElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, 'back')}>
+                    {t('editor.sendBack')}
+                  </button>
+                </div>
+                <div className="inspector-actions">
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => duplicateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id)}
+                  >
+                    <Copy size={14} />
+                    {t('editor.duplicateElement')}
+                  </button>
+                  <button
+                    className="btn btn-ghost btn-sm danger-text"
+                    onClick={() => {
+                      removeElement(service.id, activeItem.id, activeSlide.id, selectedElement.id)
+                      push(t('toast.elementDeleted'), 'success')
+                    }}
+                  >
+                    <Trash2 size={14} />
+                    {t('editor.deleteElement')}
+                  </button>
+                </div>
+              </>
+            ) : activeItem && activeSlide ? (
+              <>
+                {overflow && <div className="inline-warning">{t('editor.overflowWarning')}</div>}
+                <p className="item-origin">
+                  <span className="badge badge-quiet">{t(`culto.origin.${itemOrigin(activeItem)}`)}</span>
+                  <span>{t(`culto.originNote.${itemOrigin(activeItem) === 'here' ? 'here' : 'copy'}`)}</span>
+                </p>
+                {activeSlide.bible ? (
+                  <>
+                    <div className="inspector-label">
+                      <span>{t('editor.scriptureContent')}</span>
+                      <span className="badge badge-amber">{activeSlide.bible.primary.abbreviation}</span>
+                    </div>
+                    <label className="field">
+                      <span>{t('editor.primaryText')}</span>
+                      <textarea
+                        rows={5}
+                        value={activeSlide.bible.primary.text}
+                        onChange={(event) => commitBibleText('primary', event.target.value)}
+                      />
+                    </label>
+                    <label className="field">
+                      <span>
+                        {t('editor.reference')} · {activeSlide.bible.primary.abbreviation}
+                      </span>
+                      <input
+                        value={activeSlide.bible.primary.reference}
+                        onChange={(event) =>
+                          updateSlide(service.id, activeItem.id, activeSlide.id, {
+                            bible: {
+                              ...activeSlide.bible!,
+                              primary: {
+                                ...activeSlide.bible!.primary,
+                                reference: event.target.value,
+                              },
+                            },
+                          })
+                        }
+                      />
+                    </label>
+                    {activeSlide.bible.secondary && (
+                      <>
+                        <label className="field">
+                          <span>
+                            {t('editor.secondaryText')} · {activeSlide.bible.secondary.abbreviation}
+                          </span>
+                          <textarea
+                            rows={4}
+                            value={activeSlide.bible.secondary.text}
+                            onChange={(event) => commitBibleText('secondary', event.target.value)}
+                          />
+                        </label>
+                        <label className="field">
+                          <span>
+                            {t('editor.reference')} · {activeSlide.bible.secondary.abbreviation}
+                          </span>
+                          <input
+                            value={activeSlide.bible.secondary.reference}
+                            onChange={(event) =>
+                              updateSlide(service.id, activeItem.id, activeSlide.id, {
+                                bible: {
+                                  ...activeSlide.bible!,
+                                  secondary: {
+                                    ...activeSlide.bible!.secondary!,
+                                    reference: event.target.value,
+                                  },
+                                },
+                              })
+                            }
+                          />
+                        </label>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <label className="field">
+                      <span>{t('common.title')}</span>
+                      <input
+                        value={activeItem.title}
+                        onChange={(event) =>
+                          updateItemTitle(service.id, activeItem.id, event.target.value)
+                        }
+                      />
+                    </label>
+                    <label className="field">
+                      <span>Slide</span>
+                      <input
+                        value={activeSlide.title}
+                        onChange={(event) =>
+                          updateSlide(service.id, activeItem.id, activeSlide.id, {
+                            title: event.target.value,
+                          })
+                        }
+                      />
+                    </label>
+                    {activeSlide.kind === 'timer' ? (
+                      <div className="inspector-timer">
+                        <TimerDurationField
+                          value={activeSlide.timer?.durationSeconds ?? 0}
+                          onChange={(seconds) =>
+                            updateSlide(service.id, activeItem.id, activeSlide.id, {
+                              timer: { durationSeconds: seconds },
+                            })
+                          }
+                        />
+                        <TimerControls slide={activeSlide} />
+                        <p className="timer-note">{t('timer.sessionNote')}</p>
+                      </div>
+                    ) : (
+                      <label className="field">
+                        <span>Texto</span>
+                        <textarea
+                          rows={6}
+                          value={activeSlide.text}
+                          onChange={(event) =>
+                            updateSlide(service.id, activeItem.id, activeSlide.id, {
+                              text: event.target.value,
+                            })
+                          }
+                        />
+                      </label>
+                    )}
+                  </>
+                )}
+                <label className="field">
+                  <span>{t('editor.alignment')}</span>
+                  <div className="align-row">
+                    {(['left', 'center', 'right'] as const).map((align) => (
+                      <button
+                        key={align}
+                        className={`icon-toggle ${activeSlide.textAlign === align ? 'is-active' : ''}`}
+                        onClick={() =>
+                          updateSlide(service.id, activeItem.id, activeSlide.id, { textAlign: align })
+                        }
+                        aria-label={align}
+                      >
+                        {align === 'left' ? <AlignLeft size={15} /> : align === 'center' ? <AlignCenter size={15} /> : <AlignRight size={15} />}
+                      </button>
+                    ))}
+                    <span className="align-divider" />
+                    {(['top', 'middle', 'bottom'] as const).map((align) => (
+                      <button
+                        key={align}
+                        className={`icon-toggle ${(activeSlide.textVerticalAlign ?? 'middle') === align ? 'is-active' : ''}`}
+                        onClick={() =>
+                          updateSlide(service.id, activeItem.id, activeSlide.id, { textVerticalAlign: align })
+                        }
+                        aria-label={align}
+                      >
+                        {align === 'top' ? <AlignStartHorizontal size={15} /> : align === 'middle' ? <AlignCenterHorizontal size={15} /> : <AlignEndHorizontal size={15} />}
+                      </button>
+                    ))}
+                  </div>
+                </label>
+                {activeSlide.kind !== 'timer' && (
+                  <>
+                    <label className="field compact">
+                      <span>{t('editor.fontFamily')}</span>
+                      <select
+                        value={activeSlide.fontFamily ?? 'serif'}
+                        onChange={(event) => {
+                          const patch = { fontFamily: event.target.value as 'serif' | 'sans' }
+                          updateSlide(service.id, activeItem.id, activeSlide.id, patch)
+                          if (activeItem.slides.length > 1) setFontApplyAll({ itemId: activeItem.id, patch })
+                        }}
+                      >
+                        <option value="serif">Serif (Noto Serif)</option>
+                        <option value="sans">Sans (Inter)</option>
+                      </select>
+                    </label>
+                    <div className="field-grid">
+                      <label className="field compact">
+                        <span>{t('editor.fontSize')}</span>
+                        <input
+                          type="number"
+                          min={16}
+                          max={200}
+                          value={activeSlide.fontSize ?? 64}
+                          onChange={(event) => {
+                            const patch = { fontSize: Number(event.target.value) }
+                            updateSlide(service.id, activeItem.id, activeSlide.id, patch)
+                            if (activeItem.slides.length > 1) setFontApplyAll({ itemId: activeItem.id, patch })
+                          }}
+                        />
+                      </label>
+                      <label className="field compact">
+                        <span>{t('editor.fontWeight')}</span>
+                        <input
+                          type="number"
+                          min={100}
+                          max={900}
+                          step={100}
+                          value={activeSlide.fontWeight ?? 400}
+                          onChange={(event) => {
+                            const patch = { fontWeight: Number(event.target.value) }
+                            updateSlide(service.id, activeItem.id, activeSlide.id, patch)
+                            if (activeItem.slides.length > 1) setFontApplyAll({ itemId: activeItem.id, patch })
+                          }}
+                        />
+                      </label>
+                    </div>
+                  </>
+                )}
+                <div className="inspector-label">
+                  <span>{t('editor.background')}</span>
+                  <span className="muted-note">{activeSlide.background.preset}</span>
+                </div>
+                <div className="preset-grid">
+                  {BACKGROUND_PRESETS.map((preset) => (
+                    <button
+                      key={preset.id}
+                      className={`preset-swatch bg-${preset.id} ${activeSlide.background.preset === preset.id ? 'is-active' : ''}`}
+                      onClick={() =>
+                        setSlideBackground(service.id, activeItem.id, activeSlide.id, {
+                          type: 'preset',
+                          preset: preset.id,
+                          tone: preset.tone,
+                        })
+                      }
+                      aria-label={t(preset.nameKey)}
+                    >
+                      <span />
+                    </button>
+                  ))}
+                </div>
+                <label className="field">
+                  <span>{t('editor.notes')}</span>
+                  <textarea
+                    rows={4}
+                    value={activeSlide.notes ?? ''}
+                    placeholder={t('editor.notesPlaceholder')}
+                    onChange={(event) =>
+                      updateNotes(service.id, activeItem.id, activeSlide.id, event.target.value)
+                    }
+                  />
+                </label>
+                <div className="inspector-actions">
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => duplicateSlide(service.id, activeItem.id, activeSlide.id)}
+                  >
+                    <Copy size={14} />
+                    {t('editor.duplicate')}
+                  </button>
+                  <button
+                    className="btn btn-ghost btn-sm danger-text"
+                    onClick={() =>
+                      setConfirm({ kind: 'slide', itemId: activeItem.id, slideId: activeSlide.id })
+                    }
+                  >
+                    <Trash2 size={14} />
+                    {t('editor.delete')}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="empty-inline">
+                <Layers size={25} />
+                <p>{t('editor.noSelection')}</p>
+              </div>
+            )}
+          </div>
+          {isLive && <LiveControlBar />}
+        </aside>
+      </div>
+
+      <AddContentModal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        serviceId={service.id}
+        sectionId={sectionForAdd || service.sections[0]?.id || ''}
+      />
+
+      <EditorMediaDialog
+        open={mediaDialog.open}
+        mode={mediaDialog.mode}
+        onClose={() => setMediaDialog((value) => ({ ...value, open: false }))}
+        onInsert={addMedia}
+      />
+
+      <QrComposer open={qrOpen} onClose={() => setQrOpen(false)} onInsert={addQrPayload} />
+
+      {activeItem && (
+        <EditorBackgroundDialog
+          open={backgroundOpen}
+          slide={activeSlide}
+          serviceId={service.id}
+          itemId={activeItem.id}
+          onClose={() => setBackgroundOpen(false)}
+        />
+      )}
+
+      <LogoPlacementDialog
+        open={logoPlacementOpen}
+        onClose={() => setLogoPlacementOpen(false)}
+        onSelect={addLogoToSlide}
+      />
+
+      <ConfirmDialog
+        open={confirm !== null}
+        title={
+          confirm?.kind === 'item' || confirm?.kind === 'slide'
+            ? t('confirm.deleteSlide')
+            : t('editor.deleteSection')
+        }
+        copy={confirm?.kind === 'section' ? t('settings.clearConfirm') : t('confirm.deleteSlideCopy')}
+        confirmLabel={t('common.delete')}
+        onClose={() => setConfirm(null)}
+        onConfirm={() => {
+          if (!confirm) return
+          if (confirm.kind === 'slide') {
+            deleteSlide(service.id, confirm.itemId, confirm.slideId)
+            push(t('toast.slideDeleted'), 'success')
+          }
+          if (confirm.kind === 'item') {
+            removeItem(service.id, confirm.itemId)
+            push(t('toast.serviceDeleted'), 'success')
+          }
+          if (confirm.kind === 'section') {
+            deleteSection(service.id, confirm.sectionId)
+            push(t('toast.sectionDeleted'), 'success')
+          }
+        }}
+      />
+
+      <ConfirmDialog
+        open={endOpen}
+        title={t('live.confirmEnd')}
+        copy={t('live.confirmEndCopy')}
+        confirmLabel={t('live.endLive')}
+        onClose={() => setEndOpen(false)}
+        onConfirm={confirmEndLive}
+      />
+
+      {fontApplyAll && (
+        <Modal title={t('editor.fontApplyAll')} onClose={() => setFontApplyAll(null)}>
+          <p className="modal-copy">{t('editor.fontApplyAllCopy')}</p>
+          <div className="modal-actions">
+            <button className="btn btn-ghost" onClick={() => setFontApplyAll(null)}>
+              {t('editor.fontThisSlide')}
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                if (!service) return
+                const item = service.items.find((i) => i.id === fontApplyAll.itemId)
+                if (item) {
+                  for (const slide of item.slides) {
+                    updateSlide(service.id, item.id, slide.id, fontApplyAll.patch)
+                  }
+                }
+                setFontApplyAll(null)
+              }}
+            >
+              {t('editor.fontAllSlides')}
+            </button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  )
+}
+
+function ToggleRow({
+  label,
+  value,
+  onChange,
+}: {
+  label: string
+  value: boolean
+  onChange: (value: boolean) => void
+}) {
+  return (
+    <div className="switch-row">
+      <span>{label}</span>
+      <button
+        className={`switch ${value ? 'is-on' : ''}`}
+        onClick={() => onChange(!value)}
+        type="button"
+        role="switch"
+        aria-checked={value}
+        aria-label={label}
+      >
+        <span />
+      </button>
+    </div>
+  )
+}

@@ -1,0 +1,16 @@
+# Dependencies and build output
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Test and tool output
+test-results/
+.playwright-cli/
+.superpowers/
+.impeccable/hook.cache.json
+
+# Local environment and OS files
+.env
+.env.*
+.DS_Store
+*.log
