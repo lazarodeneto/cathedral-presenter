@@ -25,6 +25,7 @@ import { getLocalPassageSync } from '../providers/bible/LocalBibleProvider'
 import { BrandMark } from '../components/BrandMark'
 import { SlideRenderer } from '../components/SlideRenderer'
 import { NewServiceDialog } from '../components/NewServiceDialog'
+import { serviceReadiness, timeUntilService } from '../utils/serviceReadiness'
 
 function greetingKey(): string {
   const hour = new Date().getHours()
@@ -98,6 +99,12 @@ export function HomeScreen() {
     },
   ]
   const completed = checklist.filter((item) => item.done).length
+
+  const heroSongs = hero
+    ? hero.items.filter((item) => item.type === 'song' && hero.sections.some((section) => section.itemIds.includes(item.id))).length
+    : 0
+  const readiness = hero ? serviceReadiness(hero, { hasAudienceOutput: Boolean(audience) }) : null
+  const startsIn = hero ? timeUntilService(hero, new Date()) : null
 
   const open = (id: string) => {
     selectService(id)
@@ -206,6 +213,41 @@ export function HomeScreen() {
             <Plus size={16} />
             {t('home.createService')}
           </button>
+        </section>
+      )}
+
+      {hero && readiness && (
+        <section className="home-pulse" aria-label={hero.title}>
+          <div className="home-stats">
+            <div className="stat-tile">
+              <span className="stat-label">{t('home.statSlides')}</span>
+              <strong className="stat-value">{heroSlides.length}</strong>
+            </div>
+            <div className="stat-tile">
+              <span className="stat-label">{t('home.statSongs')}</span>
+              <strong className="stat-value">{heroSongs}</strong>
+            </div>
+            <div className="stat-tile">
+              <span className="stat-label">{t('home.statStartsIn')}</span>
+              <strong className="stat-value">
+                {startsIn ? t('home.statDaysHours', { days: startsIn.days, hours: startsIn.hours }) : t('home.statStarted')}
+              </strong>
+            </div>
+          </div>
+          <div className="panel readiness-panel">
+            <ReadinessRing percent={readiness.percent} label={t('home.readyPercent', { percent: readiness.percent })} />
+            <div className="readiness-copy">
+              <h3>{t('home.readiness')}</h3>
+              <ul className="readiness-checks">
+                {readiness.checks.map((check) => (
+                  <li key={check.key} className={check.done ? 'is-done' : ''}>
+                    {check.done ? <CheckCircle2 size={14} /> : <Circle size={14} />}
+                    {t(check.key)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </section>
       )}
 
@@ -388,6 +430,27 @@ export function HomeScreen() {
       </div>
 
       <NewServiceDialog open={newServiceOpen} onClose={() => setNewServiceOpen(false)} />
+    </div>
+  )
+}
+
+function ReadinessRing({ percent, label }: { percent: number; label: string }) {
+  const radius = 42
+  const circumference = 2 * Math.PI * radius
+  return (
+    <div className="readiness-ring" role="img" aria-label={label}>
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <circle className="readiness-track" cx="50" cy="50" r={radius} />
+        <circle
+          className="readiness-value"
+          cx="50"
+          cy="50"
+          r={radius}
+          strokeDasharray={circumference}
+          strokeDashoffset={circumference * (1 - percent / 100)}
+        />
+      </svg>
+      <strong>{percent}%</strong>
     </div>
   )
 }
