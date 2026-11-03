@@ -51,7 +51,7 @@ import { useToasts } from '../store/useToasts'
 import { useT } from '../i18n/useT'
 import { navigate } from '../hooks/useHashRoute'
 import { flatSlides, serviceSectionForItem } from '../store/serviceUtils'
-import { isLikelyOverflow, makeElement, makeTextElement, SLIDE_TEXT_DEFAULTS } from '../utils/slides'
+import { isLikelyOverflow, makeElement, makeTextElement, SLIDE_TEXT_DEFAULTS, slideLabel } from '../utils/slides'
 import { sanitizeEditableText, sanitizeText } from '../security/text'
 import { webOutputProvider } from '../providers/output/WebOutputProvider'
 import { SlideRenderer } from '../components/SlideRenderer'
@@ -670,7 +670,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                                   onClick={() => { selectSlide(item.id, slide.id); setMobileRundown(false) }}
                                 >
                                   <span>{index + 1}</span>
-                                  <span>{slide.title || slide.text.slice(0, 42) || t('editor.blankSlide')}</span>
+                                  <span>{slideLabel(slide, slide.text.slice(0, 42)) || t('editor.blankSlide')}</span>
                                 </button>
                               ))}
                             </div>
@@ -981,11 +981,11 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                         }}
                       >
                         <span className="slide-thumb-canvas">
-                          <SlideRenderer slide={entry.slide} branding={branding} aspectRatio={slideAspectRatio} compact />
+                          <SlideRenderer slide={entry.slide} branding={branding} aspectRatio={slideAspectRatio} compact thumbnail />
                         </span>
                         <span className="slide-thumb-label">
-                          {index + 1}
-                          <small>{entry.item.title}</small>
+                          <span className="slide-thumb-number">{index + 1}</span>
+                          <small title={slideLabel(entry.slide, entry.item.title)}>{slideLabel(entry.slide, entry.item.title, { short: true })}</small>
                         </span>
                       </button>
                     </div>

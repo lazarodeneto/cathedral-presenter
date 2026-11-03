@@ -215,6 +215,8 @@ export interface SlideRendererProps {
   branding: Branding
   className?: string
   compact?: boolean
+  /** Small slide-strip thumbnail: text only, without heading, pills, footer or logo. */
+  thumbnail?: boolean
   interactive?: boolean
   selectedElementId?: string | null
   showSafeArea?: boolean
@@ -254,6 +256,7 @@ export function SlideRenderer({
   branding,
   className = '',
   compact = false,
+  thumbnail = false,
   interactive = false,
   selectedElementId = null,
   showSafeArea = false,
@@ -592,7 +595,7 @@ export function SlideRenderer({
       ref={rootRef}
       className={`slide-canvas is-aspect-${aspectRatio} bg-${background.preset ?? 'graphite'} tone-${tone} align-${align} ${
         compact ? 'is-compact' : ''
-      } ${interactive ? 'is-interactive' : ''} ${className}`}
+      } ${thumbnail ? 'is-thumbnail' : ''} ${interactive ? 'is-interactive' : ''} ${className}`}
       style={
         backgroundImage
           ? {

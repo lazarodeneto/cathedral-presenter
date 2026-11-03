@@ -179,7 +179,7 @@ export function createBibleSlides(options: CreateBibleSlideOptions): Slide[] {
     const reference = primaryBlock.reference
     return makeSlide({
       kind: 'scripture',
-      title: primary.reference,
+      title: primaryBlock.reference,
       text: verse.text,
       reference,
       translationId: primary.translationId,
@@ -431,6 +431,24 @@ export function scriptureTitle(passage: BiblePassage, secondary?: BiblePassage):
 
 export function isBilingual(slide: Slide): boolean {
   return Boolean(slide.bible?.secondary)
+}
+
+/**
+ * What a presenter reads to identify a slide: the exact verse for Scripture
+ * ("Salmos 23:4 · NAA", or both translations when bilingual), else the slide's
+ * own title, else the item's title.
+ */
+export function slideLabel(slide: Slide, fallback = '', { short = false }: { short?: boolean } = {}): string {
+  const primary = slide.bible?.primary
+  if (primary) {
+    // Narrow captions (slide thumbnails) keep only the verse, the part a presenter scans for.
+    if (short) return primary.reference
+    const secondary = slide.bible?.secondary
+    return secondary
+      ? `${primary.reference} · ${primary.abbreviation} + ${secondary.abbreviation}`
+      : `${primary.reference} · ${primary.abbreviation}`
+  }
+  return slide.title || fallback
 }
 
 export function isLikelyOverflow(slide: Slide): boolean {

@@ -13801,3 +13801,53 @@ body:not(.output-mode) .btn {
   align-items: center;
   gap: 5px;
 }
+
+/* Slide-strip and jump-list thumbnails: show the words, not the frame.
+   Fixed-pixel decorations (heading, translation pills, footer, logo) would fill a
+   120px thumbnail and leave auto-fit no room, so the verse shrank to an unreadable
+   size. Without them the text area scales like the full slide. */
+.slide-canvas.is-thumbnail .scripture-heading,
+.slide-canvas.is-thumbnail .scripture-footer,
+.slide-canvas.is-thumbnail .scripture-block .translation-tag,
+.slide-canvas.is-thumbnail .slide-footer-brand,
+.slide-canvas.is-thumbnail .slide-song-footer {
+  display: none;
+}
+
+.slide-canvas.is-thumbnail .scripture-layout {
+  padding: 7% 7%;
+}
+
+.slide-canvas.is-thumbnail .scripture-stack {
+  padding: 0;
+}
+
+/* Thumbnail caption: slide number and the exact verse, easy to scan. */
+.slide-thumb-label {
+  gap: 6px;
+}
+
+.slide-thumb-number {
+  display: inline-grid;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 4px;
+  place-items: center;
+  border-radius: var(--rounded-pill);
+  color: var(--text-2);
+  background: rgb(var(--wash-rgb) / 0.08);
+  font-size: var(--text-micro);
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+}
+
+body:not(.output-mode) .slide-thumb-label small {
+  color: var(--text-2);
+  font-size: var(--text-meta);
+  font-weight: 600;
+}
+
+body:not(.output-mode) .slide-thumb.is-active .slide-thumb-label small,
+body:not(.output-mode) .slide-thumb.is-active .slide-thumb-number {
+  color: var(--text);
+}

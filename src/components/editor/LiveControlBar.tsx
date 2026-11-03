@@ -14,6 +14,7 @@ import { useToasts } from '../../store/useToasts'
 import { useT } from '../../i18n/useT'
 import { flatSlides } from '../../store/serviceUtils'
 import { SlideRenderer } from '../SlideRenderer'
+import { slideLabel } from '../../utils/slides'
 import { Modal } from '../Modal'
 import { useDialogFocus } from '../../hooks/useDialogFocus'
 import type { ReactNode } from 'react'
@@ -47,7 +48,7 @@ export function LiveControlBar() {
     const needle = jumpQuery.trim().toLowerCase()
     if (!needle) return slides
     return slides.filter((entry) =>
-      `${entry.item.title} ${entry.section.title} ${entry.slide.title} ${entry.slide.text}`
+      `${entry.item.title} ${entry.section.title} ${slideLabel(entry.slide)} ${entry.slide.text}`
         .toLowerCase()
         .includes(needle),
     )
@@ -191,10 +192,10 @@ export function LiveControlBar() {
                 >
                   <span className="jump-number">{entry.index + 1}</span>
                   <span className="jump-thumb">
-                    <SlideRenderer slide={entry.slide} branding={branding} compact />
+                    <SlideRenderer slide={entry.slide} branding={branding} compact thumbnail />
                   </span>
                   <span className="jump-copy">
-                    <strong>{entry.slide.title || entry.item.title}</strong>
+                    <strong>{slideLabel(entry.slide, entry.item.title)}</strong>
                     <span>
                       {entry.section.title} · {entry.item.title}
                     </span>
