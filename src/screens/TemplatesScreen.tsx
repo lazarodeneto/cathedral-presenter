@@ -7,6 +7,7 @@ import { useToasts } from '../store/useToasts'
 import { useT } from '../i18n/useT'
 import { navigate } from '../hooks/useHashRoute'
 import { SlideRenderer } from '../components/SlideRenderer'
+import { SCREEN_META, ScreenIcon } from '../components/ScreenIcon'
 
 export function TemplatesScreen() {
   const t = useT()
@@ -55,9 +56,10 @@ export function TemplatesScreen() {
   }
 
   return (
-    <div className="screen templates-screen">
+    <div className="screen templates-screen" data-tone={SCREEN_META.templates.tone}>
       <div className="screen-heading">
         <div>
+          <ScreenIcon screen="templates" />
           <h1>{t('templates.title')}</h1>
           <p>{t('templates.subtitle')}</p>
         </div>

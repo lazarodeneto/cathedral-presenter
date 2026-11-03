@@ -27,6 +27,7 @@ import {
 } from '../utils/dates'
 import { flatSlides } from '../store/serviceUtils'
 import { CultoFormDialog } from '../components/culto/CultoFormDialog'
+import { SCREEN_META, ScreenIcon } from '../components/ScreenIcon'
 
 export function CalendarScreen() {
   const t = useT()
@@ -101,9 +102,10 @@ export function CalendarScreen() {
   }
 
   return (
-    <div className="screen calendar-screen">
+    <div className="screen calendar-screen" data-tone={SCREEN_META.calendar.tone}>
       <div className="screen-heading">
         <div>
+          <ScreenIcon screen="calendar" />
           <h1>{t('calendar.title')}</h1>
           <p>{t('calendar.subtitle')}</p>
         </div>

@@ -29,17 +29,18 @@ import { BibleLibraryPanel } from '../components/settings/BibleLibraryPanel'
 import { ShortcutSettings } from '../components/settings/ShortcutSettings'
 import { ConfirmDialog } from '../components/Modal'
 import { formatNumericDateTime } from '../utils/dates'
+import { SCREEN_META, ScreenIcon, type ScreenTone } from '../components/ScreenIcon'
 
 type Tab = 'general' | 'bibles' | 'identity' | 'outputs' | 'data' | 'security' | 'shortcuts'
 
-const TABS: { id: Tab; icon: typeof SlidersHorizontal; labelKey: string }[] = [
-  { id: 'general', icon: SlidersHorizontal, labelKey: 'settings.general' },
-  { id: 'bibles', icon: BookOpen, labelKey: 'settings.bibles' },
-  { id: 'identity', icon: Palette, labelKey: 'settings.branding' },
-  { id: 'outputs', icon: Monitor, labelKey: 'settings.outputs' },
-  { id: 'data', icon: Database, labelKey: 'settings.data' },
-  { id: 'security', icon: ShieldCheck, labelKey: 'settings.security' },
-  { id: 'shortcuts', icon: Keyboard, labelKey: 'settings.shortcuts' },
+const TABS: { id: Tab; icon: typeof SlidersHorizontal; labelKey: string; tone: ScreenTone }[] = [
+  { id: 'general', icon: SlidersHorizontal, labelKey: 'settings.general', tone: 'blue' },
+  { id: 'bibles', icon: BookOpen, labelKey: 'settings.bibles', tone: 'amber' },
+  { id: 'identity', icon: Palette, labelKey: 'settings.branding', tone: 'rose' },
+  { id: 'outputs', icon: Monitor, labelKey: 'settings.outputs', tone: 'violet' },
+  { id: 'data', icon: Database, labelKey: 'settings.data', tone: 'cyan' },
+  { id: 'security', icon: ShieldCheck, labelKey: 'settings.security', tone: 'blue' },
+  { id: 'shortcuts', icon: Keyboard, labelKey: 'settings.shortcuts', tone: 'amber' },
 ]
 
 
@@ -184,9 +185,10 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
   }
 
   return (
-    <div className="screen settings-screen">
+    <div className="screen settings-screen" data-tone={SCREEN_META.settings.tone}>
       <div className="screen-heading">
         <div>
+          <ScreenIcon screen="settings" />
           <h1>{t('settings.title')}</h1>
           <p>{t('settings.subtitle')}</p>
         </div>
@@ -198,9 +200,10 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
 
       <div className="settings-layout">
         <aside className="settings-nav panel">
-          {TABS.map(({ id, icon: Icon, labelKey }) => (
+          {TABS.map(({ id, icon: Icon, labelKey, tone }) => (
             <button
               key={id}
+              data-tone={tone}
               className={`settings-nav-item ${tab === id ? 'is-active' : ''}`}
               onClick={() => selectTab(id)}
             >

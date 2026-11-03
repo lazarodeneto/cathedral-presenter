@@ -273,6 +273,18 @@ A graphite, monochrome palette where three saturated colors each own exactly one
 - **Solid surfaces** (`surface-solid`, `surface-solid-raised`, `surface-well`): opaque versions of the panel layers. Wells hold grouped data inside dialogs and Settings. The solid pair replaces the translucent surfaces when Reduce Transparency is on.
 - **Text on tint** (`selection-violet-text`, `live-green-text`, `danger-text`): the readable light variant used for the label inside a chip or button filled with that family's tint (the LIVE chip, a selected tab, the danger button).
 
+### Category tones
+Five decorative tones give sections and content types a recognisable colour: **Blue** (`--tone-blue-rgb`, slides, services, readiness), **Violet** (`--tone-violet-rgb`, history, setup), **Rose** (`--tone-rose-rgb`, songs), **Amber** (`--tone-amber-rgb`, Scripture, time), and **Cyan** (`--tone-cyan-rgb`, data and media). Set `data-tone="blue"` (etc.) on an element and use `rgb(var(--tone-rgb) / alpha)` inside it.
+- **Icon chip** (`.tone-chip`): a 32px rounded square with a tone gradient fill, a tone hairline and the icon in the tone. Panel headers, stat tiles, the backup and setup panels use one.
+- **Stat tiles** carry a chip, the label, a large number and one tinted line of context, with a faint tone glow in the corner.
+- **Sidebar** icons take their section's tone; the selected white pill keeps Ink.
+- The readiness ring is a blue-to-violet gradient; completed checks are blue.
+- **Screen tones** come from one map, `SCREEN_META` in `src/components/ScreenIcon.tsx`: Home and Services blue, Calendar and Templates violet, Bible amber, Songs rose, Media cyan, Settings neutral. The sidebar icon and the 52px heading chip beside each screen title use it, so a section has the same colour everywhere.
+- Each screen root carries `data-tone`, which drives a faint tone wash behind the heading, a 4px tone bar before panel headings, and tinted icon discs in empty states.
+- Settings tabs each have their own tone; the active tab is a tinted pill.
+
+**The Tones Are Not States Rule.** Category tones only label what something is. They never mean live, selected, success or error: Live Green, Selection Violet and Danger keep those jobs, and no tone is used for a status chip.
+
 ### Tints and channels
 Every translucent tint comes from its family's channel token, not a hand-typed value. In code each hue exists once as an RGB channel (`--amber-rgb`, `--violet-rgb`, `--green-rgb`, `--danger-rgb`, `--text-rgb`, `--wash-rgb`, `--ink-rgb`), and tints are written `rgb(var(--amber-rgb) / 0.12)`. Changing a hue in one place re-tints its fills, borders, focus rings and glows everywhere. `--wash-rgb` is white (255 255 255) behind hover fills and quiet surfaces. `--ink-rgb` is the black inside recessed fields. `--gold-rgb` and `--gold-bright` are aliases of the brand primary, so a church theme re-tints the whole chrome.
 

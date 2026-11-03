@@ -1,32 +1,21 @@
-import {
-  BookOpen,
-  CalendarDays,
-  ListChecks,
-  House,
-  Image as ImageIcon,
-  LayoutTemplate,
-  Music4,
-  Play,
-  Settings,
-  Sparkles,
-} from 'lucide-react'
+import { Play, Sparkles } from 'lucide-react'
 import { useT } from '../i18n/useT'
 import { useAppStore } from '../store/useAppStore'
 import { navigate, type RouteName } from '../hooks/useHashRoute'
 import { BrandMark } from './BrandMark'
+import { SCREEN_META, type ScreenName } from './ScreenIcon'
 import { flatSlides } from '../store/serviceUtils'
 import { formatNumericDate } from '../utils/dates'
 
-// Each section keeps a muted icon tint from an existing colour family (Golden Gate sidebar).
-const NAV: { name: RouteName; key: string; icon: typeof House; tone: 'gold' | 'violet' | 'green' | 'wash' }[] = [
-  { name: 'home', key: 'nav.home', icon: House, tone: 'gold' },
-  { name: 'services', key: 'nav.services', icon: ListChecks, tone: 'gold' },
-  { name: 'calendar', key: 'nav.calendar', icon: CalendarDays, tone: 'violet' },
-  { name: 'bible', key: 'nav.bible', icon: BookOpen, tone: 'gold' },
-  { name: 'songs', key: 'nav.songs', icon: Music4, tone: 'violet' },
-  { name: 'media', key: 'nav.media', icon: ImageIcon, tone: 'green' },
-  { name: 'templates', key: 'nav.templates', icon: LayoutTemplate, tone: 'violet' },
-  { name: 'settings', key: 'nav.settings', icon: Settings, tone: 'wash' },
+const NAV: { name: ScreenName; key: string }[] = [
+  { name: 'home', key: 'nav.home' },
+  { name: 'services', key: 'nav.services' },
+  { name: 'calendar', key: 'nav.calendar' },
+  { name: 'bible', key: 'nav.bible' },
+  { name: 'songs', key: 'nav.songs' },
+  { name: 'media', key: 'nav.media' },
+  { name: 'templates', key: 'nav.templates' },
+  { name: 'settings', key: 'nav.settings' },
 ]
 
 export function Sidebar({ current }: { current: RouteName }) {
@@ -69,7 +58,9 @@ export function Sidebar({ current }: { current: RouteName }) {
       </div>
 
       <nav className="main-nav" aria-label={branding.appTitle}>
-        {NAV.map(({ name, key, icon: Icon, tone }) => (
+        {NAV.map(({ name, key }) => {
+          const { icon: Icon, tone } = SCREEN_META[name]
+          return (
           <button
             key={name}
             data-tone={tone}
@@ -82,7 +73,8 @@ export function Sidebar({ current }: { current: RouteName }) {
             <Icon size={18} strokeWidth={1.7} />
             <span>{t(key)}</span>
           </button>
-        ))}
+          )
+        })}
       </nav>
 
       <div className="sidebar-spacer" />

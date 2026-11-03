@@ -18,6 +18,7 @@ import { createLibrarySongItem, DEFAULT_LIBRARY_QUERY, querySongLibrary, parseLy
 import { SlideRenderer } from '../components/SlideRenderer'
 import { LibrarySongFormDialog } from '../components/songs/LibrarySongFormDialog'
 import { DeleteLibrarySongDialog } from '../components/songs/DeleteLibrarySongDialog'
+import { SCREEN_META, ScreenIcon } from '../components/ScreenIcon'
 
 export function SongsScreen() {
   const t = useT()
@@ -83,9 +84,10 @@ export function SongsScreen() {
   const libCategories = useMemo(() => [...new Set(librarySongs.map((s) => s.category).filter(Boolean) as string[])].sort(), [librarySongs])
 
   return (
-    <div className="screen songs-screen">
+    <div className="screen songs-screen" data-tone={SCREEN_META.songs.tone}>
       <div className="screen-heading">
         <div>
+          <ScreenIcon screen="songs" />
           <h1>{t('songs.title')}</h1>
           <p>{t('library.subtitle')}</p>
         </div>

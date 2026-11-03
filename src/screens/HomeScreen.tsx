@@ -8,8 +8,10 @@ import {
   Clock3,
   Copy,
   Database,
+  History,
   FilePlus2,
   Library,
+  Music4,
   Play,
   Plus,
   Sparkles,
@@ -219,25 +221,42 @@ export function HomeScreen() {
       {hero && readiness && (
         <section className="home-pulse" aria-label={hero.title}>
           <div className="home-stats">
-            <div className="stat-tile">
+            <div className="stat-tile" data-tone="blue">
+              <span className="tone-chip" aria-hidden="true">
+                <LayersIcon />
+              </span>
               <span className="stat-label">{t('home.statSlides')}</span>
               <strong className="stat-value">{heroSlides.length}</strong>
+              <span className="stat-hint">{t('home.statSections', { count: hero.sections.length })}</span>
             </div>
-            <div className="stat-tile">
+            <div className="stat-tile" data-tone="rose">
+              <span className="tone-chip" aria-hidden="true">
+                <Music4 size={16} />
+              </span>
               <span className="stat-label">{t('home.statSongs')}</span>
               <strong className="stat-value">{heroSongs}</strong>
+              <span className="stat-hint">{heroSongs === 0 ? t('home.statNoSongs') : t('home.statInService')}</span>
             </div>
-            <div className="stat-tile">
+            <div className="stat-tile" data-tone="amber">
+              <span className="tone-chip" aria-hidden="true">
+                <Clock3 size={16} />
+              </span>
               <span className="stat-label">{t('home.statStartsIn')}</span>
               <strong className="stat-value">
                 {startsIn ? t('home.statDaysHours', { days: startsIn.days, hours: startsIn.hours }) : t('home.statStarted')}
               </strong>
+              <span className="stat-hint">
+                {formatNumericDate(hero.date)} · {formatTime(hero.time, locale)}
+              </span>
             </div>
           </div>
           <div className="panel readiness-panel">
             <ReadinessRing percent={readiness.percent} label={t('home.readyPercent', { percent: readiness.percent })} />
             <div className="readiness-copy">
               <h3>{t('home.readiness')}</h3>
+              <p className="readiness-summary">
+                {readiness.checks.filter((check) => check.done).length}/{readiness.checks.length}
+              </p>
               <ul className="readiness-checks">
                 {readiness.checks.map((check) => (
                   <li key={check.key} className={check.done ? 'is-done' : ''}>
@@ -254,7 +273,10 @@ export function HomeScreen() {
       <div className="home-grid">
         <section className="panel home-upcoming">
           <div className="panel-header">
-            <div>
+            <div className="panel-title">
+              <span className="tone-chip" data-tone="blue" aria-hidden="true">
+                <CalendarDays size={16} />
+              </span>
               <h3>{t('home.upcoming')}</h3>
             </div>
             <button className="text-link" onClick={() => navigate('/calendar')}>
@@ -272,7 +294,7 @@ export function HomeScreen() {
                     className="service-row"
                     onClick={() => open(service.id)}
                   >
-                    <span className="service-date">
+                    <span className="service-date" data-tone="blue">
                       <strong>{service.date.slice(8, 10)}</strong>
                       <span>
                         {new Intl.DateTimeFormat(intlLocale, { month: 'short' }).format(
@@ -305,7 +327,10 @@ export function HomeScreen() {
 
         <section className="panel home-scripture">
           <div className="panel-header">
-            <div>
+            <div className="panel-title">
+              <span className="tone-chip" data-tone="amber" aria-hidden="true">
+                <BookIcon />
+              </span>
               <h3>{t('home.recentPassage')}</h3>
             </div>
             <button className="icon-link" onClick={() => navigate('/bible')} aria-label={t('home.openBible')}>
@@ -327,12 +352,12 @@ export function HomeScreen() {
             <div className="list-empty">{t('bible.noResults')}</div>
           )}
           <div className="quick-links">
-            <button onClick={() => navigate('/bible')}>
+            <button data-tone="amber" onClick={() => navigate('/bible')}>
               <BookIcon />
               {t('home.openBible')}
               <ChevronRight size={14} />
             </button>
-            <button onClick={() => navigate('/songs')}>
+            <button data-tone="rose" onClick={() => navigate('/songs')}>
               <MusicIcon />
               {t('songs.title')}
               <ChevronRight size={14} />
@@ -342,7 +367,10 @@ export function HomeScreen() {
 
         <section className="panel home-recent">
           <div className="panel-header">
-            <div>
+            <div className="panel-title">
+              <span className="tone-chip" data-tone="violet" aria-hidden="true">
+                <History size={16} />
+              </span>
               <h3>{t('home.recent')}</h3>
             </div>
           </div>
@@ -377,7 +405,7 @@ export function HomeScreen() {
       <div className="home-lower">
         {settings.showSetupChecklist && completed < checklist.length && (
           <section className="panel setup-panel">
-            <div className="setup-icon">
+            <div className="setup-icon tone-chip" data-tone="violet">
               <Sparkles size={20} />
             </div>
             <div className="setup-copy">
@@ -408,7 +436,7 @@ export function HomeScreen() {
         )}
 
         <section className="panel backup-panel">
-          <span className="backup-icon">
+          <span className="backup-icon tone-chip" data-tone="cyan">
             <Database size={20} />
           </span>
           <div>
@@ -440,6 +468,12 @@ function ReadinessRing({ percent, label }: { percent: number; label: string }) {
   return (
     <div className="readiness-ring" role="img" aria-label={label}>
       <svg viewBox="0 0 100 100" aria-hidden="true">
+        <defs>
+          <linearGradient id="readiness-gradient" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" style={{ stopColor: 'rgb(var(--tone-blue-rgb))' }} />
+            <stop offset="100%" style={{ stopColor: 'rgb(var(--tone-violet-rgb))' }} />
+          </linearGradient>
+        </defs>
         <circle className="readiness-track" cx="50" cy="50" r={radius} />
         <circle
           className="readiness-value"

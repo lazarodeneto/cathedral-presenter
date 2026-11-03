@@ -23,6 +23,7 @@ import { navigate } from '../hooks/useHashRoute'
 import { Modal } from '../components/Modal'
 import { QrComposer } from '../components/editor/QrComposer'
 import { qrElement, type QrVariant } from '../providers/media/mediaWorkflow'
+import { SCREEN_META, ScreenIcon } from '../components/ScreenIcon'
 
 function errorMessage(reason: string | undefined, t: (key: string) => string): string {
   switch (reason) {
@@ -178,9 +179,10 @@ export function MediaScreen() {
   }
 
   return (
-    <div className="screen media-screen">
+    <div className="screen media-screen" data-tone={SCREEN_META.media.tone}>
       <div className="screen-heading">
         <div>
+          <ScreenIcon screen="media" />
           <h1>{t('media.title')}</h1>
           <p>{t('media.subtitle')}</p>
         </div>

@@ -26,6 +26,7 @@ import { useT } from '../i18n/useT'
 import { navigate } from '../hooks/useHashRoute'
 import { createBibleItem, createBibleSlides } from '../utils/slides'
 import { isLikelyOverflow } from '../utils/slides'
+import { SCREEN_META, ScreenIcon } from '../components/ScreenIcon'
 
 const BROWSE = [
   { bookId: 'psalms', chapter: 23 },
@@ -418,9 +419,10 @@ export function BibleScreen() {
   }
 
   return (
-    <div className="screen bible-screen">
+    <div className="screen bible-screen" data-tone={SCREEN_META.bible.tone}>
       <div className="screen-heading">
         <div>
+          <ScreenIcon screen="bible" />
           <h1>{t('bible.title')}</h1>
           <p>{t('bible.subtitle')}</p>
         </div>

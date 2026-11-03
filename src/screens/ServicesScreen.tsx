@@ -22,6 +22,7 @@ import { CultoFormDialog } from '../components/culto/CultoFormDialog'
 import { DeleteCultoDialog, DuplicateCultoDialog } from '../components/culto/CultoDialogs'
 import { StatusChip } from '../components/culto/StatusChip'
 import { DateField } from '../components/DateField'
+import { SCREEN_META, ScreenIcon } from '../components/ScreenIcon'
 
 const VIEWS: ServiceView[] = ['upcoming', 'past', 'draft', 'scheduled', 'active', 'archived', 'all']
 const SORTS: ServiceSort[] = ['date-asc', 'date-desc', 'title', 'status', 'updated']
@@ -53,9 +54,10 @@ export function ServicesScreen() {
   }
 
   return (
-    <div className="screen services-screen">
+    <div className="screen services-screen" data-tone={SCREEN_META.services.tone}>
       <header className="screen-heading">
         <div>
+          <ScreenIcon screen="services" />
           <h1>{t('culto.screenTitle')}</h1>
           <p>{t('culto.screenCopy')}</p>
         </div>
