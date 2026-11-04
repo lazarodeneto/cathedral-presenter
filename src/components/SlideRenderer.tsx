@@ -331,15 +331,63 @@ export function SlideRenderer({
   const tone = background.tone ?? 'dark'
   const align = slide.textAlign
 
+  // Elements under a canvas point, topmost first (same stacking as the render).
+  const elementsAt = (clientX: number, clientY: number): SlideElement[] => {
+    const rect = rootRef.current?.getBoundingClientRect()
+    if (!rect || !rect.width || !rect.height) return []
+    const px = ((clientX - rect.left) / rect.width) * 100
+    const py = ((clientY - rect.top) / rect.height) * 100
+    const stack = (entry: SlideElement) => (entry.type === 'message' ? Math.max(contentZ + 1, entry.zIndex) : entry.zIndex)
+    return slide.elements
+      .map((entry, index) => ({ entry, index }))
+      .filter(({ entry }) => entry.visible && px >= entry.x && px <= entry.x + entry.width && py >= entry.y && py <= entry.y + entry.height)
+      .sort((a, b) => stack(b.entry) - stack(a.entry) || b.index - a.index)
+      .map(({ entry }) => entry)
+  }
+
+  // Plain click picks the topmost element under the pointer; Alt+click picks the one
+  // below the current selection, so stacked elements can be reached without Layers.
+  const pickAt = (event: React.PointerEvent, fallback: SlideElement | null): SlideElement | null => {
+    const hits = elementsAt(event.clientX, event.clientY)
+    if (!event.altKey || hits.length < 2) return fallback ?? hits[0] ?? null
+    const current = hits.findIndex((entry) => entry.id === selectedElementId)
+    return hits[(current + 1) % hits.length]
+  }
+
+  // Clicks on the slide's own text layer fall through to elements underneath it.
+  const onTextLayerPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!interactive) return
+    event.stopPropagation()
+    const hit = pickAt(event, null)
+    const node = hit && rootRef.current?.querySelector<HTMLElement>(`[data-element-id="${CSS.escape(hit.id)}"]`)
+    if (hit && node) {
+      onElementPointerDown(event as React.PointerEvent<HTMLDivElement>, hit, node)
+      return
+    }
+    onSelectElement?.(null)
+  }
+
   const onElementPointerDown = (
     event: React.PointerEvent<HTMLDivElement>,
-    element: SlideElement,
+    clicked: SlideElement,
+    captureNode?: HTMLElement,
   ) => {
     if (!interactive) return
     event.stopPropagation()
+    const isHandle = Boolean((event.target as HTMLElement).dataset.resize)
+    let element = clicked
+    let node = captureNode ?? event.currentTarget
+    if (!captureNode && !isHandle && event.altKey) {
+      const next = pickAt(event, clicked)
+      const nextNode = next && rootRef.current?.querySelector<HTMLElement>(`[data-element-id="${CSS.escape(next.id)}"]`)
+      if (next && nextNode) {
+        element = next
+        node = nextNode
+      }
+    }
     if (editingId && editingId !== element.id) setEditingId(null)
     onSelectElement?.(element.id)
-    const corner = (event.target as HTMLElement).dataset.resize as
+    const corner = (captureNode ? undefined : (event.target as HTMLElement).dataset.resize) as
       | 'nw'
       | 'ne'
       | 'sw'
@@ -360,7 +408,7 @@ export function SlideRenderer({
       return
     }
     if (!onMoveElement) return
-    event.currentTarget.setPointerCapture(event.pointerId)
+    node.setPointerCapture(event.pointerId)
     setDrag({
       id: element.id,
       startX: event.clientX,
@@ -528,6 +576,7 @@ export function SlideRenderer({
           }
         }}
         onKeyDown={(event) => onElementKeyDown(event, element)}
+        data-element-id={element.id}
         onPointerDown={(event) => onElementPointerDown(event, element)}
         onPointerMove={onElementPointerMove}
         onPointerUp={endDrag}
@@ -535,7 +584,15 @@ export function SlideRenderer({
         onLostPointerCapture={endDrag}
         onClick={(event) => event.stopPropagation()}
         onDoubleClick={(event) => {
-          if (interactive && element.type === 'text' && onEditElementText && editingId !== element.id) {
+          if (!interactive) return
+          // A shape, image etc. stacked under the slide text: double-click edits that text,
+          // as it did before clicks passed through the text to reach the element.
+          if (element.type !== 'text' && element.type !== 'message' && element.zIndex < contentZ && onEditSlideText && !editingSlideText) {
+            event.stopPropagation()
+            setEditingSlideText(true)
+            return
+          }
+          if (element.type === 'text' && onEditElementText && editingId !== element.id) {
             event.stopPropagation()
             setEditingId(element.id)
           }
@@ -667,11 +724,12 @@ export function SlideRenderer({
             }
           : undefined
       }
-      onPointerDown={() => {
+      onPointerDown={(event) => {
         if (!interactive) return
         setEditingId(null)
         setEditingSlideText(false)
-        onSelectElement?.(null)
+        // Scripture and timer layers have no handler of their own; elements under them still get picked.
+        onTextLayerPointerDown(event)
       }}
     >
       {showSafeArea && <div className="safe-area" />}
@@ -727,11 +785,7 @@ export function SlideRenderer({
             zIndex: contentZ,
             justifyContent: slide.textVerticalAlign === 'top' ? 'flex-start' : slide.textVerticalAlign === 'bottom' ? 'flex-end' : undefined,
           }}
-          onPointerDown={(event) => {
-            if (!interactive) return
-            event.stopPropagation()
-            onSelectElement?.(null)
-          }}
+          onPointerDown={onTextLayerPointerDown}
           onDoubleClick={(event) => {
             if (interactive && onEditSlideText && !editingSlideText) {
               event.stopPropagation()
@@ -777,11 +831,7 @@ export function SlideRenderer({
             zIndex: contentZ,
             justifyContent: slide.textVerticalAlign === 'top' ? 'flex-start' : slide.textVerticalAlign === 'bottom' ? 'flex-end' : undefined,
           }}
-          onPointerDown={(event) => {
-            if (!interactive) return
-            event.stopPropagation()
-            onSelectElement?.(null)
-          }}
+          onPointerDown={onTextLayerPointerDown}
           onDoubleClick={(event) => {
             if (interactive && onEditSlideText && !editingSlideText) {
               event.stopPropagation()
