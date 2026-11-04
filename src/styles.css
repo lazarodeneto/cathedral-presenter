@@ -14766,17 +14766,6 @@ body:not(.output-mode) .live-control.is-alert-on::after {
   font-weight: 650;
 }
 
-.output-status-action kbd {
-  margin-left: 4px;
-  padding: 1px 6px;
-  border-radius: var(--rounded-xs);
-  color: inherit;
-  background: rgb(0 0 0 / 0.12);
-  font-family: inherit;
-  font-size: var(--text-micro);
-  font-weight: 600;
-  opacity: 0.75;
-}
 
 body:not(.output-mode) .output-status-action.is-end {
   border: 1px solid rgb(var(--danger-rgb) / 0.55);
@@ -15497,7 +15486,7 @@ body:not(.output-mode) .topbar {
 /* Collapsed sidebar (icon rail): each icon tile gets its own row with room
    around it, instead of 3px between 32px rows. */
 @media (max-width: 1180px) {
-  body:not(.output-mode) .sidebar-nav {
+  body:not(.output-mode) .sidebar .main-nav {
     gap: 8px;
   }
 
@@ -15507,7 +15496,7 @@ body:not(.output-mode) .topbar {
 }
 
 @media (min-width: 1181px) and (max-width: 1360px) {
-  body:not(.output-mode) .is-editing .sidebar-nav {
+  body:not(.output-mode) .is-editing .sidebar .main-nav {
     gap: 8px;
   }
 
@@ -16060,4 +16049,103 @@ body:not(.output-mode) .backup-panel > div:nth-child(2) {
 
 .calendar-side {
   scroll-margin-top: 12px;
+}
+
+/* Expanded sidebar: same rhythm as the icon rail, 8px between 40px rows. */
+body:not(.output-mode) .sidebar .main-nav {
+  gap: 8px;
+}
+
+body:not(.output-mode) .sidebar .nav-item {
+  min-height: 40px;
+}
+
+/* ── Present: the one action that puts the service on the audience screen ──
+   Solid green (the colour of being live) with dark ink for contrast, the play
+   glyph in its own round chip, a soft lift on hover and a press on click.
+   The shortcut lives in the tooltip, not in the label. */
+body:not(.output-mode) .output-status-action.is-go {
+  position: relative;
+  min-height: 46px;
+  gap: 10px;
+  padding: 0 18px 0 8px;
+  border: 1px solid rgb(var(--green-rgb) / 0.9);
+  border-radius: var(--rounded-pill);
+  color: #08200f;
+  background: linear-gradient(180deg, #7fd8a0 0%, var(--green) 55%, #4fb676 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.4),
+    0 8px 22px rgb(var(--green-rgb) / 0.24),
+    0 1px 2px rgb(0 0 0 / 0.3);
+  font-size: var(--text-body);
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  transition: transform 0.16s var(--ease-out), box-shadow 0.16s var(--ease-out), filter 0.16s var(--ease-out);
+}
+
+body:not(.output-mode) .output-status-action.is-go:hover:not(:disabled) {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    0 12px 28px rgb(var(--green-rgb) / 0.32),
+    0 1px 2px rgb(0 0 0 / 0.3);
+}
+
+body:not(.output-mode) .output-status-action.is-go:active:not(:disabled) {
+  transform: translateY(0) scale(0.985);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.18), 0 4px 12px rgb(var(--green-rgb) / 0.2);
+}
+
+body:not(.output-mode) .output-status-action.is-go:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--surface-solid),
+    0 0 0 4px rgb(var(--green-rgb) / 0.85),
+    0 8px 22px rgb(var(--green-rgb) / 0.24);
+}
+
+.output-status-go-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  place-items: center;
+  margin-right: auto;
+  border-radius: 50%;
+  color: var(--green-text);
+  background: #0b2a16;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+
+.output-status-go-icon svg {
+  margin-left: 2px;
+}
+
+/* Label centred in the button while the chip sits at the start. */
+.output-status-action.is-go > span:last-child {
+  margin-right: auto;
+  transform: translateX(-15px);
+}
+
+body:not(.output-mode) .output-status-action.is-go:disabled {
+  border-color: var(--line);
+  color: var(--faint);
+  background: rgb(var(--wash-rgb) / 0.05);
+  box-shadow: none;
+  filter: none;
+  cursor: not-allowed;
+}
+
+body:not(.output-mode) .output-status-action.is-go:disabled .output-status-go-icon {
+  color: var(--faint);
+  background: rgb(var(--wash-rgb) / 0.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:not(.output-mode) .output-status-action.is-go,
+  body:not(.output-mode) .output-status-action.is-go:hover:not(:disabled),
+  body:not(.output-mode) .output-status-action.is-go:active:not(:disabled) {
+    transform: none;
+  }
 }
