@@ -24,6 +24,8 @@ export function Sidebar({ current }: { current: RouteName }) {
   const services = useAppStore((state) => state.services)
   const activeServiceId = useAppStore((state) => state.activeServiceId)
   const openService = useAppStore((state) => state.selectService)
+  // While live, the operator's attention belongs to the live controls: no next-service card or status here.
+  const isLive = useAppStore((state) => Boolean(state.live))
   const activeService = services.find((service) => service.id === activeServiceId)
   const slideCount = activeService ? flatSlides(activeService).length : 0
 
@@ -61,55 +63,67 @@ export function Sidebar({ current }: { current: RouteName }) {
         {NAV.map(({ name, key }) => {
           const { icon: Icon, tone } = SCREEN_META[name]
           return (
-          <button
-            key={name}
-            data-tone={tone}
-            className={`nav-item ${current === name || (current === 'service' && name === 'services') ? 'is-active' : ''}`}
-            aria-current={current === name || (current === 'service' && name === 'services') ? 'page' : undefined}
-            aria-label={t(key)}
-            title={t(key)}
-            onClick={() => navigate(`/${name}`)}
-          >
-            <span className="nav-app-icon" aria-hidden="true">
-              <Icon size={15} strokeWidth={1.9} />
-            </span>
-            <span>{t(key)}</span>
-          </button>
+            <button
+              key={name}
+              data-tone={tone}
+              className={`nav-item ${current === name || (current === 'service' && name === 'services') ? 'is-active' : ''}`}
+              aria-current={
+                current === name || (current === 'service' && name === 'services')
+                  ? 'page'
+                  : undefined
+              }
+              aria-label={t(key)}
+              title={t(key)}
+              onClick={() => navigate(`/${name}`)}
+            >
+              <span className="nav-app-icon" aria-hidden="true">
+                <Icon size={15} strokeWidth={1.9} />
+              </span>
+              <span>{t(key)}</span>
+            </button>
           )
         })}
       </nav>
 
       <div className="sidebar-spacer" />
 
-      <div className="sidebar-service">
-        <span className="eyebrow">{t('home.upcoming')}</span>
-        {activeService ? (
-          <>
-            <button className="sidebar-service-name" onClick={() => navigate(`/service/${activeService.id}`)}>
-              <strong>{activeService.title}</strong>
-              <span>
-                {formatNumericDate(activeService.date)} · {slideCount} {t(slideCount === 1 ? 'common.slide' : 'common.slides')}
-              </span>
+      {!isLive && (
+        <div className="sidebar-service">
+          <span className="eyebrow">{t('home.upcoming')}</span>
+          {activeService ? (
+            <>
+              <button
+                className="sidebar-service-name"
+                onClick={() => navigate(`/service/${activeService.id}`)}
+              >
+                <strong>{activeService.title}</strong>
+                <span>
+                  {formatNumericDate(activeService.date)} · {slideCount}{' '}
+                  {t(slideCount === 1 ? 'common.slide' : 'common.slides')}
+                </span>
+              </button>
+              <button className="btn btn-present btn-block" onClick={openPresent}>
+                <Play size={14} fill="currentColor" />
+                {activeService ? t('calendar.openService') : t('calendar.newService')}
+              </button>
+            </>
+          ) : (
+            <button className="btn btn-secondary btn-block" onClick={() => navigate('/calendar')}>
+              {t('calendar.newService')}
             </button>
-            <button className="btn btn-present btn-block" onClick={openPresent}>
-              <Play size={14} fill="currentColor" />
-              {activeService ? t('calendar.openService') : t('calendar.newService')}
-            </button>
-          </>
-        ) : (
-          <button className="btn btn-secondary btn-block" onClick={() => navigate('/calendar')}>
-            {t('calendar.newService')}
-          </button>
-        )}
-      </div>
-
-      <div className="sidebar-footer">
-        <span className="status-dot status-dot-ready" />
-        <div>
-          <strong>{t('status.offlineReady')}</strong>
-          <span>{t('status.storageLocal')}</span>
+          )}
         </div>
-      </div>
+      )}
+
+      {!isLive && (
+        <div className="sidebar-footer">
+          <span className="status-dot status-dot-ready" />
+          <div>
+            <strong>{t('status.offlineReady')}</strong>
+            <span>{t('status.storageLocal')}</span>
+          </div>
+        </div>
+      )}
     </aside>
   )
 }
