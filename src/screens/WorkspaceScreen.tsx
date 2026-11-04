@@ -151,6 +151,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   const updateNotes = useAppStore((state) => state.updateNotes)
   const setSlideBackground = useAppStore((state) => state.setSlideBackground)
   const addBlankSlide = useAppStore((state) => state.addBlankSlide)
+  const moveSlide = useAppStore((state) => state.moveSlide)
+  const moveItemNextTo = useAppStore((state) => state.moveItemNextTo)
   const duplicateSlide = useAppStore((state) => state.duplicateSlide)
   const deleteSlide = useAppStore((state) => state.deleteSlide)
   const removeItem = useAppStore((state) => state.removeItem)
@@ -210,6 +212,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   const [mobileInspector, setMobileInspector] = useState(false)
   const [endOpen, setEndOpen] = useState(false)
   const thumbsRef = useRef<HTMLDivElement>(null)
+  const [draggedSlide, setDraggedSlide] = useState<{ itemId: string; slideId: string } | null>(null)
+  const [slideDropTarget, setSlideDropTarget] = useState<{ slideId: string; side: 'before' | 'after' } | null>(null)
   const canvasAreaRef = useRef<HTMLDivElement>(null)
   const canvasRailRef = useRef<HTMLDivElement>(null)
   // The canvas fills its area at the exact slide format: 16:9 (1920 × 1080) or 4:3.
@@ -1011,9 +1015,65 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   const prevItem = index > 0 ? allSlides[index - 1].item.id : null
                   const showDivider = prevItem !== null && prevItem !== entry.item.id
                   return (
-                    <div key={entry.slide.id} className="slide-thumb-wrap" style={showDivider ? { marginLeft: 12 } : undefined}>
+                    <div
+                      key={entry.slide.id}
+                      className={`slide-thumb-wrap ${draggedSlide?.slideId === entry.slide.id ? 'is-dragging' : ''} ${
+                        slideDropTarget?.slideId === entry.slide.id ? `drop-${slideDropTarget.side}` : ''
+                      }`}
+                      style={showDivider ? { marginLeft: 12 } : undefined}
+                      draggable
+                      onDragStart={(event) => {
+                        event.dataTransfer.effectAllowed = 'move'
+                        event.dataTransfer.setData('text/plain', entry.slide.id)
+                        setDraggedSlide({ itemId: entry.item.id, slideId: entry.slide.id })
+                      }}
+                      onDragOver={(event) => {
+                        // Same item: reorder slides. Another item: move the dragged slide's whole item.
+                        if (!draggedSlide || draggedSlide.slideId === entry.slide.id) return
+                        event.preventDefault()
+                        event.dataTransfer.dropEffect = 'move'
+                        const rect = event.currentTarget.getBoundingClientRect()
+                        const side = event.clientX < rect.left + rect.width / 2 ? 'before' : 'after'
+                        if (slideDropTarget?.slideId !== entry.slide.id || slideDropTarget.side !== side) {
+                          setSlideDropTarget({ slideId: entry.slide.id, side })
+                        }
+                      }}
+                      onDragLeave={(event) => {
+                        if (event.currentTarget.contains(event.relatedTarget as Node | null)) return
+                        setSlideDropTarget((current) => (current?.slideId === entry.slide.id ? null : current))
+                      }}
+                      onDrop={(event) => {
+                        event.preventDefault()
+                        if (draggedSlide && slideDropTarget) {
+                          if (draggedSlide.itemId === entry.item.id) {
+                            const slides = entry.item.slides
+                            const from = slides.findIndex((slide) => slide.id === draggedSlide.slideId)
+                            let to = slides.findIndex((slide) => slide.id === entry.slide.id)
+                            if (slideDropTarget.side === 'after') to += 1
+                            if (from < to) to -= 1
+                            moveSlide(service.id, entry.item.id, draggedSlide.slideId, to)
+                          } else {
+                            moveItemNextTo(service.id, draggedSlide.itemId, entry.item.id, slideDropTarget.side)
+                          }
+                        }
+                        setDraggedSlide(null)
+                        setSlideDropTarget(null)
+                      }}
+                      onDragEnd={() => {
+                        setDraggedSlide(null)
+                        setSlideDropTarget(null)
+                      }}
+                    >
                       <button
                         className={`slide-thumb ${isActive ? 'is-active' : ''} ${isLiveSlide ? 'is-live' : ''}`}
+                        onKeyDown={(event) => {
+                          if (!event.altKey || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) return
+                          event.preventDefault()
+                          const from = entry.item.slides.findIndex((slide) => slide.id === entry.slide.id)
+                          moveSlide(service.id, entry.item.id, entry.slide.id, from + (event.key === 'ArrowLeft' ? -1 : 1))
+                          const button = event.currentTarget
+                          requestAnimationFrame(() => button.focus())
+                        }}
                         onClick={() => {
                           selectItem(entry.item.id)
                           selectSlide(entry.item.id, entry.slide.id)

@@ -6792,7 +6792,37 @@ dialog.modal::backdrop {
 }
 
 .slide-thumb-wrap {
+  position: relative;
   flex: 0 0 auto;
+  cursor: grab;
+}
+
+.slide-thumb-wrap:active {
+  cursor: grabbing;
+}
+
+.slide-thumb-wrap.is-dragging {
+  opacity: 0.4;
+}
+
+.slide-thumb-wrap.drop-before::before,
+.slide-thumb-wrap.drop-after::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--amber);
+  pointer-events: none;
+}
+
+.slide-thumb-wrap.drop-before::before {
+  left: -5px;
+}
+
+.slide-thumb-wrap.drop-after::after {
+  right: -5px;
 }
 
 .slide-thumb:hover {
