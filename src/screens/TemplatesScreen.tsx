@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { ChevronRight, LayoutTemplate, Plus } from 'lucide-react'
 import { SLIDE_TEMPLATES } from '../data/templates'
+import type { SlideTemplate } from '../types'
 import { createTemplateItem } from '../utils/slides'
 import { useAppStore } from '../store/useAppStore'
 import { useToasts } from '../store/useToasts'
@@ -31,32 +32,44 @@ export function TemplatesScreen() {
   const templates = SLIDE_TEMPLATES.filter(
     (template) => category === 'All' || template.category === category,
   )
-  const previews = useMemo(
+  // Names, descriptions, categories and slide content come from the dictionary (src/i18n/templateStrings).
+  const tx = useCallback(
+    (key: string, fallback: string) => {
+      const value = t(key)
+      return value === key ? fallback : value
+    },
+    [t],
+  )
+  const categoryLabel = (category: string) => tx(`template.category.${category}`, category)
+  const localized = useMemo(
     () =>
       new Map(
-        SLIDE_TEMPLATES.map((template) => [
-          template.id,
-          createTemplateItem(template, template.name).slides[0],
-        ]),
+        SLIDE_TEMPLATES.map((template) => {
+          const entry: SlideTemplate = {
+            ...template,
+            name: tx(`template.${template.id}.name`, template.name),
+            description: tx(`template.${template.id}.description`, template.description),
+            text: tx(`template.${template.id}.text`, template.text),
+            label: template.label ? tx(`template.${template.id}.label`, template.label) : undefined,
+          }
+          return [template.id, entry]
+        }),
       ),
-    [],
+    [tx],
+  )
+  const previews = useMemo(
+    () => new Map([...localized.values()].map((template) => [template.id, createTemplateItem(template, template.name).slides[0]])),
+    [localized],
   )
 
-  // Names, descriptions and categories are translated when a key exists; English is the fallback.
-  const tx = (key: string, fallback: string) => {
-    const value = t(key)
-    return value === key ? fallback : value
-  }
-  const categoryLabel = (category: string) => tx(`template.category.${category}`, category)
-
   const add = (templateId: string) => {
-    const template = SLIDE_TEMPLATES.find((entry) => entry.id === templateId)
+    const template = localized.get(templateId)
     if (!template) return
     if (!activeService) {
       push(t('toast.noActiveService'), 'error')
       return
     }
-    const item = createTemplateItem(template, tx(`template.${template.id}.name`, template.name))
+    const item = createTemplateItem(template, template.name)
     addItem(activeService.id, sectionId || activeService.sections[0]?.id || '', item)
     push(t('templates.added'), 'success')
     navigate(`/service/${activeService.id}`)
@@ -116,8 +129,8 @@ export function TemplatesScreen() {
             <div className="template-body">
               <div>
                 <span className="eyebrow">{categoryLabel(template.category)}</span>
-                <h3>{tx(`template.${template.id}.name`, template.name)}</h3>
-                <p>{tx(`template.${template.id}.description`, template.description)}</p>
+                <h3>{localized.get(template.id)?.name}</h3>
+                <p>{localized.get(template.id)?.description}</p>
               </div>
               <button
                 className="btn btn-secondary btn-sm"

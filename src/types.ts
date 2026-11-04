@@ -45,6 +45,12 @@ export type BackgroundPreset =
   | 'royal'
   | 'sky'
   | 'blush'
+  | 'flow'
+  | 'ember'
+  | 'tide'
+  | 'stars'
+  | 'rays'
+  | 'breathe'
 
 export type ElementType = 'text' | 'image' | 'video' | 'shape' | 'qr' | 'embed' | 'message'
 
@@ -73,6 +79,10 @@ export type MediaElementSettings = {
   youtubeId?: string
   localOnly?: boolean
   missing?: boolean
+  /** Video placeholder from a template: invisible on outputs until a video fills it. */
+  videoSlot?: boolean
+  /** Gentle looping motion for decorative elements. */
+  motion?: 'pulse' | 'float' | 'spin' | 'drift' | 'sway'
   onlineOnly?: boolean
   status?: MediaStatus
 }
@@ -473,8 +483,25 @@ export interface SlideTemplate {
     | 'halo'
     | 'tag'
     | 'split'
+    | 'underline'
+    | 'glass'
+    | 'diagonal'
+    | 'ring'
+    | 'corners'
+    | 'glow'
+    | 'video'
+    | 'art-water'
+    | 'art-night'
+    | 'art-dove'
+    | 'art-calvary'
+    | 'art-kneeling'
+    | 'art-worship'
   /** Small label drawn by presets that carry one (tag, band, split, quote-bar reference). */
   label?: string
+  /** Accent colour (any CSS colour) for the preset's lines, panels and glows. Gold by default. */
+  accent?: string
+  /** Gentle looping motion applied to the preset's decorative shapes. */
+  motion?: 'pulse' | 'float' | 'spin' | 'drift' | 'sway'
   fontFamily?: 'serif' | 'sans'
   fontSize?: number
   fontWeight?: number

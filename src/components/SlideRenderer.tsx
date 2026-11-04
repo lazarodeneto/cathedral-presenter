@@ -120,10 +120,12 @@ function SlideMedia({
   element,
   source,
   online,
+  interactive = false,
 }: {
   element: SlideElement
   source?: string
   online: boolean
+  interactive?: boolean
 }) {
   const t = useT()
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading')
@@ -142,6 +144,16 @@ function SlideMedia({
   }, [source, element.id])
 
   const blocked = missing || unsupported || offline || state === 'error'
+
+  // An empty template video slot: a hint in the editor, nothing on outputs (the background shows).
+  if (settings.videoSlot && !source) {
+    return interactive ? (
+      <span className="slide-video-slot" style={{ borderRadius: mediaRadius }}>
+        <strong>{t('editor.videoSlot')}</strong>
+        <span>{t('editor.videoSlotHint')}</span>
+      </span>
+    ) : null
+  }
 
   return (
     <span
@@ -559,7 +571,7 @@ export function SlideRenderer({
     return (
       <div
         key={element.id}
-        className={`slide-element slide-element-${element.type} ${
+        className={`slide-element slide-element-${element.type} ${settings.motion ? `has-motion motion-${settings.motion}` : ''} ${
           selectedElementId === element.id ? 'is-selected' : ''
         } ${interactive ? 'is-interactive' : ''}`}
         style={style}
@@ -648,7 +660,7 @@ export function SlideRenderer({
           />
         )}
         {(element.type === 'image' || element.type === 'video') && (
-          <SlideMedia element={element} source={source} online={online} />
+          <SlideMedia element={element} source={source} online={online} interactive={interactive} />
         )}
         {element.type === 'embed' &&
           source &&

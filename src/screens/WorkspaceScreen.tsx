@@ -474,6 +474,23 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   }
 
   const addMedia = (asset: Parameters<typeof mediaElementFromAsset>[0]) => {
+    // A template's empty video slot takes the first video added to its slide, keeping its frame.
+    const slot = asset.kind === 'video'
+      ? activeSlide?.elements.find((element) => element.type === 'video' && element.settings?.videoSlot && !element.source)
+      : undefined
+    if (slot && activeItem && activeSlide) {
+      const filled = mediaElementFromAsset(asset, {
+        providerLabel: t(asset.provider === 'url' ? 'media.remote' : 'media.localOnly'),
+        fallbackText: t('editor.video'),
+      })
+      updateElement(service.id, activeItem.id, activeSlide.id, slot.id, {
+        source: filled.source,
+        text: filled.text,
+        settings: { ...filled.settings, ...slot.settings, ...{ fit: 'cover' as const }, videoSlot: false, missing: false, status: filled.settings?.status },
+      })
+      selectElement(slot.id)
+      return
+    }
     insertElement(
       mediaElementFromAsset(asset, {
         providerLabel: t(

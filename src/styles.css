@@ -16581,3 +16581,211 @@ body:not(.output-mode) .template-body > .btn {
     radial-gradient(80% 100% at 0% 100%, rgba(251, 207, 232, 0.9), transparent 62%),
     linear-gradient(160deg, #fff7ed, #fce7f3);
 }
+
+/* ── Motion backgrounds ──────────────────────────────────────────────
+   Looping, slow and soft: colour fields that drift behind the text (a
+   stand-in for motion video). The moving layer is ::before so the base
+   gradient stays put. Thumbnails stay still; reduced motion stops all. */
+.bg-flow,
+.bg-ember,
+.bg-tide,
+.bg-stars,
+.bg-rays,
+.bg-breathe {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.bg-flow::before,
+.bg-ember::before,
+.bg-tide::before,
+.bg-stars::before,
+.bg-rays::before,
+.bg-breathe::before {
+  position: absolute;
+  z-index: 0;
+  inset: -25%;
+  content: '';
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.bg-flow {
+  background: linear-gradient(160deg, #140c33, #07051a);
+}
+
+.bg-flow::before {
+  background:
+    radial-gradient(35% 40% at 30% 35%, rgba(168, 85, 247, 0.65), transparent 70%),
+    radial-gradient(35% 40% at 70% 60%, rgba(59, 130, 246, 0.6), transparent 70%),
+    radial-gradient(30% 35% at 55% 25%, rgba(236, 72, 153, 0.45), transparent 70%);
+  animation: motion-drift 18s ease-in-out infinite alternate;
+}
+
+.bg-ember {
+  background: linear-gradient(180deg, #1c0a05, #0b0403);
+}
+
+.bg-ember::before {
+  background:
+    radial-gradient(40% 45% at 35% 70%, rgba(249, 115, 22, 0.6), transparent 70%),
+    radial-gradient(35% 40% at 70% 80%, rgba(220, 38, 38, 0.5), transparent 70%),
+    radial-gradient(30% 30% at 55% 40%, rgba(250, 204, 21, 0.3), transparent 70%);
+  animation: motion-drift 14s ease-in-out infinite alternate-reverse;
+}
+
+.bg-tide {
+  background: linear-gradient(170deg, #052e2b, #021312);
+}
+
+.bg-tide::before {
+  background:
+    repeating-linear-gradient(170deg, rgba(45, 212, 191, 0.16) 0 6%, transparent 6% 14%),
+    radial-gradient(60% 50% at 50% 80%, rgba(20, 184, 166, 0.45), transparent 70%);
+  animation: motion-tide 12s linear infinite;
+}
+
+.bg-stars {
+  background:
+    radial-gradient(120% 60% at 50% 120%, rgba(99, 102, 241, 0.45), transparent 60%),
+    linear-gradient(180deg, #02030a, #0b1230);
+}
+
+.bg-stars::before {
+  inset: 0;
+  background:
+    radial-gradient(1.5px 1.5px at 10% 20%, #fff, transparent 60%),
+    radial-gradient(1px 1px at 22% 70%, #fff, transparent 60%),
+    radial-gradient(2px 2px at 35% 35%, #fff, transparent 60%),
+    radial-gradient(1px 1px at 48% 12%, #fff, transparent 60%),
+    radial-gradient(1.5px 1.5px at 60% 55%, #fff, transparent 60%),
+    radial-gradient(1px 1px at 72% 28%, #fff, transparent 60%),
+    radial-gradient(2px 2px at 84% 62%, #fff, transparent 60%),
+    radial-gradient(1px 1px at 92% 18%, #fff, transparent 60%),
+    radial-gradient(1.5px 1.5px at 15% 50%, #fff, transparent 60%),
+    radial-gradient(1px 1px at 66% 82%, #fff, transparent 60%);
+  animation: motion-twinkle 4s ease-in-out infinite alternate;
+}
+
+.bg-rays {
+  background: radial-gradient(80% 80% at 50% 0%, #3b2a0b, #0c0904 70%);
+}
+
+.bg-rays::before {
+  inset: -60%;
+  background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(250, 204, 21, 0.12) 0deg 6deg, transparent 6deg 18deg);
+  mask-image: radial-gradient(circle at 50% 50%, #000 0%, transparent 60%);
+  animation: motion-spin 60s linear infinite;
+}
+
+.bg-breathe {
+  background: linear-gradient(170deg, #0a1633, #040814);
+}
+
+.bg-breathe::before {
+  inset: 0;
+  background: radial-gradient(45% 60% at 50% 50%, rgba(96, 165, 250, 0.55), transparent 70%);
+  animation: motion-breathe 6s ease-in-out infinite;
+}
+
+@keyframes motion-drift {
+  0% { transform: translate(-6%, -4%) rotate(0deg) scale(1); }
+  50% { transform: translate(5%, 3%) rotate(8deg) scale(1.08); }
+  100% { transform: translate(-3%, 6%) rotate(-6deg) scale(1.02); }
+}
+
+@keyframes motion-tide {
+  from { transform: translateY(0); }
+  to { transform: translateY(14%); }
+}
+
+@keyframes motion-twinkle {
+  from { opacity: 0.45; }
+  to { opacity: 1; }
+}
+
+@keyframes motion-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes motion-breathe {
+  0%, 100% { opacity: 0.55; transform: scale(0.92); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+/* Decorative elements with motion (templates set settings.motion). */
+.slide-element.motion-pulse > * { animation: motion-breathe 5s ease-in-out infinite; }
+.slide-element.motion-float { animation: motion-float 7s ease-in-out infinite; }
+.slide-element.motion-spin > * { animation: motion-spin 40s linear infinite; }
+.slide-element.motion-drift > * { animation: motion-drift 16s ease-in-out infinite alternate; }
+
+@keyframes motion-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -2.5%; }
+}
+
+/* Still in the slide strip and other small thumbnails, and for reduced motion. */
+.is-thumbnail::before,
+.is-thumbnail .has-motion,
+.is-thumbnail .has-motion > *,
+.preset-swatch::before {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-flow::before,
+  .bg-ember::before,
+  .bg-tide::before,
+  .bg-stars::before,
+  .bg-rays::before,
+  .bg-breathe::before,
+  .has-motion,
+  .has-motion > * {
+    animation: none !important;
+  }
+}
+
+/* Empty template video slot, editor only. */
+.slide-video-slot {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  border: 2px dashed rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(0, 0, 0, 0.18);
+  font-size: clamp(9px, 2.2cqw, 22px);
+  text-align: center;
+}
+
+.slide-video-slot strong {
+  font-weight: 650;
+}
+
+.slide-video-slot span {
+  opacity: 0.75;
+  font-size: 0.8em;
+}
+
+.slide-element.motion-sway { animation: motion-sway 9s ease-in-out infinite; }
+
+@keyframes motion-sway {
+  0%, 100% { translate: -1.2% 0; }
+  50% { translate: 1.2% -1%; }
+}
+
+.is-thumbnail .slide-element.motion-sway,
+.is-thumbnail .slide-element.motion-float {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-element.motion-sway,
+  .slide-element.motion-float {
+    animation: none !important;
+  }
+}
