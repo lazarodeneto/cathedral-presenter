@@ -9,6 +9,7 @@ import {
   Image as ImageIcon,
   ImagePlus,
   Layers,
+  LayoutTemplate,
   Link2,
   Magnet,
   Palette,
@@ -70,6 +71,7 @@ export function EditorToolbar({
   onText,
   onBackground,
   onToggleLayers,
+  onTemplates,
 }: {
   disabled: boolean
   layersOpen: boolean
@@ -81,11 +83,14 @@ export function EditorToolbar({
   onText: () => void
   onBackground: () => void
   onToggleLayers: () => void
+  /** Opens the template gallery; the picked template becomes a new item after the current one. */
+  onTemplates: () => void
 }) {
   const t = useT()
   return (
     <div className="editor-toolbar" role="toolbar" aria-label={t('editor.element')}>
       <div className="editor-tool-group">
+        <ToolButton icon={<LayoutTemplate size={16} />} label={t('nav.templates')} onClick={onTemplates} disabled={disabled} />
         <ToolButton
           icon={<span className="christian-cross-icon" aria-hidden="true" />}
           label={t('editor.logo')}

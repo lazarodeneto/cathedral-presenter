@@ -53,7 +53,7 @@ import { useToasts } from '../store/useToasts'
 import { useT } from '../i18n/useT'
 import { navigate } from '../hooks/useHashRoute'
 import { flatSlides, serviceSectionForItem } from '../store/serviceUtils'
-import { isLikelyOverflow, makeElement, makeTextElement, SLIDE_TEXT_DEFAULTS, slideLabel } from '../utils/slides'
+import { createTemplateItem, isLikelyOverflow, makeElement, makeTextElement, SLIDE_TEXT_DEFAULTS, slideLabel } from '../utils/slides'
 import { sanitizeEditableText, sanitizeText } from '../security/text'
 import { webOutputProvider } from '../providers/output/WebOutputProvider'
 import { SlideRenderer } from '../components/SlideRenderer'
@@ -63,6 +63,7 @@ import { CanvasGuidesRail, EditorToolbar, ElementActionRail } from '../component
 import { EditorMediaDialog, mediaError, type MediaDialogMode } from '../components/editor/EditorMediaDialog'
 import { EditorBackgroundDialog } from '../components/editor/EditorBackgroundDialog'
 import { LOGO_ERROR_KEYS, processLogoFile } from '../utils/logo'
+import { TemplatePickerDialog } from '../components/editor/TemplatePickerDialog'
 import { LogoPlacementDialog, type LogoCorner, type LogoShape } from '../components/editor/LogoPlacementDialog'
 import { QrComposer } from '../components/editor/QrComposer'
 import { LayersPanel } from '../components/editor/LayersPanel'
@@ -162,6 +163,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   const snapToObjects = useAppStore((state) => state.settings.snapToObjects ?? true)
   const updateSettings = useAppStore((state) => state.updateSettings)
   const moveItemNextTo = useAppStore((state) => state.moveItemNextTo)
+  const addItem = useAppStore((state) => state.addItem)
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false)
   const duplicateSlide = useAppStore((state) => state.duplicateSlide)
   const deleteSlide = useAppStore((state) => state.deleteSlide)
   const removeItem = useAppStore((state) => state.removeItem)
@@ -945,6 +948,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
               onMessage={addMessage}
               onBackground={() => setBackgroundOpen(true)}
               onToggleLayers={() => setLayersOpen((value) => !value)}
+              onTemplates={() => setTemplatePickerOpen(true)}
             />
 
             <div className="canvas-area" ref={canvasAreaRef}>
@@ -2035,6 +2039,22 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
           onClose={() => setBackgroundOpen(false)}
         />
       )}
+
+      <TemplatePickerDialog
+        open={templatePickerOpen}
+        onClose={() => setTemplatePickerOpen(false)}
+        onPick={(template) => {
+          const sectionId =
+            service.sections.find((section) => activeItem && section.itemIds.includes(activeItem.id))?.id ??
+            activeSection?.id ??
+            service.sections[0]?.id ??
+            ''
+          const item = createTemplateItem(template, template.name)
+          addItem(service.id, sectionId, item)
+          if (activeItem) moveItemNextTo(service.id, item.id, activeItem.id, 'after')
+          push(t('templates.added'), 'success')
+        }}
+      />
 
       <LogoPlacementDialog
         open={logoPlacementOpen}

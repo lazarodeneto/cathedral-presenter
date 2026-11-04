@@ -6,6 +6,7 @@ type EditorLocale = Exclude<Locale, 'en' | 'pt-BR'>
 
 export const editorStrings: Record<EditorLocale, Record<string, string>> = {
   pt: {
+    'editor.templatesPickHint': 'Escolha um modelo para o adicionar a seguir ao item atual.',
     'background.flow': 'Fluxo (animado)',
     'background.ember': 'Brasa (animado)',
     'background.tide': 'Maré (animado)',
@@ -368,6 +369,7 @@ export const editorStrings: Record<EditorLocale, Record<string, string>> = {
     'type.title': 'Título',
   },
   es: {
+    'editor.templatesPickHint': 'Elige una plantilla para añadirla después del elemento actual.',
     'background.flow': 'Flujo (animado)',
     'background.ember': 'Brasa (animado)',
     'background.tide': 'Marea (animado)',
@@ -730,6 +732,7 @@ export const editorStrings: Record<EditorLocale, Record<string, string>> = {
     'type.title': 'Título',
   },
   fr: {
+    'editor.templatesPickHint': 'Choisissez un modèle pour l’ajouter après l’élément actuel.',
     'background.flow': 'Flux (animé)',
     'background.ember': 'Braise (animé)',
     'background.tide': 'Marée (animé)',
@@ -1092,6 +1095,7 @@ export const editorStrings: Record<EditorLocale, Record<string, string>> = {
     'type.title': 'Titre',
   },
   de: {
+    'editor.templatesPickHint': 'Wähle eine Vorlage, um sie nach dem aktuellen Element einzufügen.',
     'background.flow': 'Fluss (animiert)',
     'background.ember': 'Glut (animiert)',
     'background.tide': 'Gezeiten (animiert)',
@@ -1454,6 +1458,7 @@ export const editorStrings: Record<EditorLocale, Record<string, string>> = {
     'type.title': 'Titel',
   },
   it: {
+    'editor.templatesPickHint': 'Scegli un modello per aggiungerlo dopo l’elemento attuale.',
     'background.flow': 'Flusso (animato)',
     'background.ember': 'Brace (animato)',
     'background.tide': 'Marea (animato)',

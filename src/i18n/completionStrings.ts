@@ -285,6 +285,7 @@ const ptBRAuto: Record<string, string> = Object.fromEntries(
 )
 
 const ptBR: Record<string, string> = {
+  'editor.templatesPickHint': 'Escolha um modelo para adicioná-lo depois do item atual.',
   ...ptBRAuto,
   'sidebar.localSettings': 'Configurações locais',
   'common.loading': 'Carregando…',

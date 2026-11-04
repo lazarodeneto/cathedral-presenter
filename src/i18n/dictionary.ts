@@ -644,6 +644,7 @@ const en: Dict = {
   'editor.element': 'Element',
   'editor.backgroundPreset': 'Background preset',
   'editor.notes': 'Speaker notes',
+  'editor.templatesPickHint': 'Pick a template to add it after the current item.',
   'editor.transition': 'Transition',
   'editor.transitionDefault': 'Service default',
   'editor.transitionApplyTitle': 'Apply transition: {name}',
