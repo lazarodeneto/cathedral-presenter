@@ -6,6 +6,11 @@ type EditorLocale = Exclude<Locale, 'en' | 'pt-BR'>
 
 export const editorStrings: Record<EditorLocale, Record<string, string>> = {
   pt: {
+    'editor.canvasGuides': 'Guias da tela',
+    'editor.grid': 'Grade',
+    'editor.snap': 'Encaixar em objetos',
+    'common.on': 'Ligado',
+    'common.off': 'Desligado',
     'shortcut.live.next': 'Próximo slide',
     'shortcut.live.next.desc': 'Mostra o próximo slide.',
     'shortcut.live.prev': 'Slide anterior',
@@ -328,6 +333,11 @@ export const editorStrings: Record<EditorLocale, Record<string, string>> = {
     'type.title': 'Título',
   },
   es: {
+    'editor.canvasGuides': 'Guías del lienzo',
+    'editor.grid': 'Cuadrícula',
+    'editor.snap': 'Ajustar a objetos',
+    'common.on': 'Activado',
+    'common.off': 'Desactivado',
     'shortcut.live.next': 'Siguiente diapositiva',
     'shortcut.live.next.desc': 'Muestra la siguiente diapositiva.',
     'shortcut.live.prev': 'Diapositiva anterior',
@@ -650,6 +660,11 @@ export const editorStrings: Record<EditorLocale, Record<string, string>> = {
     'type.title': 'Título',
   },
   fr: {
+    'editor.canvasGuides': 'Repères du canevas',
+    'editor.grid': 'Grille',
+    'editor.snap': 'Aimanter aux objets',
+    'common.on': 'Activé',
+    'common.off': 'Désactivé',
     'shortcut.live.next': 'Diapositive suivante',
     'shortcut.live.next.desc': 'Affiche la diapositive suivante.',
     'shortcut.live.prev': 'Diapositive précédente',
@@ -972,6 +987,11 @@ export const editorStrings: Record<EditorLocale, Record<string, string>> = {
     'type.title': 'Titre',
   },
   de: {
+    'editor.canvasGuides': 'Hilfslinien',
+    'editor.grid': 'Raster',
+    'editor.snap': 'An Objekten ausrichten',
+    'common.on': 'Ein',
+    'common.off': 'Aus',
     'shortcut.live.next': 'Nächste Folie',
     'shortcut.live.next.desc': 'Zeigt die nächste Folie.',
     'shortcut.live.prev': 'Vorherige Folie',
@@ -1294,6 +1314,11 @@ export const editorStrings: Record<EditorLocale, Record<string, string>> = {
     'type.title': 'Titel',
   },
   it: {
+    'editor.canvasGuides': 'Guide della tela',
+    'editor.grid': 'Griglia',
+    'editor.snap': 'Aggancia agli oggetti',
+    'common.on': 'Attivo',
+    'common.off': 'Disattivo',
     'shortcut.live.next': 'Diapositiva successiva',
     'shortcut.live.next.desc': 'Mostra la diapositiva successiva.',
     'shortcut.live.prev': 'Diapositiva precedente',

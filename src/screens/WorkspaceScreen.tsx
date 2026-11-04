@@ -55,7 +55,7 @@ import { webOutputProvider } from '../providers/output/WebOutputProvider'
 import { SlideRenderer } from '../components/SlideRenderer'
 import { AddContentModal } from '../components/AddContentModal'
 import { ConfirmDialog, Modal } from '../components/Modal'
-import { EditorToolbar, ElementActionRail } from '../components/editor/EditorToolbar'
+import { CanvasGuidesRail, EditorToolbar, ElementActionRail } from '../components/editor/EditorToolbar'
 import { EditorMediaDialog, mediaError, type MediaDialogMode } from '../components/editor/EditorMediaDialog'
 import { EditorBackgroundDialog } from '../components/editor/EditorBackgroundDialog'
 import { LogoPlacementDialog, type LogoCorner, type LogoShape } from '../components/editor/LogoPlacementDialog'
@@ -152,6 +152,9 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   const setSlideBackground = useAppStore((state) => state.setSlideBackground)
   const addBlankSlide = useAppStore((state) => state.addBlankSlide)
   const moveSlide = useAppStore((state) => state.moveSlide)
+  const showGrid = useAppStore((state) => state.settings.showGrid ?? false)
+  const snapToObjects = useAppStore((state) => state.settings.snapToObjects ?? true)
+  const updateSettings = useAppStore((state) => state.updateSettings)
   const moveItemNextTo = useAppStore((state) => state.moveItemNextTo)
   const duplicateSlide = useAppStore((state) => state.duplicateSlide)
   const deleteSlide = useAppStore((state) => state.deleteSlide)
@@ -925,6 +928,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                       author: activeItem.metadata?.author,
                     } : undefined}
                     interactive
+                    showGrid={showGrid}
+                    snapToObjects={snapToObjects}
                     selectedElementId={selectedElementId}
                     onSelectElement={selectElement}
                     onMoveElement={(id, x, y) => {
@@ -964,6 +969,12 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     onToggleVisible={toggleSelectedVisible}
                     onDuplicate={duplicateSelected}
                     onDelete={deleteSelected}
+                  />
+                  <CanvasGuidesRail
+                    showGrid={showGrid}
+                    snapToObjects={snapToObjects}
+                    onToggleGrid={() => updateSettings({ showGrid: !showGrid })}
+                    onToggleSnap={() => updateSettings({ snapToObjects: !snapToObjects })}
                   />
                   <button
                     className="editor-tool slide-delete-btn"

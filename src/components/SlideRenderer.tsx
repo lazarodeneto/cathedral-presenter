@@ -9,9 +9,12 @@ import { TimerFace } from './timer/TimerFace'
 import { MessageBoxView } from './MessageBoxView'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import { DEFAULT_CONTENT_Z, SLIDE_TEXT_DEFAULTS } from '../utils/slides'
+import { GRID_COLUMNS, gridRows, snapAxis, snapTargets, type SnapTargets } from '../utils/snap'
 
 /** Smallest auto-fit scale: 64 shrinks to about 19 before text is allowed to clip. */
 const MIN_FIT_SCALE = 0.3
+/** How close, in screen pixels, an edge must come to a line to snap to it. */
+const SNAP_PX = 6
 
 function overflows(element: HTMLElement): boolean {
   return element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1
@@ -234,6 +237,10 @@ export interface SlideRendererProps {
   messageVisible?: boolean
   songFooter?: { title: string; author?: string }
   aspectRatio?: 'wide' | 'classic'
+  /** Editor only: draw the alignment grid over the canvas. */
+  showGrid?: boolean
+  /** Editor only: snap dragged and resized elements to the canvas, other elements and the grid. */
+  snapToObjects?: boolean
 }
 
 const ELEMENT_TYPE_KEYS: Record<string, string> = {
@@ -272,6 +279,8 @@ export function SlideRenderer({
   messageVisible,
   songFooter,
   aspectRatio = 'wide',
+  showGrid = false,
+  snapToObjects = false,
 }: SlideRendererProps) {
   const t = useT()
   const online = useOnlineStatus()
@@ -296,6 +305,8 @@ export function SlideRenderer({
     originW: number
     originH: number
   } | null>(null)
+  // Snap lines shown while dragging or resizing, in canvas %.
+  const [guides, setGuides] = useState<SnapTargets>({ x: [], y: [] })
 
   // Refit whenever anything that changes the text's size changes.
   useAutoFit(
@@ -359,6 +370,12 @@ export function SlideRenderer({
     })
   }
 
+  const targetsFor = (id: string) =>
+    snapTargets(
+      slide.elements.filter((entry) => entry.visible && entry.id !== id),
+      showGrid ? { columns: GRID_COLUMNS, rows: gridRows(aspectRatio) } : null,
+    )
+
   const onElementPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!rootRef.current) return
     const rect = rootRef.current.getBoundingClientRect()
@@ -379,6 +396,37 @@ export function SlideRenderer({
         y = resize.originY + dy
         height = resize.originH - dy
       }
+      // Shift or Ctrl/Cmd: lock to a perfect square (a circle for ellipses), measured in
+      // pixels since x/width are % of the canvas width and y/height % of its height.
+      const constrained = event.shiftKey || event.ctrlKey || event.metaKey
+      if (snapToObjects && !constrained) {
+        const targets = targetsFor(resize.id)
+        const sx = snapAxis([resize.corner.includes('w') ? x : x + width], targets.x, (SNAP_PX / rect.width) * 100)
+        const sy = snapAxis([resize.corner.includes('n') ? y : y + height], targets.y, (SNAP_PX / rect.height) * 100)
+        if (sx) {
+          if (resize.corner.includes('w')) {
+            x += sx.delta
+            width -= sx.delta
+          } else width += sx.delta
+        }
+        if (sy) {
+          if (resize.corner.includes('n')) {
+            y += sy.delta
+            height -= sy.delta
+          } else height += sy.delta
+        }
+        setGuides({ x: sx ? [sx.line] : [], y: sy ? [sy.line] : [] })
+      }
+      if (constrained) {
+        const minSide = Math.max(4 * rect.width, 4 * rect.height) / 100
+        const maxSide = Math.min(160 * rect.width, 160 * rect.height) / 100
+        const side = Math.max(minSide, Math.min(maxSide, Math.max((width * rect.width) / 100, (height * rect.height) / 100)))
+        width = (side / rect.width) * 100
+        height = (side / rect.height) * 100
+        // Keep the corner opposite the handle fixed.
+        x = resize.corner.includes('w') ? resize.originX + resize.originW - width : resize.originX
+        y = resize.corner.includes('n') ? resize.originY + resize.originH - height : resize.originY
+      }
       const round = (value: number) => Math.round(value * 10) / 10
       onResizeElement(resize.id, {
         x: round(Math.max(-20, Math.min(120, x))),
@@ -391,14 +439,24 @@ export function SlideRenderer({
     if (!drag || !onMoveElement) return
     const dx = ((event.clientX - drag.startX) / rect.width) * 100
     const dy = ((event.clientY - drag.startY) / rect.height) * 100
-    const x = Math.max(-10, Math.min(100, drag.originX + dx))
-    const y = Math.max(-10, Math.min(100, drag.originY + dy))
+    let x = Math.max(-10, Math.min(100, drag.originX + dx))
+    let y = Math.max(-10, Math.min(100, drag.originY + dy))
+    const moving = slide.elements.find((entry) => entry.id === drag.id)
+    if (snapToObjects && moving) {
+      const targets = targetsFor(drag.id)
+      const sx = snapAxis([x, x + moving.width / 2, x + moving.width], targets.x, (SNAP_PX / rect.width) * 100)
+      const sy = snapAxis([y, y + moving.height / 2, y + moving.height], targets.y, (SNAP_PX / rect.height) * 100)
+      if (sx) x += sx.delta
+      if (sy) y += sy.delta
+      setGuides({ x: sx ? [sx.line] : [], y: sy ? [sy.line] : [] })
+    }
     onMoveElement(drag.id, Math.round(x * 10) / 10, Math.round(y * 10) / 10)
   }
 
   const endDrag = () => {
     setDrag(null)
     setResize(null)
+    setGuides({ x: [], y: [] })
   }
 
   // Keyboard alternative to dragging (WCAG 2.5.7): arrows move, Alt+arrows
@@ -617,6 +675,19 @@ export function SlideRenderer({
       }}
     >
       {showSafeArea && <div className="safe-area" />}
+      {interactive && showGrid && (
+        <div
+          className="canvas-grid"
+          aria-hidden="true"
+          style={{ backgroundSize: `calc(100% / ${GRID_COLUMNS}) calc(100% / ${gridRows(aspectRatio)})` }}
+        />
+      )}
+      {interactive && guides.x.map((line) => (
+        <span key={`gx-${line}`} className="snap-guide is-vertical" style={{ left: `${line}%` }} aria-hidden="true" />
+      ))}
+      {interactive && guides.y.map((line) => (
+        <span key={`gy-${line}`} className="snap-guide is-horizontal" style={{ top: `${line}%` }} aria-hidden="true" />
+      ))}
       {backgroundImage && (
         <span
           className="background-image-wash"

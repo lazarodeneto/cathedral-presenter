@@ -491,6 +491,10 @@ export interface AppSettings {
   lastBackupAt: string | null
   showSetupChecklist: boolean
   defaultSectionTitle: string
+  /** Editor canvas: draw the alignment grid. */
+  showGrid?: boolean
+  /** Editor canvas: snap elements to the canvas, other elements and the grid. On when missing. */
+  snapToObjects?: boolean
 }
 
 export interface LiveSession {

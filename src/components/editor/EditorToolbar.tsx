@@ -5,10 +5,12 @@ import {
   Eye,
   EyeOff,
   Film,
+  Grid3x3,
   Image as ImageIcon,
   ImagePlus,
   Layers,
   Link2,
+  Magnet,
   Palette,
   Plus,
   QrCode,
@@ -29,6 +31,7 @@ function ToolButton({
   active,
   title,
   compact,
+  pressed,
 }: {
   icon: React.ReactNode
   label: string
@@ -37,6 +40,8 @@ function ToolButton({
   active?: boolean
   title?: string
   compact?: boolean
+  /** Makes the button an on/off toggle. */
+  pressed?: boolean
 }) {
   return (
     <button
@@ -45,6 +50,7 @@ function ToolButton({
       disabled={disabled}
       title={title ?? label}
       aria-label={label}
+      aria-pressed={pressed}
       type="button"
     >
       {icon}
@@ -172,6 +178,43 @@ export function ElementActionRail({
         label={t('editor.deleteElement')}
         onClick={onDelete}
         disabled={!selectedElement}
+        compact
+      />
+    </div>
+  )
+}
+
+/** On/off toggles for the canvas grid and snapping, under the element rail. */
+export function CanvasGuidesRail({
+  showGrid,
+  snapToObjects,
+  onToggleGrid,
+  onToggleSnap,
+}: {
+  showGrid: boolean
+  snapToObjects: boolean
+  onToggleGrid: () => void
+  onToggleSnap: () => void
+}) {
+  const t = useT()
+  return (
+    <div className="editor-element-actions canvas-guides-rail" role="toolbar" aria-label={t('editor.canvasGuides')}>
+      <ToolButton
+        icon={<Grid3x3 size={16} />}
+        label={t('editor.grid')}
+        title={`${t('editor.grid')}: ${t(showGrid ? 'common.on' : 'common.off')}`}
+        onClick={onToggleGrid}
+        active={showGrid}
+        pressed={showGrid}
+        compact
+      />
+      <ToolButton
+        icon={<Magnet size={16} />}
+        label={t('editor.snap')}
+        title={`${t('editor.snap')}: ${t(snapToObjects ? 'common.on' : 'common.off')}`}
+        onClick={onToggleSnap}
+        active={snapToObjects}
+        pressed={snapToObjects}
         compact
       />
     </div>

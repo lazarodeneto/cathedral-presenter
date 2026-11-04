@@ -98,6 +98,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   lastBackupAt: null,
   showSetupChecklist: true,
   defaultSectionTitle: 'Message',
+  showGrid: false,
+  snapToObjects: true,
 }
 
 export { DEFAULT_BRANDING }
