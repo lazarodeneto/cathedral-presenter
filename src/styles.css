@@ -9488,13 +9488,6 @@ dialog.modal::backdrop {
   background: #000;
 }
 
-.output-black span {
-  color: rgb(var(--wash-rgb) / 0.2);
-  font-size: var(--text-meta);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-
 .output-frozen-hint {
   position: absolute;
   z-index: 30;
@@ -16869,4 +16862,130 @@ body:not(.output-mode) .template-body > .btn {
   .template-picker-card:hover {
     transform: none;
   }
+}
+
+/* ── Live: inspector folded to speaker notes ─────────────────────────
+   The slide on screen, then its notes in large, readable type. Opening
+   the full inspector is one click away (and folds again next session). */
+.inspector-head .text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--text-meta);
+}
+
+.inspector-head .inspector-fold {
+  margin-left: auto;
+  margin-right: 8px;
+}
+
+.inspector-scroll.live-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.live-notes-slide {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--text-ui);
+  font-weight: 600;
+}
+
+/* Green only marks what is on the audience screen. */
+.live-notes-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px rgb(var(--green-rgb) / 0.6);
+}
+
+.live-notes-text {
+  width: 100%;
+  min-height: 180px;
+  flex: 1;
+  resize: none;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--rounded-md);
+  color: var(--text);
+  background: rgb(var(--ink-rgb) / 0.35);
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.live-notes-text:focus {
+  outline: none;
+  border-color: var(--line-strong);
+  box-shadow: var(--focus-ring);
+}
+
+.live-notes-text::placeholder {
+  color: var(--faint);
+  font-size: var(--text-ui);
+}
+
+.live-notes-hint {
+  margin: 0;
+  color: var(--faint);
+  font-size: var(--text-micro);
+}
+
+/* Slide strip: the slide on the audience screen gets the same 3px green frame
+   and glow as the live preview, plus a LIVE tag so it is never colour alone. */
+body:not(.output-mode) .slide-thumb.is-live,
+body:not(.output-mode) .slide-thumb.is-active.is-live {
+  padding: 1px;
+  border: 3px solid rgb(var(--green-rgb));
+  box-shadow: 0 0 14px 2px rgb(var(--green-rgb) / 0.32);
+}
+
+.slide-thumb-canvas {
+  position: relative;
+}
+
+.slide-thumb-live {
+  position: absolute;
+  z-index: 5;
+  top: 5px;
+  left: 5px;
+  padding: 1px 6px;
+  border-radius: var(--rounded-pill);
+  color: #062312;
+  background: rgb(var(--green-rgb));
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+/* Inspector field titles: a small muted icon before each title. */
+.field-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.field-title > svg {
+  flex: 0 0 auto;
+  color: var(--faint);
+}
+
+.field:focus-within .field-title > svg {
+  color: var(--text-2);
+}
+
+/* Field rows lay their first span out with space-between (for a value on the
+   right); a title keeps its icon and text together on the left. */
+body:not(.output-mode) .field > .field-title,
+body:not(.output-mode) .inspector-label > .field-title {
+  display: inline-flex;
+  justify-content: flex-start;
+  gap: 7px;
 }

@@ -6,6 +6,11 @@ type EditorLocale = Exclude<Locale, 'en' | 'pt-BR'>
 
 export const editorStrings: Record<EditorLocale, Record<string, string>> = {
   pt: {
+    'editor.slideField': 'Slide',
+    'editor.textField': 'Texto',
+    'editor.showInspector': 'Mostrar inspetor',
+    'editor.hideInspector': 'Ocultar inspetor',
+    'editor.liveNotesEmpty': 'Sem notas para este slide. Escreva aqui para adicionar.',
     'editor.templatesPickHint': 'Escolha um modelo para o adicionar a seguir ao item atual.',
     'background.flow': 'Fluxo (animado)',
     'background.ember': 'Brasa (animado)',
@@ -369,6 +374,11 @@ export const editorStrings: Record<EditorLocale, Record<string, string>> = {
     'type.title': 'Título',
   },
   es: {
+    'editor.slideField': 'Diapositiva',
+    'editor.textField': 'Texto',
+    'editor.showInspector': 'Mostrar inspector',
+    'editor.hideInspector': 'Ocultar inspector',
+    'editor.liveNotesEmpty': 'Sin notas para esta diapositiva. Escribe aquí para añadir.',
     'editor.templatesPickHint': 'Elige una plantilla para añadirla después del elemento actual.',
     'background.flow': 'Flujo (animado)',
     'background.ember': 'Brasa (animado)',
@@ -732,6 +742,11 @@ export const editorStrings: Record<EditorLocale, Record<string, string>> = {
     'type.title': 'Título',
   },
   fr: {
+    'editor.slideField': 'Diapositive',
+    'editor.textField': 'Texte',
+    'editor.showInspector': 'Afficher l’inspecteur',
+    'editor.hideInspector': 'Masquer l’inspecteur',
+    'editor.liveNotesEmpty': 'Aucune note pour cette diapositive. Écrivez ici pour en ajouter.',
     'editor.templatesPickHint': 'Choisissez un modèle pour l’ajouter après l’élément actuel.',
     'background.flow': 'Flux (animé)',
     'background.ember': 'Braise (animé)',
@@ -1095,6 +1110,11 @@ export const editorStrings: Record<EditorLocale, Record<string, string>> = {
     'type.title': 'Titre',
   },
   de: {
+    'editor.slideField': 'Folie',
+    'editor.textField': 'Text',
+    'editor.showInspector': 'Inspektor anzeigen',
+    'editor.hideInspector': 'Inspektor ausblenden',
+    'editor.liveNotesEmpty': 'Keine Notizen zu dieser Folie. Hier tippen, um welche hinzuzufügen.',
     'editor.templatesPickHint': 'Wähle eine Vorlage, um sie nach dem aktuellen Element einzufügen.',
     'background.flow': 'Fluss (animiert)',
     'background.ember': 'Glut (animiert)',
@@ -1458,6 +1478,11 @@ export const editorStrings: Record<EditorLocale, Record<string, string>> = {
     'type.title': 'Titel',
   },
   it: {
+    'editor.slideField': 'Diapositiva',
+    'editor.textField': 'Testo',
+    'editor.showInspector': 'Mostra ispettore',
+    'editor.hideInspector': 'Nascondi ispettore',
+    'editor.liveNotesEmpty': 'Nessuna nota per questa diapositiva. Scrivi qui per aggiungerne.',
     'editor.templatesPickHint': 'Scegli un modello per aggiungerlo dopo l’elemento attuale.',
     'background.flow': 'Flusso (animato)',
     'background.ember': 'Brace (animato)',

@@ -2,9 +2,24 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { useResizablePane } from '../hooks/useResizablePane'
 import {
   AlignCenter,
+  CaseSensitive,
+  ALargeSmall,
+  Bold,
+  Shapes,
+  Droplet,
+  Crop,
+  BookOpenText,
+  Heading,
+  Palette,
+  Clapperboard,
+  StickyNote,
+  SquareRoundCorner,
+  RectangleHorizontal,
+
   Blend,
   MoveRight,
   Scissors,
+  SlidersHorizontal,
   ZoomIn,
   AlignCenterHorizontal,
   AlignEndHorizontal,
@@ -46,6 +61,7 @@ import {
   ImagePlus,
   Timer as TimerIcon,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import type { ContentType, ElementType, Slide, SlideElement, SlideTransition } from '../types'
 import { BACKGROUND_PRESETS } from '../data/templates'
 import { useAppStore } from '../store/useAppStore'
@@ -335,6 +351,10 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
 
   const liveSlides = service ? flatSlides(service) : []
   const liveCurrentSlide = live ? liveSlides.find((s) => s.slide.id === live.currentSlideId) ?? null : null
+  // Live: the inspector folds down to the speaker notes of the slide on screen. Opening it
+  // is remembered per live session (by start time), so the next session starts folded again.
+  const [inspectorOpenForSession, setInspectorOpenForSession] = useState<string | null>(null)
+  const liveNotesOnly = isLive && inspectorOpenForSession !== (live?.startedAt ?? null)
   useShortcutHandlers(
     'presentation',
     {
@@ -1152,6 +1172,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                       >
                         <span className="slide-thumb-canvas">
                           <SlideRenderer slide={entry.slide} branding={branding} aspectRatio={slideAspectRatio} compact thumbnail />
+                          {isLiveSlide && <span className="slide-thumb-live">{t('status.live')}</span>}
                         </span>
                         <span className="slide-thumb-label">
                           <span className="slide-thumb-number">{index + 1}</span>
@@ -1296,8 +1317,45 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
               )}
             </div>
           )}
+          {liveNotesOnly && liveCurrentSlide ? (
+            <>
+              <div className="inspector-head">
+                <span className="eyebrow">{t('editor.notes')}</span>
+                <button
+                  type="button"
+                  className="text-link"
+                  onClick={() => setInspectorOpenForSession(live?.startedAt ?? null)}
+                >
+                  <SlidersHorizontal size={13} />
+                  {t('editor.showInspector')}
+                </button>
+              </div>
+              <div className="inspector-scroll live-notes">
+                <p className="live-notes-slide">
+                  <span className="live-notes-dot" aria-hidden="true" />
+                  {slideLabel(liveCurrentSlide.slide, liveCurrentSlide.item.title)}
+                </p>
+                <textarea
+                  className="live-notes-text"
+                  aria-label={t('editor.notes')}
+                  value={liveCurrentSlide.slide.notes ?? ''}
+                  placeholder={t('editor.liveNotesEmpty')}
+                  onChange={(event) =>
+                    updateNotes(service.id, liveCurrentSlide.item.id, liveCurrentSlide.slide.id, event.target.value)
+                  }
+                />
+                <p className="live-notes-hint">{t('editor.notesPlaceholder')}</p>
+              </div>
+            </>
+          ) : (
+          <>
           <div className="inspector-head">
             <span className="eyebrow">{t('editor.inspector')}</span>
+            {isLive && (
+              <button type="button" className="text-link inspector-fold" onClick={() => setInspectorOpenForSession(null)}>
+                {t('editor.hideInspector')}
+              </button>
+            )}
             <div className="segmented segmented-sm">
               <button className={!selectedElement ? 'is-active' : ''} onClick={() => selectElement(null)}>
                 {t('editor.design')}
@@ -1319,7 +1377,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   <span className="badge badge-quiet">z {selectedElement.zIndex}</span>
                 </div>
                 <label className="field">
-                  <span>{t('editor.elementText')}</span>
+                  <FieldTitle icon={Type}>{t('editor.elementText')}</FieldTitle>
                   <textarea
                     rows={3}
                     value={
@@ -1407,7 +1465,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                 {selectedElement.type === 'text' && (
                   <>
                     <label className="field compact">
-                      <span>{t('editor.fontFamily')}</span>
+                      <FieldTitle icon={CaseSensitive}>{t('editor.fontFamily')}</FieldTitle>
                       <select
                         value={selectedElement.settings?.fontFamily ?? SLIDE_TEXT_DEFAULTS.fontFamily}
                         onChange={(event) =>
@@ -1425,7 +1483,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     </label>
                     <div className="field-grid">
                       <label className="field compact">
-                        <span>{t('editor.fontSize')}</span>
+                        <FieldTitle icon={ALargeSmall}>{t('editor.fontSize')}</FieldTitle>
                         <input
                           type="number"
                           min={8}
@@ -1442,7 +1500,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                         />
                       </label>
                       <label className="field compact">
-                        <span>{t('editor.weight')}</span>
+                        <FieldTitle icon={Bold}>{t('editor.weight')}</FieldTitle>
                         <select
                           value={selectedElement.settings?.fontWeight ?? SLIDE_TEXT_DEFAULTS.fontWeight}
                           onChange={(event) =>
@@ -1485,7 +1543,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   <>
                     <div className="field-grid">
                       <label className="field compact">
-                        <span>{t('editor.shapeType')}</span>
+                        <FieldTitle icon={Shapes}>{t('editor.shapeType')}</FieldTitle>
                         <select
                           value={
                             selectedElement.settings?.shape === 'circle'
@@ -1511,7 +1569,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                         </select>
                       </label>
                       <label className="field compact">
-                        <span>{t('editor.cornerRadius')} · {selectedElement.settings?.radius ?? 0}px</span>
+                        <FieldTitle icon={SquareRoundCorner}>{t('editor.cornerRadius')} · {selectedElement.settings?.radius ?? 0}px</FieldTitle>
                         <input
                           type="range"
                           min={0}
@@ -1531,7 +1589,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                       </label>
                     </div>
                     <label className="field">
-                      <span>{t('editor.color')}</span>
+                      <FieldTitle icon={Droplet}>{t('editor.color')}</FieldTitle>
                       <div className="shape-color-picker">
                         <input
                           type="color"
@@ -1577,7 +1635,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   </>
                 )}
                 <div className="inspector-label">
-                  <span>{t('editor.alignment')}</span>
+                  <FieldTitle icon={AlignCenter}>{t('editor.alignment')}</FieldTitle>
                 </div>
                 <div className="align-row">
                   {(['left', 'center', 'right'] as const).map((align) => (
@@ -1607,7 +1665,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   <>
                     <div className="field-grid">
                       <label className="field compact">
-                        <span>{t('editor.crop')}</span>
+                        <FieldTitle icon={Crop}>{t('editor.crop')}</FieldTitle>
                         <select
                           value={selectedElement.settings?.fit ?? (selectedElement.type === 'image' ? 'cover' : 'contain')}
                           onChange={(event) =>
@@ -1624,7 +1682,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                         </select>
                       </label>
                       <label className="field compact">
-                        <span>{t('editor.zoom')}</span>
+                        <FieldTitle icon={ZoomIn}>{t('editor.zoom')}</FieldTitle>
                         <input
                           type="number"
                           min={1}
@@ -1727,11 +1785,11 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                 {activeSlide.bible ? (
                   <>
                     <div className="inspector-label">
-                      <span>{t('editor.scriptureContent')}</span>
+                      <FieldTitle icon={BookOpen}>{t('editor.scriptureContent')}</FieldTitle>
                       <span className="badge badge-amber">{activeSlide.bible.primary.abbreviation}</span>
                     </div>
                     <label className="field">
-                      <span>{t('editor.primaryText')}</span>
+                      <FieldTitle icon={BookOpenText}>{t('editor.primaryText')}</FieldTitle>
                       <textarea
                         rows={5}
                         value={activeSlide.bible.primary.text}
@@ -1794,7 +1852,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                 ) : (
                   <>
                     <label className="field">
-                      <span>{t('common.title')}</span>
+                      <FieldTitle icon={Heading}>{t('common.title')}</FieldTitle>
                       <input
                         value={activeItem.title}
                         onChange={(event) =>
@@ -1803,7 +1861,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                       />
                     </label>
                     <label className="field">
-                      <span>Slide</span>
+                      <FieldTitle icon={RectangleHorizontal}>{t('editor.slideField')}</FieldTitle>
                       <input
                         value={activeSlide.title}
                         onChange={(event) =>
@@ -1828,7 +1886,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                       </div>
                     ) : (
                       <label className="field">
-                        <span>Texto</span>
+                        <FieldTitle icon={Type}>{t('editor.textField')}</FieldTitle>
                         <textarea
                           rows={6}
                           value={activeSlide.text}
@@ -1843,7 +1901,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   </>
                 )}
                 <label className="field">
-                  <span>{t('editor.alignment')}</span>
+                  <FieldTitle icon={AlignCenter}>{t('editor.alignment')}</FieldTitle>
                   <div className="align-row">
                     {(['left', 'center', 'right'] as const).map((align) => (
                       <button
@@ -1875,7 +1933,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                 {activeSlide.kind !== 'timer' && (
                   <>
                     <label className="field compact">
-                      <span>{t('editor.fontFamily')}</span>
+                      <FieldTitle icon={CaseSensitive}>{t('editor.fontFamily')}</FieldTitle>
                       <select
                         value={activeSlide.fontFamily ?? SLIDE_TEXT_DEFAULTS.fontFamily}
                         onChange={(event) => {
@@ -1890,7 +1948,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     </label>
                     <div className="field-grid">
                       <label className="field compact">
-                        <span>{t('editor.fontSize')}</span>
+                        <FieldTitle icon={ALargeSmall}>{t('editor.fontSize')}</FieldTitle>
                         <input
                           type="number"
                           min={16}
@@ -1904,7 +1962,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                         />
                       </label>
                       <label className="field compact">
-                        <span>{t('editor.fontWeight')}</span>
+                        <FieldTitle icon={Bold}>{t('editor.fontWeight')}</FieldTitle>
                         <input
                           type="number"
                           min={100}
@@ -1922,7 +1980,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   </>
                 )}
                 <div className="inspector-label">
-                  <span>{t('editor.background')}</span>
+                  <FieldTitle icon={Palette}>{t('editor.background')}</FieldTitle>
                   <span className="muted-note">{activeSlide.background.preset}</span>
                 </div>
                 <div className="preset-grid">
@@ -1944,7 +2002,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   ))}
                 </div>
                 <div className="inspector-label">
-                  <span>{t('editor.transition')}</span>
+                  <FieldTitle icon={Clapperboard}>{t('editor.transition')}</FieldTitle>
                   <span className="muted-note">
                     {activeSlide.transition ? `${(activeSlide.transition.durationMs / 1000).toFixed(1)} s` : t('editor.transitionDefault')}
                   </span>
@@ -1974,7 +2032,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   )
                 })()}
                 <label className="field">
-                  <span>{t('editor.notes')}</span>
+                  <FieldTitle icon={StickyNote}>{t('editor.notes')}</FieldTitle>
                   <textarea
                     rows={4}
                     value={activeSlide.notes ?? ''}
@@ -2010,6 +2068,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
               </div>
             )}
           </div>
+          </>
+          )}
           {isLive && <LiveControlBar />}
         </aside>
       </div>
@@ -2174,6 +2234,16 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
         </Modal>
       )}
     </div>
+  )
+}
+
+/** A field title with a small icon, so each inspector section is quick to find. */
+function FieldTitle({ icon: Icon, children }: { icon: LucideIcon; children: React.ReactNode }) {
+  return (
+    <span className="field-title">
+      <Icon size={13} aria-hidden="true" />
+      <span>{children}</span>
+    </span>
   )
 }
 

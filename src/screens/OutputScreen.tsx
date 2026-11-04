@@ -220,9 +220,8 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' }) {
         {mode === 'test' ? (
           <TestPattern label={audience.testMonitorName ?? audience.monitorName} />
         ) : mode === 'blank' ? (
-          <div className="output-black">
-            <span>{t('output.blank')}</span>
-          </div>
+          // Blank means a black screen for the audience: nothing drawn, the state is named for assistive tech only.
+          <div className="output-black" role="img" aria-label={t('output.blank')} />
         ) : mode === 'live' && audience.slide ? (
           <div className="audience-frame">
             <TransitionStage
