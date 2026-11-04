@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   CalendarDays,
   ChevronLeft,
@@ -42,6 +42,18 @@ export function CalendarScreen() {
   const [mode, setMode] = useState<'month' | 'list'>('month')
   const [query, setQuery] = useState('')
   const [selectedDate, setSelectedDate] = useState(isoDate(new Date()))
+  const dayPanelRef = useRef<HTMLElement>(null)
+
+  // Stacked layout (day panel under the grid): bring the chosen day's panel into view.
+  const pickDate = (iso: string) => {
+    setSelectedDate(iso)
+    const panel = dayPanelRef.current
+    if (!panel || !window.matchMedia('(max-width: 820px)').matches) return
+    requestAnimationFrame(() => {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      panel.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+    })
+  }
   const [createOpen, setCreateOpen] = useState(false)
   const [createDate, setCreateDate] = useState(isoDate(new Date()))
   const today = isoDate(new Date())
@@ -140,6 +152,7 @@ export function CalendarScreen() {
           </button>
           <button
             className="btn btn-ghost btn-sm calendar-today-nav"
+            title={t('common.today')}
             onClick={() => {
               const now = new Date()
               setViewDate(new Date(now.getFullYear(), now.getMonth(), 1, 12))
@@ -194,7 +207,7 @@ export function CalendarScreen() {
                       } ${isTodayCell ? 'is-today' : ''} ${
                         isHighlightedWeekday ? 'is-highlighted-weekday' : ''
                       }`}
-                      onClick={() => setSelectedDate(iso)}
+                      onClick={() => pickDate(iso)}
                       onDoubleClick={() => createOn(iso)}
                     >
                       <span className="calendar-day-number">{date.getDate()}</span>
@@ -280,7 +293,7 @@ export function CalendarScreen() {
           )}
         </div>
 
-        <aside className="calendar-side">
+        <aside className="calendar-side" ref={dayPanelRef}>
           <section className="panel day-panel">
             <div className="panel-header">
               <div>

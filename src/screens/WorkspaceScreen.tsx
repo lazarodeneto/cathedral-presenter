@@ -814,7 +814,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     disabled={!activeSlide}
                   >
                     <Plus size={14} />
-                    {t('editor.element')}
+                    <span>{t('editor.element')}</span>
                     <ChevronDown size={13} />
                   </button>
                   {addElementOpen && (
