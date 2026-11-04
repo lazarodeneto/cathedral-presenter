@@ -185,3 +185,24 @@ describe('output snapshots', () => {
     expect(shown.audience.messageVisible).toBe(true)
   })
 })
+
+describe('audience transitions', () => {
+  it('uses the slide transition, else the service default, else fade', () => {
+    const service = makeService()
+    const live = liveFor(service)
+    const base = buildOutputSnapshot({ service, live, monitors, branding, testMonitorId: null })
+    expect(base.audience.transition).toEqual({ type: 'fade', durationMs: 600 })
+
+    const withDefault = { ...service, transition: { type: 'slide' as const, durationMs: 400 } }
+    expect(buildOutputSnapshot({ service: withDefault, live, monitors, branding, testMonitorId: null }).audience.transition)
+      .toEqual({ type: 'slide', durationMs: 400 })
+
+    const slide = withDefault.items[0].slides[0]
+    const withOverride = {
+      ...withDefault,
+      items: [{ ...withDefault.items[0], slides: [{ ...slide, transition: { type: 'zoom' as const, durationMs: 900 } }] }, ...withDefault.items.slice(1)],
+    }
+    expect(buildOutputSnapshot({ service: withOverride, live, monitors, branding, testMonitorId: null }).audience.transition)
+      .toEqual({ type: 'zoom', durationMs: 900 })
+  })
+})

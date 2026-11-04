@@ -42,6 +42,13 @@ export function TemplatesScreen() {
     [],
   )
 
+  // Names, descriptions and categories are translated when a key exists; English is the fallback.
+  const tx = (key: string, fallback: string) => {
+    const value = t(key)
+    return value === key ? fallback : value
+  }
+  const categoryLabel = (category: string) => tx(`template.category.${category}`, category)
+
   const add = (templateId: string) => {
     const template = SLIDE_TEMPLATES.find((entry) => entry.id === templateId)
     if (!template) return
@@ -49,7 +56,7 @@ export function TemplatesScreen() {
       push(t('toast.noActiveService'), 'error')
       return
     }
-    const item = createTemplateItem(template, template.name)
+    const item = createTemplateItem(template, tx(`template.${template.id}.name`, template.name))
     addItem(activeService.id, sectionId || activeService.sections[0]?.id || '', item)
     push(t('templates.added'), 'success')
     navigate(`/service/${activeService.id}`)
@@ -95,7 +102,7 @@ export function TemplatesScreen() {
             className={`category-tab ${category === entry ? 'is-active' : ''}`}
             onClick={() => setCategory(entry)}
           >
-            {entry === 'All' ? t('common.all') : entry}
+            {entry === 'All' ? t('common.all') : categoryLabel(entry)}
           </button>
         ))}
       </div>
@@ -108,9 +115,9 @@ export function TemplatesScreen() {
             </div>
             <div className="template-body">
               <div>
-                <span className="eyebrow">{template.category}</span>
-                <h3>{template.name}</h3>
-                <p>{template.description}</p>
+                <span className="eyebrow">{categoryLabel(template.category)}</span>
+                <h3>{tx(`template.${template.id}.name`, template.name)}</h3>
+                <p>{tx(`template.${template.id}.description`, template.description)}</p>
               </div>
               <button
                 className="btn btn-secondary btn-sm"

@@ -16269,3 +16269,315 @@ body:not(.output-mode) .avatar:has(.brand-mark.has-logo) {
   background: transparent;
 }
 
+
+/* ── Audience transitions ───────────────────────────────────────────
+   Two stacked layers while a transition plays: the outgoing slide below,
+   the incoming one animating in over it. Duration comes from the slide or
+   the service (--transition-ms). */
+.transition-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+.transition-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.transition-layer.is-incoming {
+  z-index: 1;
+  animation-duration: var(--transition-ms, 600ms);
+  animation-fill-mode: both;
+}
+
+.transition-stage.is-fade .transition-layer.is-incoming {
+  animation-name: slide-in-fade;
+  animation-timing-function: ease-in-out;
+}
+
+.transition-stage.is-slide .transition-layer.is-incoming {
+  animation-name: slide-in-push;
+  animation-timing-function: cubic-bezier(0.22, 0.8, 0.3, 1);
+}
+
+.transition-stage.is-slide .transition-layer.is-outgoing {
+  animation: slide-out-push var(--transition-ms, 600ms) cubic-bezier(0.22, 0.8, 0.3, 1) both;
+}
+
+.transition-stage.is-zoom .transition-layer.is-incoming {
+  animation-name: slide-in-zoom;
+  animation-timing-function: cubic-bezier(0.22, 0.8, 0.3, 1);
+}
+
+.transition-stage.is-zoom .transition-layer.is-outgoing {
+  animation: slide-out-zoom var(--transition-ms, 600ms) ease-in both;
+}
+
+@keyframes slide-in-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-push {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slide-out-push {
+  from { transform: translateX(0); }
+  to { transform: translateX(-30%); opacity: 0.4; }
+}
+
+@keyframes slide-in-zoom {
+  from { opacity: 0; transform: scale(0.88); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slide-out-zoom {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .transition-layer.is-incoming,
+  .transition-layer.is-outgoing {
+    animation-name: slide-in-fade !important;
+    animation-duration: 1ms !important;
+  }
+}
+
+/* Inspector: four transition tiles, icon over name; the active one is violet (selection). */
+.transition-picker {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.transition-option {
+  display: flex;
+  min-height: 60px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--rounded-sm);
+  color: var(--muted);
+  background: rgb(var(--wash-rgb) / 0.03);
+  font-size: var(--text-meta);
+  font-weight: 550;
+  transition: border-color 0.15s var(--ease-out), background 0.15s var(--ease-out), color 0.15s var(--ease-out);
+}
+
+.transition-option span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transition-option:hover {
+  border-color: var(--line-strong);
+  color: var(--text);
+  background: rgb(var(--wash-rgb) / 0.06);
+}
+
+.transition-option.is-active {
+  border-color: rgb(var(--violet-rgb) / 0.6);
+  color: var(--violet-text);
+  background: rgb(var(--violet-rgb) / 0.12);
+}
+
+.transition-option:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Settings tabs: the same rhythm as the main sidebar — 40px rows, 6px apart,
+   each icon on a small tinted tile in its tone. */
+body:not(.output-mode) .settings-nav {
+  gap: 6px;
+  padding: 10px;
+}
+
+body:not(.output-mode) .settings-nav-item {
+  min-height: 40px;
+  gap: 11px;
+  padding: 0 10px 0 6px;
+  font-weight: 550;
+}
+
+body:not(.output-mode) .settings-nav-item[data-tone] svg {
+  box-sizing: content-box;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  padding: 6px;
+  border: 1px solid rgb(var(--tone-rgb) / 0.3);
+  border-radius: 8px;
+  background: linear-gradient(160deg, rgb(var(--tone-rgb) / 0.24), rgb(var(--tone-rgb) / 0.06));
+}
+
+body:not(.output-mode) .settings-nav-item:hover {
+  background: rgb(var(--wash-rgb) / 0.05);
+}
+
+body:not(.output-mode) .settings-version {
+  margin-top: 8px;
+  padding: 12px 8px 4px;
+}
+
+/* Settings nav column wide enough for its longest label on one line. */
+@media (min-width: 981px) {
+  body:not(.output-mode) .settings-layout {
+    grid-template-columns: 224px minmax(0, 1fr);
+  }
+}
+
+body:not(.output-mode) .settings-nav-item {
+  white-space: nowrap;
+}
+
+/* Templates: the action sits under the copy so names and descriptions keep
+   the card's full width (they were squeezed to a word per line beside it). */
+.template-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 16px;
+}
+
+.template-card {
+  display: flex;
+  flex-direction: column;
+}
+
+body:not(.output-mode) .template-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+}
+
+.template-body h3 {
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.template-body p {
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+body:not(.output-mode) .template-body > .btn {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+/* ── Colour backgrounds ──────────────────────────────────────────────
+   Modern gradient fields for slides. Each keeps a dark (or, for sky and
+   blush, light) centre so projected text stays readable from the back. */
+.bg-ocean {
+  background:
+    radial-gradient(70% 90% at 85% 0%, rgba(56, 189, 248, 0.42), transparent 60%),
+    radial-gradient(80% 100% at 0% 100%, rgba(30, 64, 175, 0.55), transparent 62%),
+    linear-gradient(150deg, #0b2a4a, #06121f 70%);
+}
+
+.bg-emerald {
+  background:
+    radial-gradient(70% 90% at 80% 5%, rgba(52, 211, 153, 0.38), transparent 60%),
+    radial-gradient(80% 100% at 5% 100%, rgba(6, 95, 70, 0.6), transparent 62%),
+    linear-gradient(150deg, #06291f, #03120e 72%);
+}
+
+.bg-sunset {
+  background:
+    radial-gradient(90% 70% at 50% 110%, rgba(251, 146, 60, 0.7), transparent 60%),
+    radial-gradient(80% 80% at 90% 10%, rgba(236, 72, 153, 0.45), transparent 60%),
+    linear-gradient(180deg, #2a0f3d, #4a1338 55%, #6b1d2e);
+}
+
+.bg-nebula {
+  background:
+    radial-gradient(45% 55% at 25% 30%, rgba(168, 85, 247, 0.5), transparent 70%),
+    radial-gradient(40% 50% at 75% 65%, rgba(59, 130, 246, 0.45), transparent 70%),
+    radial-gradient(35% 40% at 65% 20%, rgba(236, 72, 153, 0.35), transparent 70%),
+    linear-gradient(160deg, #0f0a24, #05040d);
+}
+
+/* Night sky: a soft horizon glow under a faint field of stars. */
+.bg-midnight {
+  background:
+    radial-gradient(1px 1px at 12% 18%, rgba(255, 255, 255, 0.8), transparent 60%),
+    radial-gradient(1px 1px at 28% 62%, rgba(255, 255, 255, 0.6), transparent 60%),
+    radial-gradient(1.5px 1.5px at 44% 26%, rgba(255, 255, 255, 0.75), transparent 60%),
+    radial-gradient(1px 1px at 63% 12%, rgba(255, 255, 255, 0.65), transparent 60%),
+    radial-gradient(1.5px 1.5px at 78% 40%, rgba(255, 255, 255, 0.7), transparent 60%),
+    radial-gradient(1px 1px at 88% 22%, rgba(255, 255, 255, 0.55), transparent 60%),
+    radial-gradient(1px 1px at 55% 48%, rgba(255, 255, 255, 0.45), transparent 60%),
+    radial-gradient(120% 60% at 50% 115%, rgba(59, 130, 246, 0.4), transparent 60%),
+    linear-gradient(180deg, #030712, #0b1530 75%, #111f45);
+}
+
+.bg-crimson {
+  background:
+    radial-gradient(75% 90% at 80% 0%, rgba(248, 113, 113, 0.35), transparent 60%),
+    radial-gradient(80% 100% at 0% 100%, rgba(127, 29, 29, 0.7), transparent 62%),
+    linear-gradient(150deg, #3b0a12, #14040a 72%);
+}
+
+/* Vivid mesh: four colour pools blended over deep indigo. */
+.bg-mesh {
+  background:
+    radial-gradient(60% 70% at 0% 0%, rgba(34, 211, 238, 0.55), transparent 60%),
+    radial-gradient(60% 70% at 100% 0%, rgba(168, 85, 247, 0.55), transparent 60%),
+    radial-gradient(60% 70% at 100% 100%, rgba(244, 63, 94, 0.5), transparent 60%),
+    radial-gradient(60% 70% at 0% 100%, rgba(250, 204, 21, 0.35), transparent 60%),
+    linear-gradient(135deg, #1e1b4b, #0f0a24);
+}
+
+/* Stage spotlight: a soft beam from above onto black. */
+.bg-spotlight {
+  background:
+    radial-gradient(38% 70% at 50% -10%, rgba(255, 255, 255, 0.34), transparent 70%),
+    conic-gradient(from 180deg at 50% -20%, transparent 160deg, rgba(255, 255, 255, 0.08) 175deg, rgba(255, 255, 255, 0.12) 180deg, rgba(255, 255, 255, 0.08) 185deg, transparent 200deg),
+    linear-gradient(180deg, #121212, #000);
+}
+
+/* Lagoon: teal with soft diagonal light bands. */
+.bg-lagoon {
+  background:
+    repeating-linear-gradient(120deg, rgba(255, 255, 255, 0.035) 0 18%, transparent 18% 36%),
+    radial-gradient(80% 100% at 85% 10%, rgba(45, 212, 191, 0.45), transparent 60%),
+    linear-gradient(150deg, #064e4b, #031b1c 72%);
+}
+
+/* Royal: deep blue with a warm gold glow. */
+.bg-royal {
+  background:
+    radial-gradient(60% 80% at 80% 15%, rgba(250, 204, 21, 0.3), transparent 60%),
+    radial-gradient(80% 100% at 0% 100%, rgba(37, 99, 235, 0.55), transparent 62%),
+    linear-gradient(150deg, #172554, #070b1f 72%);
+}
+
+.bg-sky {
+  color: #0f172a;
+  background:
+    radial-gradient(70% 90% at 85% 0%, rgba(125, 211, 252, 0.75), transparent 60%),
+    radial-gradient(80% 100% at 0% 100%, rgba(191, 219, 254, 0.9), transparent 62%),
+    linear-gradient(160deg, #f0f9ff, #dbeafe);
+}
+
+.bg-blush {
+  color: #3b1020;
+  background:
+    radial-gradient(70% 90% at 85% 0%, rgba(253, 186, 116, 0.6), transparent 60%),
+    radial-gradient(80% 100% at 0% 100%, rgba(251, 207, 232, 0.9), transparent 62%),
+    linear-gradient(160deg, #fff7ed, #fce7f3);
+}

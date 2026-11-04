@@ -351,6 +351,93 @@ export function createMediaItem(title: string, element: SlideElement): SlideItem
   }
 }
 
+const shape = (x: number, y: number, width: number, height: number, fill: string, extra: Partial<SlideElement['settings']> = {}, opacity = 1) =>
+  makeElement('shape', { x, y, width, height, zIndex: 1, opacity, settings: { shape: 'rect', fill, radius: 0, ...extra } })
+
+const label = (text: string, overrides: Partial<SlideElement>, settings: Partial<SlideElement['settings']> = {}) =>
+  makeTextElement(text, {
+    zIndex: 3,
+    ...overrides,
+    settings: {
+      fontFamily: 'sans',
+      fontSize: 18,
+      fontWeight: 650,
+      align: 'center',
+      lineHeight: 1.2,
+      letterSpacing: 4,
+      uppercase: true,
+      color: 'rgba(255,255,255,0.78)',
+      textShadow: false,
+      ...settings,
+    },
+  })
+
+/**
+ * Decorative layers for the newer templates, built from plain shapes and text
+ * elements so every piece stays editable on the slide. Coordinates are canvas %.
+ */
+function decorElements(template: SlideTemplate): SlideElement[] {
+  const gold = 'linear-gradient(180deg, #f6d58a, #d9a441)'
+  switch (template.elementPreset) {
+    case 'cross':
+      // A slim cross above the text: one tall and one short bar, softly lit.
+      return [
+        shape(49.4, 11, 1.2, 22, gold, { shape: 'line' }, 0.9),
+        shape(46, 17, 8, 2.1, gold, { shape: 'line' }, 0.9),
+      ]
+    case 'quote-bar':
+      return [
+        shape(4.6, 24, 0.7, 52, gold, { shape: 'line' }),
+        ...(template.label ? [label(template.label, { x: 9, y: 80, width: 60, height: 7 }, { align: 'left', color: '#f2c56b', fontSize: 22 })] : []),
+      ]
+    case 'frame':
+      // A thin inset frame: four hairlines with a gap from the edge.
+      return [
+        shape(6, 8, 88, 0.35, 'rgba(255,255,255,0.35)'),
+        shape(6, 91.65, 88, 0.35, 'rgba(255,255,255,0.35)'),
+        shape(6, 8, 0.2, 84, 'rgba(255,255,255,0.35)'),
+        shape(93.8, 8, 0.2, 84, 'rgba(255,255,255,0.35)'),
+      ]
+    case 'band':
+      return [
+        shape(0, 72, 100, 28, 'linear-gradient(90deg, rgba(37,99,235,0.85), rgba(14,165,233,0.75))'),
+        ...(template.label ? [label(template.label, { x: 8, y: 80, width: 84, height: 10 }, { color: '#ffffff', fontSize: 26 })] : []),
+      ]
+    case 'halo':
+      return [
+        shape(30, 10, 40, 80, 'radial-gradient(circle, rgba(255,214,140,0.32) 0%, rgba(255,214,140,0.08) 45%, rgba(255,214,140,0) 70%)', { shape: 'circle' }),
+      ]
+    case 'tag':
+      return template.label
+        ? [
+            shape(6, 8, 22, 9, 'rgba(255,255,255,0.14)', { radius: 999 }),
+            label(template.label, { x: 6, y: 9.8, width: 22, height: 5.4 }, { fontSize: 22, letterSpacing: 3, color: '#ffffff' }),
+          ]
+        : []
+    case 'split': {
+      // Text: "Title\n\nSubtitle". The title sits on the coloured panel, the subtitle beside it.
+      const [heading = '', subtitle = ''] = template.text.split('\n\n')
+      return [
+        shape(0, 0, 42, 100, 'linear-gradient(160deg, rgba(124,58,237,0.9), rgba(30,27,75,0.95))'),
+        ...(template.label ? [label(template.label, { x: 6, y: 30, width: 32, height: 7 }, { align: 'left', fontSize: 18 })] : []),
+        makeTextElement(heading, {
+          x: 6,
+          y: 38,
+          width: 32,
+          height: 34,
+          zIndex: 3,
+          settings: { fontFamily: 'sans', fontSize: 64, fontWeight: 750, align: 'left', lineHeight: 1.02, letterSpacing: -1, color: '#ffffff', textShadow: false },
+        }),
+        ...(subtitle
+          ? [label(subtitle, { x: 48, y: 42, width: 44, height: 16 }, { align: 'left', uppercase: false, letterSpacing: 0, fontSize: 30, fontWeight: 500, color: 'rgba(255,255,255,0.85)' })]
+          : []),
+      ]
+    }
+    default:
+      return []
+  }
+}
+
 export function createTemplateItem(template: SlideTemplate, title: string): SlideItem {
   const elements: SlideElement[] = []
   if (template.elementPreset === 'image-right') {
@@ -383,6 +470,7 @@ export function createTemplateItem(template: SlideTemplate, title: string): Slid
       }),
     )
   }
+  elements.push(...decorElements(template))
   return {
     id: newId('item'),
     type: 'blank',
@@ -391,7 +479,11 @@ export function createTemplateItem(template: SlideTemplate, title: string): Slid
       makeSlide({
         kind: template.kind,
         title: template.name,
-        text: template.elementPreset === 'two-column' ? '' : template.text,
+        text: template.elementPreset === 'two-column' || template.elementPreset === 'split' ? '' : template.text,
+        ...(template.fontFamily ? { fontFamily: template.fontFamily } : {}),
+        ...(template.fontSize ? { fontSize: template.fontSize } : {}),
+        ...(template.fontWeight ? { fontWeight: template.fontWeight } : {}),
+        ...(template.textVerticalAlign ? { textVerticalAlign: template.textVerticalAlign } : {}),
         background: { type: 'preset', preset: template.background, tone: BACKGROUND_PRESETS.find((preset) => preset.id === template.background)?.tone ?? 'dark' },
         textAlign: template.textAlign,
         elements,

@@ -33,6 +33,18 @@ export type BackgroundPreset =
   | 'violet'
   | 'dawn'
   | 'linen'
+  | 'ocean'
+  | 'emerald'
+  | 'sunset'
+  | 'nebula'
+  | 'midnight'
+  | 'crimson'
+  | 'mesh'
+  | 'spotlight'
+  | 'lagoon'
+  | 'royal'
+  | 'sky'
+  | 'blush'
 
 export type ElementType = 'text' | 'image' | 'video' | 'shape' | 'qr' | 'embed' | 'message'
 
@@ -232,7 +244,7 @@ export interface ServiceSection {
 }
 
 export type ServiceStatus = 'draft' | 'scheduled' | 'active' | 'completed' | 'archived'
-export type TransitionType = 'fade' | 'cut' | 'slide'
+export type TransitionType = 'fade' | 'cut' | 'slide' | 'zoom'
 
 export interface SlideTransition {
   type: TransitionType
@@ -449,7 +461,24 @@ export interface SlideTemplate {
   background: BackgroundPreset
   text: string
   textAlign: TextAlign
-  elementPreset?: 'image-right' | 'centered' | 'two-column' | 'lower-third'
+  elementPreset?:
+    | 'image-right'
+    | 'centered'
+    | 'two-column'
+    | 'lower-third'
+    | 'cross'
+    | 'quote-bar'
+    | 'frame'
+    | 'band'
+    | 'halo'
+    | 'tag'
+    | 'split'
+  /** Small label drawn by presets that carry one (tag, band, split, quote-bar reference). */
+  label?: string
+  fontFamily?: 'serif' | 'sans'
+  fontSize?: number
+  fontWeight?: number
+  textVerticalAlign?: 'top' | 'middle' | 'bottom'
 }
 
 export interface BrandingTheme {
@@ -525,6 +554,8 @@ export interface AudienceOutputState {
   monitorName: string
   testMonitorName?: string
   isFrozen?: boolean
+  /** How the audience screen moves into `slide`: the slide's own transition, else the service default. */
+  transition?: SlideTransition
   updatedAt: string
 }
 

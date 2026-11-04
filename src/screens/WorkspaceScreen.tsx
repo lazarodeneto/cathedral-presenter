@@ -2,6 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { useResizablePane } from '../hooks/useResizablePane'
 import {
   AlignCenter,
+  Blend,
+  MoveRight,
+  Scissors,
+  ZoomIn,
   AlignCenterHorizontal,
   AlignEndHorizontal,
   AlignLeft,
@@ -42,7 +46,7 @@ import {
   ImagePlus,
   Timer as TimerIcon,
 } from 'lucide-react'
-import type { ContentType, ElementType, Slide, SlideElement } from '../types'
+import type { ContentType, ElementType, Slide, SlideElement, SlideTransition } from '../types'
 import { BACKGROUND_PRESETS } from '../data/templates'
 import { useAppStore } from '../store/useAppStore'
 import { useToasts } from '../store/useToasts'
@@ -65,7 +69,7 @@ import { LayersPanel } from '../components/editor/LayersPanel'
 import { TimerControls } from '../components/timer/TimerControls'
 import { MessageBoxInspector } from '../components/editor/MessageBoxInspector'
 import { makeMessageElement } from '../utils/messageBox'
-import { itemOrigin, presentationProblem } from '../utils/culto'
+import { DEFAULT_TRANSITION, TRANSITION_TYPES, itemOrigin, presentationProblem } from '../utils/culto'
 import { CultoFormDialog } from '../components/culto/CultoFormDialog'
 import { StatusChip } from '../components/culto/StatusChip'
 import { LiveControlBar } from '../components/editor/LiveControlBar'
@@ -245,6 +249,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
     const strip = thumbsRef.current
     if (strip) strip.scrollBy({ left: direction * Math.max(160, strip.clientWidth - 140), behavior: 'smooth' })
   }
+  // A transition picked in the inspector, waiting for "this slide" or "all slides".
+  const [transitionChoice, setTransitionChoice] = useState<SlideTransition | null>(null)
   const [fontApplyAll, setFontApplyAll] = useState<{
     itemId: string
     patch: Partial<Pick<Slide, 'fontFamily' | 'fontSize' | 'fontWeight'>>
@@ -1916,6 +1922,36 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     </button>
                   ))}
                 </div>
+                <div className="inspector-label">
+                  <span>{t('editor.transition')}</span>
+                  <span className="muted-note">
+                    {activeSlide.transition ? `${(activeSlide.transition.durationMs / 1000).toFixed(1)} s` : t('editor.transitionDefault')}
+                  </span>
+                </div>
+                {(() => {
+                  const current = activeSlide.transition ?? service.transition ?? DEFAULT_TRANSITION
+                  const icons = { fade: Blend, cut: Scissors, slide: MoveRight, zoom: ZoomIn }
+                  return (
+                    <div className="transition-picker" role="radiogroup" aria-label={t('editor.transition')}>
+                      {TRANSITION_TYPES.map((type) => {
+                        const Icon = icons[type]
+                        return (
+                          <button
+                            key={type}
+                            type="button"
+                            role="radio"
+                            aria-checked={current.type === type}
+                            className={`transition-option ${current.type === type ? 'is-active' : ''}`}
+                            onClick={() => setTransitionChoice({ type, durationMs: current.durationMs || DEFAULT_TRANSITION.durationMs })}
+                          >
+                            <Icon size={18} />
+                            <span>{t(`culto.transitionName.${type}`)}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )
+                })()}
                 <label className="field">
                   <span>{t('editor.notes')}</span>
                   <textarea
@@ -2027,6 +2063,54 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
         onConfirm={confirmEndLive}
       />
 
+      {transitionChoice && service && activeItem && activeSlide && (
+        <Modal
+          title={t('editor.transitionApplyTitle', { name: t(`culto.transitionName.${transitionChoice.type}`) })}
+          onClose={() => setTransitionChoice(null)}
+        >
+          <p className="modal-copy">{t('editor.transitionApplyCopy')}</p>
+          {transitionChoice.type !== 'cut' && (
+            <label className="field">
+              <span>{t('culto.transitionDuration')}</span>
+              <select
+                value={transitionChoice.durationMs}
+                onChange={(event) => setTransitionChoice({ ...transitionChoice, durationMs: Number(event.target.value) })}
+              >
+                {[200, 400, 600, 900, 1200, 2000].map((ms) => (
+                  <option key={ms} value={ms}>
+                    {(ms / 1000).toFixed(1)} s
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <div className="modal-actions">
+            <button
+              className="btn btn-secondary"
+              onClick={() => {
+                updateSlide(service.id, activeItem.id, activeSlide.id, { transition: transitionChoice })
+                setTransitionChoice(null)
+              }}
+            >
+              {t('editor.transitionThisSlide')}
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                for (const item of service.items) {
+                  for (const slide of item.slides) {
+                    updateSlide(service.id, item.id, slide.id, { transition: transitionChoice })
+                  }
+                }
+                setTransitionChoice(null)
+                push(t('editor.transitionAppliedAll', { count: allSlides.length }), 'success')
+              }}
+            >
+              {t('editor.transitionAllSlides', { count: allSlides.length })}
+            </button>
+          </div>
+        </Modal>
+      )}
       {fontApplyAll && (
         <Modal title={t('editor.fontApplyAll')} onClose={() => setFontApplyAll(null)}>
           <p className="modal-copy">{t('editor.fontApplyAllCopy')}</p>

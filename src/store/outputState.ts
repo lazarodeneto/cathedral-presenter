@@ -1,6 +1,7 @@
 import type { Branding, LiveSession, Monitor, Service, TimerRuntime } from '../types'
 import type { OutputSnapshot } from '../providers/output/OutputProvider'
 import { flatSlides, slideContext } from './serviceUtils'
+import { DEFAULT_TRANSITION } from '../utils/culto'
 
 export function buildOutputSnapshot(input: {
   service: Service | null
@@ -63,6 +64,7 @@ export function buildOutputSnapshot(input: {
       monitorName: audienceMonitor?.name ?? 'Audience',
       testMonitorName: audienceMode === 'test' ? testMonitor?.name : undefined,
       isFrozen: Boolean(live?.frozen && audienceMode === 'live'),
+      transition: effectiveContext?.slide.transition ?? service?.transition ?? DEFAULT_TRANSITION,
       updatedAt: now,
     },
     confidence: {

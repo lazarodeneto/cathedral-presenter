@@ -18,7 +18,7 @@ export const SERVICE_TYPE_KEYS: Record<(typeof SERVICE_TYPES)[number], string> =
   'Special Service': 'event.specialService',
   'Prayer Meeting': 'event.prayerMeeting',
 }
-export const TRANSITION_TYPES: TransitionType[] = ['fade', 'cut', 'slide']
+export const TRANSITION_TYPES: TransitionType[] = ['fade', 'cut', 'slide', 'zoom']
 export const DEFAULT_TRANSITION: SlideTransition = { type: 'fade', durationMs: 600 }
 export const MAX_TITLE = 160
 export const MAX_LEADER = 80

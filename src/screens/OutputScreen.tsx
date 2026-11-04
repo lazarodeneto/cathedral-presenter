@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Expand, Minimize2, Monitor, Radio, Snowflake } from 'lucide-react'
 import type { OutputSnapshot } from '../providers/output/OutputProvider'
 import { webOutputProvider } from '../providers/output/WebOutputProvider'
-import type { Branding } from '../types'
+import type { Branding, Slide, SlideTransition } from '../types'
 import { useT } from '../i18n/useT'
 import { SlideRenderer } from '../components/SlideRenderer'
 import { TimerSourceContext } from '../components/timer/useTimer'
@@ -225,11 +225,17 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' }) {
           </div>
         ) : mode === 'live' && audience.slide ? (
           <div className="audience-frame">
-            <SlideRenderer
+            <TransitionStage
               slide={audience.slide}
-              branding={audience.branding}
-              message={audience.message}
-              messageVisible={audience.messageVisible}
+              transition={audience.transition}
+              render={(slide) => (
+                <SlideRenderer
+                  slide={slide}
+                  branding={audience.branding}
+                  message={audience.message}
+                  messageVisible={audience.messageVisible}
+                />
+              )}
             />
             {audience.isFrozen && (
               <span className="output-frozen-hint">
@@ -254,6 +260,55 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' }) {
         />
       </div>
     </TimerSourceContext.Provider>
+  )
+}
+
+/**
+ * Plays the transition into each new slide: the outgoing slide stays under
+ * the incoming one until the animation ends. Edits to the same slide (same id)
+ * update in place without animating; a cut, or reduced motion, swaps at once.
+ */
+function TransitionStage({
+  slide,
+  transition,
+  render,
+}: {
+  slide: Slide
+  transition?: SlideTransition
+  render: (slide: Slide) => React.ReactNode
+}) {
+  const [outgoing, setOutgoing] = useState<Slide | null>(null)
+  const [shownId, setShownId] = useState(slide.id)
+  const [lastSlide, setLastSlide] = useState(slide)
+  const type = transition?.type ?? 'fade'
+  const duration = transition?.durationMs ?? 600
+  const animate = type !== 'cut' && duration > 0
+
+  // A different slide came in: keep the previous one as the outgoing layer.
+  if (slide.id !== shownId) {
+    setOutgoing(animate ? lastSlide : null)
+    setShownId(slide.id)
+  }
+  if (slide !== lastSlide) setLastSlide(slide)
+
+  useEffect(() => {
+    if (!outgoing) return
+    const timer = window.setTimeout(() => setOutgoing(null), duration + 40)
+    return () => window.clearTimeout(timer)
+  }, [outgoing, duration])
+
+  const style = { '--transition-ms': `${duration}ms` } as React.CSSProperties
+  return (
+    <div className={`transition-stage is-${type}`} style={style}>
+      {outgoing && (
+        <div key={`out-${outgoing.id}`} className="transition-layer is-outgoing" aria-hidden="true">
+          {render(outgoing)}
+        </div>
+      )}
+      <div key={`in-${shownId}`} className={`transition-layer ${outgoing ? 'is-incoming' : ''}`}>
+        {render(slide)}
+      </div>
+    </div>
   )
 }
 

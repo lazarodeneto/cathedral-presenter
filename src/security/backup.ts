@@ -180,7 +180,7 @@ function normalizeBackground(value: unknown): SlideBackground {
   const record = obj(value)
   const preset = allowed<BackgroundPreset>(record?.preset, PRESETS, 'graphite')
   const type = record?.type === 'image' && typeof record.source === 'string' && validateImageDataUrl(record.source, 2_500_000) ? 'image' : 'preset'
-  const tone = PRESETS.includes(preset) && ['linen', 'ivory'].includes(preset) ? 'light' : 'dark'
+  const tone = BACKGROUND_PRESETS.find((entry) => entry.id === preset)?.tone ?? 'dark'
   return {
     type,
     preset,
