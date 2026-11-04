@@ -40,7 +40,7 @@ function buildSundayService(): SeedService {
     type: 'announcement',
     title: 'Welcome Home',
     slides: [
-      titleSlide('Welcome Home', 'Grace Community Church · Sunday Worship'),
+      titleSlide('Welcome Home', 'Campus Algarve · Sunday Worship'),
     ],
     metadata: { provider: 'Local service content' },
   }

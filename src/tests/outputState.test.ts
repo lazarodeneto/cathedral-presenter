@@ -5,7 +5,7 @@ import { createServiceSkeleton } from '../store/serviceUtils'
 import { createAnnouncementItem } from '../utils/slides'
 import type { Branding, LiveSession, Monitor, Service } from '../types'
 
-const branding: Branding = { ...DEFAULT_BRANDING, name: 'Grace Community Church' }
+const branding: Branding = { ...DEFAULT_BRANDING, name: 'Campus Algarve', logoUrl: null }
 const monitors: Monitor[] = [
   {
     id: 'monitor_audience',

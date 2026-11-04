@@ -40,7 +40,7 @@ const settings: AppSettings = {
   defaultSectionTitle: 'Message',
 }
 
-const branding: Branding = { ...DEFAULT_BRANDING, name: 'Grace Community Church' }
+const branding: Branding = { ...DEFAULT_BRANDING, name: 'Campus Algarve', logoUrl: null }
 
 describe('text sanitization', () => {
   it('normalizes line endings and removes control and bidi characters', () => {
@@ -331,7 +331,8 @@ describe('backup parsing', () => {
       }),
     )
     expect(parsed.settings).toMatchObject({ locale: 'en', shortcutsEnabled: true, transitionDuration: 3 })
-    expect(parsed.branding?.logoUrl).toBeNull()
+    // An unsafe logo is replaced by the bundled default logo, never kept.
+    expect(parsed.branding?.logoUrl).toBe(DEFAULT_BRANDING.logoUrl)
     expect(parsed.monitors?.[0].id).toMatch(/^monitor_/)
     expect(parsed.monitors?.[0].width).toBe(16384)
     expect(parsed.media?.[0].source).toBe('')

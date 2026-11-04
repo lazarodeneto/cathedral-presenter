@@ -2,7 +2,6 @@ import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 're
 import * as QRCode from 'qrcode'
 import { TriangleAlert } from 'lucide-react'
 import type { Branding, Slide, SlideElement } from '../types'
-import { BrandMark } from './BrandMark'
 import { isSafeQrPayload } from '../security/url'
 import { useT } from '../i18n/useT'
 import { TimerFace } from './timer/TimerFace'
@@ -813,7 +812,7 @@ export function SlideRenderer({
           ) : (
             <>
               <span className="eyebrow slide-eyebrow">
-                {branding.name.trim() || 'Church Presenter'}
+                {branding.name.trim() || 'CATHEDRAL INTL'}
               </span>
               <h1 style={slideTextStyle(slide)}>{titleHeadline}</h1>
               {titleSub && <p>{titleSub}</p>}
@@ -866,13 +865,6 @@ export function SlideRenderer({
         .slice()
         .sort((a, b) => a.zIndex - b.zIndex)
         .map(renderElement)}
-
-      {!primary && slide.kind !== 'title' && (
-        <div className="slide-footer-brand">
-          <BrandMark branding={branding} size="sm" />
-          <span>{branding.name.trim() || 'Church Presenter'}</span>
-        </div>
-      )}
 
       {songFooter && !compact && (
         <div className="slide-song-footer">

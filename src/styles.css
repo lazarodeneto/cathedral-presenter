@@ -1,4 +1,4 @@
-/* Church Presenter — local-first worship presentation workspace */
+/* CATHEDRAL INTL — local-first worship presentation workspace */
 
 :root {
   color-scheme: dark;
@@ -16190,3 +16190,82 @@ body:not(.output-mode) .output-status-action.is-go:disabled .output-status-go-ic
     transform: none;
   }
 }
+
+/* Logos are round marks (the default Cathedral INTL logo is a circle with a
+   transparent outside): show them as circles with no tile behind them. */
+.brand-mark.has-logo {
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.brand-mark.has-logo img {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar .brand-mark.has-logo img {
+  padding: 0;
+}
+
+body:not(.output-mode) .avatar:has(.brand-mark.has-logo) {
+  background: #000;
+}
+
+/* Next on hover: a darker green. Must outrank the generic
+   .live-control-primary:hover:not(:disabled) rule, which painted it white. */
+.live-control-bar .live-control-primary:hover:not(:disabled) {
+  color: #fff;
+  background: linear-gradient(180deg, #22c55e 0%, #16a34a 45%, #15803d 100%);
+  box-shadow: 0 1px 0 0 rgb(255 255 255 / 0.14) inset, 0 -1px 0 0 rgb(0 0 0 / 0.25) inset, 0 4px 12px rgb(34 197 94 / 0.3);
+}
+
+.live-control-bar .live-control-primary:active:not(:disabled) {
+  background: linear-gradient(180deg, #15803d 0%, #166534 45%, #14532d 100%);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.3), 0 6px 18px rgb(34 197 94 / 0.45);
+  transform: translateY(1px);
+}
+
+/* Previous: same lift treatment on hover. */
+.live-control-bar .live-control-nav:not(.live-control-primary):hover:not(:disabled) {
+  color: #2b1d00;
+  box-shadow: 0 1px 0 0 rgb(255 255 255 / 0.3) inset, 0 -1px 0 0 rgb(0 0 0 / 0.2) inset, 0 4px 12px rgb(var(--tone-amber-rgb) / 0.3);
+}
+
+/* Scrollbars: a thumb you can see and grab — 6px at rest, 8px on hover or
+   drag, with a faint track so the scroll area reads as one. */
+::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+::-webkit-scrollbar-track {
+  border: 4px solid transparent;
+  border-radius: var(--rounded-pill);
+  background: rgb(var(--text-rgb) / 0.04);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb {
+  min-height: 40px;
+  border: 4px solid transparent;
+  background: rgb(var(--text-rgb) / 0.28);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  border-width: 3px;
+  background: rgb(var(--text-rgb) / 0.42);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:active {
+  border-width: 3px;
+  background: rgb(var(--text-rgb) / 0.55);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
