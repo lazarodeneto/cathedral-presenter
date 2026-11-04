@@ -542,7 +542,7 @@ export interface AppSettings {
   shortcutsEnabled: boolean
   /** Customized keyboard shortcuts by action id; [] disables one. Missing ids use defaults. */
   shortcutOverrides: Record<string, string[]>
-  transition: 'fade' | 'cut' | 'slide'
+  transition: 'fade' | 'cut' | 'slide' | 'zoom'
   transitionDuration: number
   lastBackupAt: string | null
   showSetupChecklist: boolean

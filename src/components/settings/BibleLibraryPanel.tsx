@@ -58,7 +58,10 @@ export function BibleLibraryPanel() {
   const deletedBibleIds = useAppStore((state) => state.deletedBibleIds)
   const deleteBibleTranslation = useAppStore((state) => state.deleteBibleTranslation)
   const push = useToasts((state) => state.push)
-  const translations = useMemo(() => bibleTranslationsWith(customBibles), [customBibles, hiddenBibleIds, archivedBibleIds, deletedBibleIds])
+  const translations = useMemo(
+    () => bibleTranslationsWith(customBibles, { hidden: hiddenBibleIds, archived: archivedBibleIds, deleted: deletedBibleIds }),
+    [customBibles, hiddenBibleIds, archivedBibleIds, deletedBibleIds],
+  )
   const hiddenTranslations = useMemo(
     () => allBundledTranslations().filter((t) => hiddenBibleIds.includes(t.id)),
     [hiddenBibleIds],

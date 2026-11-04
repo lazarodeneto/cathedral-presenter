@@ -581,15 +581,6 @@ export function section(title: string, itemIds: string[] = []): ServiceSection {
   return { id: newId('section'), title, itemIds }
 }
 
-export function defaultSections(): ServiceSection[] {
-  return [
-    section('Welcome'),
-    section('Worship'),
-    section('Message'),
-    section('Response'),
-  ]
-}
-
 export function itemSlides(item: SlideItem): Slide[] {
   return item.slides
 }

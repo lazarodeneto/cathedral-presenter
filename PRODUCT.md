@@ -77,7 +77,7 @@ Open decisions:
 
 ## Brand Commitments
 
-- Product name: **Church Presenter**. The church can replace the displayed name and logo in Settings. Church Presenter is the fallback identity.
+- Product name (app title): **CATHEDRAL INTL**, for the church **Campus Algarve**, with the Cathedral INTL circular logo as the default. The church can change the app title, church name and logo in Settings. The codebase and backups keep the internal id `church-presenter`.
 - Intended feel (from the brief): a calm control room. Powerful enough for Sunday, simple enough for a volunteer to learn in minutes.
 
 ## Evidence on Hand

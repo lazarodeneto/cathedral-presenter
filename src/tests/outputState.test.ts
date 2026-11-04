@@ -206,3 +206,12 @@ describe('audience transitions', () => {
       .toEqual({ type: 'zoom', durationMs: 900 })
   })
 })
+
+describe('settings default transition', () => {
+  it('falls back to the Settings default before the built-in fade', () => {
+    const service = makeService()
+    const live = liveFor(service)
+    const snapshot = buildOutputSnapshot({ service, live, monitors, branding, testMonitorId: null, defaultTransition: { type: 'zoom', durationMs: 900 } })
+    expect(snapshot.audience.transition).toEqual({ type: 'zoom', durationMs: 900 })
+  })
+})

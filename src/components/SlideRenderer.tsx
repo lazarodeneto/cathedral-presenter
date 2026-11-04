@@ -769,7 +769,8 @@ export function SlideRenderer({
           <div className="scripture-stack" ref={fitRef}>
             <section className="scripture-block scripture-primary">
               <span className="translation-tag">
-                {primary.abbreviation} · {primary.reference}
+                <span className="translation-tag-code">{primary.abbreviation}</span>
+                <span className="translation-tag-ref">{primary.reference}</span>
               </span>
               <p style={scriptureTextStyle(1)}>{primary.text}</p>
             </section>
@@ -778,8 +779,9 @@ export function SlideRenderer({
                 <span className="scripture-divider" />
                 <section className="scripture-block scripture-secondary">
                   <span className="translation-tag">
-                    {secondary.abbreviation} · {secondary.reference}
-                  </span>
+                <span className="translation-tag-code">{secondary.abbreviation}</span>
+                <span className="translation-tag-ref">{secondary.reference}</span>
+              </span>
                   <p style={scriptureTextStyle(0.8)}>{secondary.text}</p>
                 </section>
               </>

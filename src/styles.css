@@ -18012,3 +18012,68 @@ body:not(.output-mode) .rundown .rundown-slide.is-active:not(.is-live) > span:fi
   color: var(--text);
   background: rgb(var(--wash-rgb) / 0.18);
 }
+
+/* Bible reference on slides, restyled: neutral frosted glass (no amber),
+   the translation as a small solid white tag, then the reference in clear
+   white type. Reads at a distance without competing with the verse. */
+.slide-canvas .scripture-block .translation-tag {
+  gap: 0.6em;
+  padding: 0.3em 0.95em 0.3em 0.32em;
+  border: 1px solid rgb(255 255 255 / 0.24);
+  color: #fff;
+  background: rgb(255 255 255 / 0.1);
+  box-shadow: 0 0.3em 1.4em rgb(0 0 0 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.14);
+  font-size: clamp(6px, 1.05cqw, 21px);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  backdrop-filter: blur(10px) saturate(1.2);
+}
+
+.translation-tag-code {
+  padding: 0.18em 0.55em;
+  border-radius: var(--rounded-pill);
+  color: #111;
+  background: #fff;
+  font-size: 0.78em;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-shadow: none;
+}
+
+.translation-tag-ref {
+  font-weight: 650;
+}
+
+.slide-canvas .scripture-secondary .translation-tag {
+  border-color: rgb(255 255 255 / 0.16);
+  background: rgb(255 255 255 / 0.06);
+  font-size: clamp(5px, 0.88cqw, 17px);
+}
+
+.slide-canvas .scripture-secondary .translation-tag-code {
+  color: #fff;
+  background: rgb(255 255 255 / 0.22);
+}
+
+.slide-canvas.tone-light .scripture-block .translation-tag {
+  border-color: rgb(0 0 0 / 0.16);
+  color: #111;
+  background: rgb(255 255 255 / 0.55);
+  box-shadow: 0 0.2em 0.8em rgb(0 0 0 / 0.1);
+}
+
+.slide-canvas.tone-light .translation-tag-code {
+  color: #fff;
+  background: #111;
+}
+
+.slide-canvas .scripture-block .translation-tag {
+  margin-bottom: 0.35em;
+  font-size: clamp(7px, 1.5cqw, 30px);
+}
+
+.slide-canvas .scripture-secondary .translation-tag {
+  font-size: clamp(6px, 1.2cqw, 24px);
+}

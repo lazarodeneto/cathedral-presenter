@@ -1,4 +1,4 @@
-import type { Branding, LiveSession, Monitor, Service, TimerRuntime } from '../types'
+import type { Branding, LiveSession, Monitor, Service, SlideTransition, TimerRuntime } from '../types'
 import type { OutputSnapshot } from '../providers/output/OutputProvider'
 import { flatSlides, slideContext } from './serviceUtils'
 import { DEFAULT_TRANSITION } from '../utils/culto'
@@ -10,8 +10,10 @@ export function buildOutputSnapshot(input: {
   branding: Branding
   testMonitorId: string | null
   timers?: Record<string, TimerRuntime>
+  /** The app-wide default from Settings; used when neither the slide nor the service sets one. */
+  defaultTransition?: SlideTransition
 }): OutputSnapshot {
-  const { service, live, monitors, branding, testMonitorId, timers = {} } = input
+  const { service, live, monitors, branding, testMonitorId, timers = {}, defaultTransition } = input
   const now = new Date().toISOString()
   const audienceMonitor = monitors.find((monitor) => monitor.role === 'audience')
   const confidenceMonitor = monitors.find((monitor) => monitor.role === 'confidence')
@@ -64,7 +66,7 @@ export function buildOutputSnapshot(input: {
       monitorName: audienceMonitor?.name ?? 'Audience',
       testMonitorName: audienceMode === 'test' ? testMonitor?.name : undefined,
       isFrozen: Boolean(live?.frozen && audienceMode === 'live'),
-      transition: effectiveContext?.slide.transition ?? service?.transition ?? DEFAULT_TRANSITION,
+      transition: effectiveContext?.slide.transition ?? service?.transition ?? defaultTransition ?? DEFAULT_TRANSITION,
       updatedAt: now,
     },
     confidence: {

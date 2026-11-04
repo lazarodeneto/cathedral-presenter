@@ -129,7 +129,8 @@ export function validateCulto(form: CultoForm): Partial<Record<CultoField, Culto
   return errors
 }
 
-export function formFromService(service: Service): CultoForm {
+/** `fallback` is the transition shown when the service has none of its own (the Settings default). */
+export function formFromService(service: Service, fallback: SlideTransition = DEFAULT_TRANSITION): CultoForm {
   return {
     title: service.title,
     date: service.date,
@@ -143,7 +144,7 @@ export function formFromService(service: Service): CultoForm {
     guests: service.guests ?? '',
     description: service.description ?? '',
     notes: service.notes ?? '',
-    transition: service.transition ?? DEFAULT_TRANSITION,
+    transition: service.transition ?? fallback,
   }
 }
 

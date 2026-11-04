@@ -61,9 +61,14 @@ export function allBibleTranslations(): BibleTranslation[] {
 /** Bundled translations followed by the supplied administrator imports, excluding hidden and archived. */
 export function bibleTranslationsWith(
   entries: CustomBibleTranslation[],
+  /** Bundled translations to leave out; defaults to the lists last registered with the provider. */
+  exclude: { hidden?: readonly string[]; archived?: readonly string[]; deleted?: readonly string[] } = {},
 ): BibleTranslation[] {
+  const hidden = exclude.hidden ?? hiddenIds
+  const archived = exclude.archived ?? archivedIds
+  const deleted = exclude.deleted ?? deletedIds
   const visible = BIBLE_TRANSLATIONS.filter(
-    (t) => !hiddenIds.includes(t.id) && !archivedIds.includes(t.id) && !deletedIds.includes(t.id),
+    (t) => !hidden.includes(t.id) && !archived.includes(t.id) && !deleted.includes(t.id),
   )
   return [...visible, ...entries.map((entry) => entry.translation)]
 }
