@@ -33,6 +33,7 @@ import {
   ArrowUp,
   BookOpen,
   Check,
+  CloudCheck,
   Clipboard,
   ClipboardPaste,
   ChevronDown,
@@ -111,6 +112,17 @@ const GEOMETRY_FIELDS = [
   { key: 'width', label: 'editor.width', min: 4, max: 160 },
   { key: 'height', label: 'editor.height', min: 4, max: 160 },
 ] as const
+
+/** Content type to the sidebar tone family, so a song or a Bible reading is recognisable at a glance. */
+const ITEM_TONES: Partial<Record<string, string>> = {
+  song: 'rose',
+  bible: 'amber',
+  announcement: 'blue',
+  sermon: 'violet',
+  media: 'cyan',
+  timer: 'orange',
+  blank: 'wash',
+}
 
 const TYPE_ICONS: Record<ContentType, typeof BookOpen> = {
   bible: BookOpen,
@@ -676,7 +688,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
             <h1>{service.title}</h1>
             <StatusChip status={service.status} />
             <span className="save-state" title={t('editor.autosave')} aria-label={t('editor.autosave')}>
-              <Check size={13} />
+              <CloudCheck size={14} />
             </span>
           </div>
           <div className="rundown-head">
@@ -704,7 +716,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     >
                       {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
                       <span>{section.title}</span>
-                      <small>{section.itemIds.length}</small>
+                      <small className="rundown-count">{section.itemIds.length}</small>
                     </button>
                     <div className="section-actions">
                       <button
@@ -738,7 +750,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                               aria-current={selected ? 'true' : undefined}
                               onClick={() => { selectItem(item.id); setMobileRundown(false) }}
                             >
-                              <span className="rundown-type">
+                              <span className="rundown-type tone-chip" data-tone={ITEM_TONES[item.type] ?? 'wash'} aria-hidden="true">
                                 <Icon size={15} />
                               </span>
                               <span className="rundown-copy">
@@ -783,7 +795,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                               {item.slides.map((slide, index) => (
                                 <button
                                   key={slide.id}
-                                  className={`rundown-slide ${slide.id === activeSlide?.id ? 'is-active' : ''}`}
+                                  className={`rundown-slide ${slide.id === activeSlide?.id ? 'is-active' : ''} ${live?.currentSlideId === slide.id ? 'is-live' : ''}`}
+                                  aria-label={live?.currentSlideId === slide.id ? `${t('status.live')}: ${slideLabel(slide, slide.text.slice(0, 42)) || t('editor.blankSlide')}` : undefined}
                                   onClick={() => { selectSlide(item.id, slide.id); setMobileRundown(false) }}
                                   onDoubleClick={() => sendSlideLive(slide.id)}
                                   title={isLive ? t('live.doubleClickHint') : undefined}

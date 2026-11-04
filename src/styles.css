@@ -16989,3 +16989,268 @@ body:not(.output-mode) .inspector-label > .field-title {
   justify-content: flex-start;
   gap: 7px;
 }
+
+/* ── Rundown (Sequência do culto) ────────────────────────────────────
+   One left edge for everything: section chevrons, item icons and slide
+   numbers line up. Items carry their content type's tone; the selected
+   item is violet (selection), the live slide green with a dot. */
+body:not(.output-mode) .rundown .rundown-identity h1 {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body:not(.output-mode) .rundown .save-state {
+  display: inline-grid;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: var(--muted);
+  background: rgb(var(--wash-rgb) / 0.05);
+}
+
+body:not(.output-mode) .rundown .rundown-section + .rundown-section {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+
+body:not(.output-mode) .rundown .section-collapse {
+  gap: 8px;
+  padding-left: 8px;
+  letter-spacing: 0.08em;
+}
+
+body:not(.output-mode) .rundown .section-collapse > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body:not(.output-mode) .rundown .rundown-count {
+  display: inline-grid;
+  min-width: 20px;
+  height: 18px;
+  margin-left: auto;
+  padding: 0 6px;
+  place-items: center;
+  border-radius: var(--rounded-pill);
+  color: var(--muted);
+  background: rgb(var(--wash-rgb) / 0.07);
+  font-size: var(--text-micro);
+  font-weight: 650;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+body:not(.output-mode) .rundown .rundown-item {
+  gap: 10px;
+  min-height: 48px;
+  padding: 6px 6px 6px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--rounded-md);
+  transition: background 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
+}
+
+body:not(.output-mode) .rundown .rundown-item:hover {
+  background: rgb(var(--wash-rgb) / 0.045);
+}
+
+body:not(.output-mode) .rundown .rundown-item-wrap.is-selected .rundown-item {
+  border-color: rgb(var(--violet-rgb) / 0.35);
+  background: rgb(var(--violet-rgb) / 0.1);
+}
+
+body:not(.output-mode) .rundown .rundown-type.tone-chip {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border-radius: 9px;
+}
+
+body:not(.output-mode) .rundown .rundown-copy strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+body:not(.output-mode) .rundown .rundown-copy > span {
+  color: var(--faint);
+  font-size: var(--text-micro);
+}
+
+/* Slides sit under the item title: 8px item padding + 30px icon + 10px gap. */
+body:not(.output-mode) .rundown .rundown-slides {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 4px 6px 8px 48px;
+  padding-left: 10px;
+  border-left: 1px solid var(--line);
+}
+
+body:not(.output-mode) .rundown .rundown-slide {
+  display: flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px 0 6px;
+  border: 1px solid transparent;
+  border-radius: var(--rounded-sm);
+  color: var(--muted);
+  font-size: var(--text-meta);
+  text-align: left;
+}
+
+body:not(.output-mode) .rundown .rundown-slide > span:first-child {
+  display: inline-grid;
+  min-width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 6px;
+  color: var(--faint);
+  background: rgb(var(--wash-rgb) / 0.06);
+  font-size: var(--text-micro);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+body:not(.output-mode) .rundown .rundown-slide > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body:not(.output-mode) .rundown .rundown-slide:hover {
+  color: var(--text);
+  background: rgb(var(--wash-rgb) / 0.05);
+}
+
+body:not(.output-mode) .rundown .rundown-slide.is-active {
+  border-color: rgb(var(--violet-rgb) / 0.35);
+  color: var(--text);
+  background: rgb(var(--violet-rgb) / 0.12);
+}
+
+body:not(.output-mode) .rundown .rundown-slide.is-active > span:first-child {
+  color: var(--violet-text);
+  background: rgb(var(--violet-rgb) / 0.2);
+}
+
+/* On the audience screen now: green ring and a dot after the name. */
+body:not(.output-mode) .rundown .rundown-slide.is-live {
+  border-color: rgb(var(--green-rgb) / 0.7);
+  box-shadow: 0 0 10px rgb(var(--green-rgb) / 0.18);
+}
+
+body:not(.output-mode) .rundown .rundown-slide.is-live::after {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px rgb(var(--green-rgb) / 0.7);
+  content: '';
+}
+
+body:not(.output-mode) .rundown .rundown-slide.is-live > span:first-child {
+  color: #062312;
+  background: var(--green);
+}
+
+body:not(.output-mode) .rundown .rundown-add-section {
+  display: flex;
+  width: calc(100% - 12px);
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 12px 6px 6px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--rounded-md);
+  color: var(--muted);
+  background: none;
+  font-size: var(--text-meta);
+  font-weight: 550;
+  transition: border-color 0.15s var(--ease-out), color 0.15s var(--ease-out), background 0.15s var(--ease-out);
+}
+
+body:not(.output-mode) .rundown .rundown-add-section:hover {
+  border-color: rgb(var(--violet-rgb) / 0.5);
+  color: var(--text);
+  background: rgb(var(--violet-rgb) / 0.06);
+}
+
+/* Identity: back, then the service title with its status underneath, then the
+   saved tick — the title keeps the full width instead of "C.". */
+body:not(.output-mode) .rundown .rundown-identity {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'back title save'
+    'back status save';
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 3px;
+}
+
+body:not(.output-mode) .rundown .rundown-identity > .icon-btn {
+  grid-area: back;
+}
+
+body:not(.output-mode) .rundown .rundown-identity h1 {
+  grid-area: title;
+  font-size: var(--text-body);
+  line-height: 1.25;
+}
+
+body:not(.output-mode) .rundown .rundown-identity .status-chip {
+  grid-area: status;
+  justify-self: start;
+}
+
+body:not(.output-mode) .rundown .rundown-identity .save-state {
+  grid-area: save;
+}
+
+body:not(.output-mode) .rundown .save-state svg {
+  color: var(--muted);
+}
+
+body:not(.output-mode) .rundown .section-collapse {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Section actions float over the end of the header on hover (mouse), so the
+   item count can sit at the right edge; on touch they stay in the row. */
+@media (pointer: fine) {
+  body:not(.output-mode) .rundown .rundown-section-head {
+    position: relative;
+  }
+
+  body:not(.output-mode) .rundown .section-actions {
+    position: absolute;
+    top: 50%;
+    right: 2px;
+    padding-left: 14px;
+    border-radius: var(--rounded-xs);
+    background: linear-gradient(90deg, transparent, rgb(var(--glass-tint-rgb)) 14px);
+    transform: translateY(-50%);
+  }
+
+  body:not(.output-mode) .rundown .rundown-section-head:hover .rundown-count,
+  body:not(.output-mode) .rundown .rundown-section-head:focus-within .rundown-count {
+    visibility: hidden;
+  }
+}
+
+body:not(.output-mode) .rundown .rundown-count {
+  margin-right: 4px;
+}
