@@ -17708,3 +17708,265 @@ body:not(.output-mode) .topbar-actions {
     height: 44px;
   }
 }
+
+/* ── Rundown header card ────────────────────────────────────────────
+   The service's identity sits in its own tinted card (Services tone),
+   separated from the rundown below: back button, title, then status and
+   date/time on one line, with the saved tick on the right. */
+body:not(.output-mode) .rundown .rundown-identity {
+  grid-template-areas:
+    'back title save'
+    'back meta save';
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 6px;
+  margin: 10px 10px 6px;
+  padding: 12px 12px 12px 10px;
+  border: 1px solid rgb(var(--tone-indigo-rgb) / 0.28);
+  border-radius: var(--rounded-lg);
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgb(var(--tone-indigo-rgb) / 0.22), transparent 60%),
+    linear-gradient(160deg, rgb(var(--wash-rgb) / 0.05), rgb(var(--wash-rgb) / 0.015));
+  box-shadow: inset 0 1px 0 rgb(var(--wash-rgb) / 0.08), 0 8px 22px rgb(0 0 0 / 0.22);
+}
+
+body:not(.output-mode) .rundown .rundown-back {
+  grid-area: back;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--text-2);
+  background: rgb(var(--wash-rgb) / 0.05);
+}
+
+body:not(.output-mode) .rundown .rundown-back:hover {
+  border-color: var(--line-strong);
+  color: var(--text);
+  background: rgb(var(--wash-rgb) / 0.1);
+}
+
+body:not(.output-mode) .rundown .rundown-identity h1 {
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.rundown-identity-meta {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  grid-area: meta;
+}
+
+body:not(.output-mode) .rundown .rundown-identity .status-chip {
+  grid-area: auto;
+}
+
+.rundown-identity-when {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-micro);
+  font-weight: 550;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rundown-identity-when svg {
+  flex: 0 0 auto;
+  color: rgb(var(--tone-indigo-rgb));
+}
+
+body:not(.output-mode) .rundown .rundown-identity .save-state {
+  align-self: start;
+  width: 30px;
+  height: 30px;
+  flex-basis: 30px;
+  border: 1px solid var(--line);
+}
+
+/* Breathing room and a hairline between the card and the rundown heading. */
+body:not(.output-mode) .rundown .rundown-head {
+  margin-top: 4px;
+  border-top: 0;
+}
+
+/* Narrow rundown: buttons on top, the title and its details get full width. */
+body:not(.output-mode) .rundown {
+  container-type: inline-size;
+  container-name: rundown;
+}
+
+@container rundown (max-width: 260px) {
+  body:not(.output-mode) .rundown .rundown-identity {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'back . save'
+      'title title title'
+      'meta meta meta';
+    row-gap: 8px;
+  }
+
+  body:not(.output-mode) .rundown .rundown-identity h1 {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  body:not(.output-mode) .rundown .rundown-identity .save-state {
+    align-self: center;
+  }
+}
+
+/* Status, then date and time on their own line: never side by side and wrapping. */
+.rundown-identity-meta {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.rundown-identity-when {
+  max-width: 100%;
+}
+
+/* No saved tick in the rundown card (the top bar already says "Saved locally"). */
+body:not(.output-mode) .rundown .rundown-identity {
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    'back title'
+    'back meta';
+}
+
+@container rundown (max-width: 260px) {
+  body:not(.output-mode) .rundown .rundown-identity {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'back'
+      'title'
+      'meta';
+  }
+
+  body:not(.output-mode) .rundown .rundown-back {
+    justify-self: start;
+  }
+}
+
+@container rundown (max-width: 260px) {
+  body:not(.output-mode) .rundown .rundown-identity {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'back title'
+      'meta meta';
+    row-gap: 10px;
+  }
+}
+
+/* Rundown header, centred: the back button sits in the top-left corner; the
+   title, status and date are centred and a size larger. */
+body:not(.output-mode) .rundown .rundown-identity,
+body:not(.output-mode) .rundown .rundown-identity:is(*) {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 14px 16px;
+  text-align: center;
+}
+
+@container rundown (max-width: 260px) {
+  body:not(.output-mode) .rundown .rundown-identity {
+    display: flex;
+    padding-top: 16px;
+  }
+}
+
+body:not(.output-mode) .rundown .rundown-back {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 32px;
+  height: 32px;
+}
+
+body:not(.output-mode) .rundown .rundown-identity h1 {
+  max-width: 100%;
+  padding: 0 34px;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  text-wrap: balance;
+}
+
+body:not(.output-mode) .rundown .rundown-identity-meta {
+  align-items: center;
+  gap: 7px;
+}
+
+body:not(.output-mode) .rundown .rundown-identity .status-chip {
+  padding: 3px 12px;
+  font-size: var(--text-meta);
+}
+
+body:not(.output-mode) .rundown .rundown-identity-when {
+  gap: 6px;
+  font-size: var(--text-meta);
+}
+
+body:not(.output-mode) .rundown .rundown-identity-when svg {
+  width: 14px;
+  height: 14px;
+}
+
+body:not(.output-mode) .rundown .rundown-identity h1 {
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+@container rundown (max-width: 260px) {
+  body:not(.output-mode) .rundown .rundown-identity {
+    padding-top: 50px;
+  }
+
+  body:not(.output-mode) .rundown .rundown-identity h1 {
+    padding: 0 4px;
+  }
+}
+
+/* Back button shares the title's row: no empty band above the title. */
+body:not(.output-mode) .rundown .rundown-identity {
+  padding: 12px 12px 14px;
+}
+
+body:not(.output-mode) .rundown .rundown-back {
+  top: 12px;
+  left: 10px;
+}
+
+body:not(.output-mode) .rundown .rundown-identity h1 {
+  display: -webkit-box;
+  min-height: 32px;
+  padding: 5px 38px 0;
+}
+
+@container rundown (max-width: 260px) {
+  body:not(.output-mode) .rundown .rundown-identity {
+    padding-top: 12px;
+  }
+
+  body:not(.output-mode) .rundown .rundown-identity h1 {
+    padding: 5px 36px 0;
+  }
+}

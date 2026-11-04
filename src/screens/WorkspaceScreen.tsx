@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { useResizablePane } from '../hooks/useResizablePane'
 import {
   AlignCenter,
+  CalendarDays,
   CaseSensitive,
   ALargeSmall,
   Bold,
@@ -33,7 +34,6 @@ import {
   ArrowUp,
   BookOpen,
   Check,
-  CloudCheck,
   Clipboard,
   ClipboardPaste,
   ChevronDown,
@@ -70,6 +70,7 @@ import { useToasts } from '../store/useToasts'
 import { useT } from '../i18n/useT'
 import { navigate } from '../hooks/useHashRoute'
 import { flatSlides, serviceSectionForItem } from '../store/serviceUtils'
+import { formatTime, formatToolbarDate } from '../utils/dates'
 import { createTemplateItem, isLikelyOverflow, makeElement, makeTextElement, SLIDE_TEXT_DEFAULTS, slideLabel } from '../utils/slides'
 import { sanitizeEditableText, sanitizeText } from '../security/text'
 import { webOutputProvider } from '../providers/output/WebOutputProvider'
@@ -187,6 +188,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   const setSlideBackground = useAppStore((state) => state.setSlideBackground)
   const addBlankSlide = useAppStore((state) => state.addBlankSlide)
   const moveSlide = useAppStore((state) => state.moveSlide)
+  const uiLocale = useAppStore((state) => state.settings.locale)
   const showGrid = useAppStore((state) => state.settings.showGrid ?? false)
   const snapToObjects = useAppStore((state) => state.settings.snapToObjects ?? true)
   const updateSettings = useAppStore((state) => state.updateSettings)
@@ -682,14 +684,18 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
         {mobileInspector && <button className="drawer-scrim" onClick={() => setMobileInspector(false)} aria-label={t('common.close')} />}
         <aside className={`rundown panel ${mobileRundown ? 'is-drawer-open' : ''}`}>
           <div className="rundown-identity">
-            <button className="icon-btn" onClick={() => navigate('/services')} aria-label={t('nav.services')}>
+            <button className="icon-btn rundown-back" onClick={() => navigate('/services')} aria-label={t('nav.services')} title={t('nav.services')}>
               <ArrowLeft size={16} />
             </button>
-            <h1>{service.title}</h1>
-            <StatusChip status={service.status} />
-            <span className="save-state" title={t('editor.autosave')} aria-label={t('editor.autosave')}>
-              <CloudCheck size={14} />
-            </span>
+            <h1 title={service.title}>{service.title}</h1>
+            <div className="rundown-identity-meta">
+              <StatusChip status={service.status} />
+              <span className="rundown-identity-when">
+                <CalendarDays size={12} aria-hidden="true" />
+                {formatToolbarDate(service.date, uiLocale)}
+                {service.time ? ` · ${formatTime(service.time, uiLocale)}` : ''}
+              </span>
+            </div>
           </div>
           <div className="rundown-head">
             <div>
