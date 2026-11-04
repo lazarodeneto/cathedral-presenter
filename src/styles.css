@@ -17970,3 +17970,45 @@ body:not(.output-mode) .rundown .rundown-identity h1 {
     padding: 5px 36px 0;
   }
 }
+
+/* Rundown selection matches the sidebar's selected item: a light glass pill
+   with an inset highlight and hairline, a soft drop shadow and a bright
+   2px bar on the left. The live slide keeps its green frame. */
+body:not(.output-mode) .rundown .rundown-item-wrap.is-selected .rundown-item,
+body:not(.output-mode) .rundown .rundown-slide.is-active:not(.is-live) {
+  position: relative;
+  border-color: transparent;
+  color: var(--text);
+  background: linear-gradient(180deg, rgb(var(--wash-rgb) / 0.2), rgb(var(--wash-rgb) / 0.1));
+  box-shadow:
+    inset 0 1px 0 rgb(var(--wash-rgb) / 0.28),
+    inset 0 0 0 1px rgb(var(--wash-rgb) / 0.16),
+    0 6px 18px rgb(0 0 0 / 0.25);
+}
+
+body:not(.output-mode) .rundown .rundown-item-wrap.is-selected .rundown-item {
+  border-radius: 12px;
+}
+
+body:not(.output-mode) .rundown .rundown-item-wrap.is-selected .rundown-item::before,
+body:not(.output-mode) .rundown .rundown-slide.is-active:not(.is-live)::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 2px;
+  height: 19px;
+  border-radius: 0 2px 2px 0;
+  background: #fff;
+  box-shadow: 0 0 8px rgb(255 255 255 / 0.5);
+  content: '';
+  transform: translateY(-50%);
+}
+
+body:not(.output-mode) .rundown .rundown-slide.is-active:not(.is-live)::before {
+  height: 14px;
+}
+
+body:not(.output-mode) .rundown .rundown-slide.is-active:not(.is-live) > span:first-child {
+  color: var(--text);
+  background: rgb(var(--wash-rgb) / 0.18);
+}
