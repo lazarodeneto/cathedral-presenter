@@ -16149,3 +16149,44 @@ body:not(.output-mode) .output-status-action.is-go:disabled .output-status-go-ic
     transform: none;
   }
 }
+
+/* ── Live Previous / Next ────────────────────────────────────────────
+   Previous is yellow, Next stays green. Pressed: a shade darker, sunk 1px,
+   with a soft shadow of its own colour behind it. */
+.live-control-bar .live-control-nav:not(.live-control-primary) {
+  color: #2b1d00;
+  background: linear-gradient(180deg, #fcd66b 0%, rgb(var(--tone-amber-rgb)) 45%, #e39a2c 100%);
+  text-shadow: none;
+  box-shadow: 0 1px 0 0 rgb(255 255 255 / 0.35) inset, 0 -1px 0 0 rgb(0 0 0 / 0.18) inset, 0 2px 4px rgb(0 0 0 / 0.25);
+}
+
+.live-control-bar .live-control-nav:not(.live-control-primary):hover {
+  background: linear-gradient(180deg, #fbd05a 0%, #f2aa45 45%, #d98f22 100%);
+}
+
+.live-control-bar .live-control-nav {
+  transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+
+.live-control-bar .live-control-nav:not(.live-control-primary):active {
+  background: linear-gradient(180deg, #e9b544 0%, #d9922a 45%, #bd7815 100%);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.28), 0 6px 18px rgb(var(--tone-amber-rgb) / 0.45);
+  transform: translateY(1px);
+}
+
+.live-control-bar .live-control-primary:active {
+  background: linear-gradient(180deg, #15803d 0%, #166534 45%, #14532d 100%);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.3), 0 6px 18px rgb(34 197 94 / 0.45);
+  transform: translateY(1px);
+}
+
+.live-control-bar .live-control-nav:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-control-bar .live-control-nav:active {
+    transform: none;
+  }
+}
