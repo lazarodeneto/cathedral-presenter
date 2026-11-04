@@ -58,6 +58,7 @@ import { ConfirmDialog, Modal } from '../components/Modal'
 import { CanvasGuidesRail, EditorToolbar, ElementActionRail } from '../components/editor/EditorToolbar'
 import { EditorMediaDialog, mediaError, type MediaDialogMode } from '../components/editor/EditorMediaDialog'
 import { EditorBackgroundDialog } from '../components/editor/EditorBackgroundDialog'
+import { LOGO_ERROR_KEYS, processLogoFile } from '../utils/logo'
 import { LogoPlacementDialog, type LogoCorner, type LogoShape } from '../components/editor/LogoPlacementDialog'
 import { QrComposer } from '../components/editor/QrComposer'
 import { LayersPanel } from '../components/editor/LayersPanel'
@@ -142,6 +143,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   const selectedSlideId = useAppStore((state) => state.selectedSlideId)
   const selectedElementId = useAppStore((state) => state.selectedElementId)
   const branding = useAppStore((state) => state.branding)
+  const saveBranding = useAppStore((state) => state.saveBranding)
   const pasteSlide = useAppStore((state) => state.pasteSlide)
   const selectService = useAppStore((state) => state.selectService)
   const selectItem = useAppStore((state) => state.selectItem)
@@ -529,8 +531,19 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
     push(t('editor.useAsBackground'), 'success')
   }
 
-  const addLogoToSlide = (corner: LogoCorner, shape: LogoShape) => {
-    if (!activeItem || !activeSlide || !branding.logoUrl) {
+  const uploadLogo = async (file: File): Promise<boolean> => {
+    const result = await processLogoFile(file)
+    if (!result.ok) {
+      push(t(LOGO_ERROR_KEYS[result.reason]), 'error')
+      return false
+    }
+    saveBranding({ ...branding, logoUrl: result.logo.dataUrl })
+    return true
+  }
+
+  const addLogoToSlide = (corner: LogoCorner, shape: LogoShape, allSlides: boolean) => {
+    const logoUrl = useAppStore.getState().branding.logoUrl
+    if (!activeItem || !activeSlide || !logoUrl) {
       push(t('settings.uploadLogo'), 'error')
       return
     }
@@ -540,8 +553,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
     // Percentages are relative to canvas width and height independently; canvas is 1920:1080 (wide) or 4:3 (classic).
     const [aw, ah] = slideAspectRatio === 'wide' ? [1920, 1080] : [4, 3]
     const height = Math.round(size * aw / ah * 10) / 10
-    addElement(service.id, activeItem.id, activeSlide.id, makeElement('image', {
-      source: branding.logoUrl,
+    const makeLogo = () => makeElement('image', {
+      source: logoUrl,
       text: branding.name,
       x: corner.includes('right') ? 100 - margin - size : margin,
       y: corner.includes('bottom') ? 100 - margin - height : margin,
@@ -554,7 +567,21 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
         cropY: 50,
         cropZoom: 1,
       },
-    }))
+    })
+    if (!allSlides) {
+      addElement(service.id, activeItem.id, activeSlide.id, makeLogo())
+      return
+    }
+    // Every slide of the service, skipping slides that already carry this logo.
+    let added = 0
+    for (const item of service.items) {
+      for (const slide of item.slides) {
+        if (slide.elements.some((element) => element.type === 'image' && element.source === logoUrl)) continue
+        addElement(service.id, item.id, slide.id, makeLogo())
+        added += 1
+      }
+    }
+    push(t('editor.logoAddedAll', { count: added }), 'success')
   }
 
   const alignSelected = (axis: 'horizontal' | 'vertical', value: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => {
@@ -890,7 +917,6 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
               onText={addText}
               onMedia={(mode) => setMediaDialog({ open: true, mode })}
               onLogo={() => setLogoPlacementOpen(true)}
-              logoAvailable={Boolean(branding.logoUrl)}
               onQr={() => setQrOpen(true)}
               onShape={addShape}
               onMessage={addMessage}
@@ -1959,8 +1985,10 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
 
       <LogoPlacementDialog
         open={logoPlacementOpen}
+        logoUrl={branding.logoUrl}
         onClose={() => setLogoPlacementOpen(false)}
         onSelect={addLogoToSlide}
+        onUpload={uploadLogo}
       />
 
       <ConfirmDialog

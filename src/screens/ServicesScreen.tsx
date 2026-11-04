@@ -227,17 +227,17 @@ export function ServicesScreen() {
                     className="btn btn-ghost btn-sm"
                     onClick={() => navigate(`/service/${service.id}/present`)}
                     disabled={Boolean(problem)}
-                    title={problem ? t(`culto.problem.${problem}`) : undefined}
+                    title={problem ? t(`culto.problem.${problem}`) : `${t('editor.present')}: ${service.title}`}
                     aria-label={`${t('editor.present')}: ${service.title}`}
                   >
                     <Play size={14} />
                     {t('editor.present')}
                   </button>
-                  <button className="btn btn-ghost btn-sm" onClick={() => setEditing(service)} aria-label={`${t('culto.editDetails')}: ${service.title}`}>
+                  <button className="btn btn-ghost btn-sm" onClick={() => setEditing(service)} aria-label={`${t('culto.editDetails')}: ${service.title}`} title={`${t('culto.editDetails')}: ${service.title}`}>
                     <Pencil size={14} />
                     {t('culto.editDetails')}
                   </button>
-                  <button className="btn btn-ghost btn-sm" onClick={() => setDuplicating(service)} aria-label={`${t('culto.duplicate')}: ${service.title}`}>
+                  <button className="btn btn-ghost btn-sm" onClick={() => setDuplicating(service)} aria-label={`${t('culto.duplicate')}: ${service.title}`} title={`${t('culto.duplicate')}: ${service.title}`}>
                     <Copy size={14} />
                     {t('culto.duplicate')}
                   </button>
@@ -245,6 +245,7 @@ export function ServicesScreen() {
                     <button
                       className="btn btn-ghost btn-sm"
                       aria-label={`${t('culto.restore')}: ${service.title}`}
+                      title={`${t('culto.restore')}: ${service.title}`}
                       onClick={() => {
                         const ok = restoreService(service.id)
                         push(ok ? t('culto.restored', { title: service.title }) : t('culto.saveError.not-found'), ok ? 'success' : 'error')
@@ -258,6 +259,7 @@ export function ServicesScreen() {
                       className="btn btn-ghost btn-sm"
                       disabled={service.status === 'active'}
                       aria-label={`${t('culto.archive')}: ${service.title}`}
+                      title={`${t('culto.archive')}: ${service.title}`}
                       onClick={() => {
                         if (archiveService(service.id)) push(t('culto.archived', { title: service.title }), 'success')
                         else push(t('culto.saveError.live'), 'error')
@@ -270,6 +272,7 @@ export function ServicesScreen() {
                   <button
                     className="btn btn-ghost btn-sm danger-text"
                     aria-label={`${t('common.delete')}: ${service.title}`}
+                    title={`${t('common.delete')}: ${service.title}`}
                     onClick={() => setDeleting(service)}
                   >
                     <Trash2 size={14} />

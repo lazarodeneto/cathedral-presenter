@@ -64,7 +64,6 @@ export function EditorToolbar({
   layersOpen,
   onMedia,
   onLogo,
-  logoAvailable,
   onQr,
   onShape,
   onMessage,
@@ -76,7 +75,6 @@ export function EditorToolbar({
   layersOpen: boolean
   onMedia: (mode: MediaDialogMode) => void
   onLogo: () => void
-  logoAvailable: boolean
   onQr: () => void
   onShape: () => void
   onMessage: () => void
@@ -92,7 +90,7 @@ export function EditorToolbar({
           icon={<span className="christian-cross-icon" aria-hidden="true" />}
           label={t('editor.logo')}
           onClick={onLogo}
-          disabled={disabled || !logoAvailable}
+          disabled={disabled}
         />
         <ToolButton icon={<Type size={16} />} label={t('editor.text')} onClick={onText} disabled={disabled} />
         <ToolButton icon={<ImageIcon size={16} />} label={t('editor.image')} onClick={() => onMedia('image')} disabled={disabled} />

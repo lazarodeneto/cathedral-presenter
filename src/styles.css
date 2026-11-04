@@ -15277,3 +15277,548 @@ body:not(.output-mode) .topbar {
   position: relative;
   z-index: 40;
 }
+
+/* ── Responsive fixes (container-based) ──────────────────────────────
+   Components respond to the width they actually get, not the window:
+   the sidebar, inspector and split panes change that independently. */
+
+/* Services: filters reflow by panel width instead of overflowing it. */
+.services-filters {
+  container-type: inline-size;
+}
+
+@container (max-width: 760px) {
+  .services-filter-primary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .services-filter-primary .services-search-group {
+    grid-column: 1 / -1;
+  }
+
+  .services-filter-secondary {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .services-filter-secondary .services-date-range {
+    grid-column: 1 / -1;
+  }
+}
+
+@container (max-width: 460px) {
+  .services-filter-primary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .services-filter-secondary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .services-filter-secondary .services-filter-icon {
+    display: none;
+  }
+}
+
+/* Services: a card stacks its actions under the details when it gets narrow. */
+.services-list {
+  container-type: inline-size;
+}
+
+@container (max-width: 820px) {
+  .service-card {
+    flex-direction: column;
+  }
+
+  .service-card-main {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  .service-card-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 2px 4px;
+    padding: 6px 10px;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+
+  .service-card-actions .btn {
+    font-size: var(--text-meta);
+    padding: 5px 8px;
+  }
+}
+
+@container (max-width: 420px) {
+  .service-card-main {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .service-card-main .status-chip {
+    align-self: flex-start;
+  }
+
+  /* Icon-only actions keep one row on phones; names stay in aria-label and title. */
+  .service-card-actions {
+    justify-content: space-between;
+  }
+
+  .service-card-actions .btn {
+    min-width: 40px;
+    min-height: 40px;
+    justify-content: center;
+    padding: 0;
+    font-size: 0;
+    gap: 0;
+  }
+}
+
+/* Services view tabs: one scrollable row instead of wrapping under the underline. */
+@media (max-width: 900px) {
+  .services-views {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .services-views::-webkit-scrollbar {
+    display: none;
+  }
+
+  .services-view {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+
+/* Home: setup and backup panels stack like the pulse row above them. */
+@media (max-width: 1120px) {
+  .home-lower {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Touch: rundown actions are always visible, so they take their own space in
+   the row (the name truncates) instead of floating over the item name. */
+@media (pointer: coarse) {
+  body:not(.output-mode) .rundown-actions {
+    position: static;
+    flex: 0 0 auto;
+    padding-left: 0;
+    background: none;
+    pointer-events: auto;
+    transform: none;
+  }
+}
+
+/* Narrow editor: the rundown is the slide-in drawer opened by the rundown
+   toggle (see .mobile-rundown-toggle). A later one-column rule set it back to
+   static while the drawer's translateX(-100%) stayed, pushing it off-screen. */
+@media (max-width: 820px) {
+  body:not(.output-mode):not(.live-mode) .workspace .rundown {
+    position: fixed;
+    z-index: 100;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(300px, 84vw);
+    max-height: none;
+    margin: 0;
+    border-top: 0;
+    border-radius: 0 var(--rounded-md) var(--rounded-md) 0;
+    background: var(--surface-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: 12px 0 40px rgb(0 0 0 / 0.5);
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 0.22s var(--ease-out), visibility 0s linear 0.22s;
+  }
+
+  body:not(.output-mode):not(.live-mode) .workspace .rundown.is-drawer-open {
+    transform: translateX(0);
+    visibility: visible;
+    transition: transform 0.22s var(--ease-out);
+  }
+}
+
+/* Stacked Bible/Songs libraries: panels grow with their content. With flex: 1
+   and a basis of 0 in an auto-height column, the passage preview collapsed to
+   0px and its verses spilled over the options below it. */
+@media (max-width: 980px) {
+  .passage-preview,
+  .bible-result-list {
+    flex: 0 0 auto;
+  }
+}
+
+/* Stacked layouts: one column that may shrink below its content's natural
+   width (1fr alone keeps the min-content width and pushed panels past 320px). */
+@media (max-width: 1120px) {
+  .home-grid,
+  .home-bottom,
+  .settings-grid,
+  .output-card-grid,
+  .security-grid,
+  .preflight {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 980px) {
+  .settings-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Calendar: navigation and tools wrap instead of running past the edge. */
+@media (max-width: 620px) {
+  .calendar-nav,
+  .calendar-tools {
+    flex-wrap: wrap;
+  }
+}
+
+/* Editor stage head: actions scroll in their own row on phones. */
+@media (max-width: 620px) {
+  .stage-actions {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .stage-actions::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Collapsed sidebar (icon rail): each icon tile gets its own row with room
+   around it, instead of 3px between 32px rows. */
+@media (max-width: 1180px) {
+  body:not(.output-mode) .sidebar-nav {
+    gap: 8px;
+  }
+
+  body:not(.output-mode) .sidebar .nav-item {
+    min-height: 40px;
+  }
+}
+
+@media (min-width: 1181px) and (max-width: 1360px) {
+  body:not(.output-mode) .is-editing .sidebar-nav {
+    gap: 8px;
+  }
+
+  body:not(.output-mode) .is-editing .sidebar .nav-item {
+    min-height: 40px;
+  }
+}
+
+/* Phones: the glass slider shrinks with its row instead of pushing the value off-screen. */
+@media (max-width: 480px) {
+  .glass-opacity-row {
+    flex-wrap: wrap;
+  }
+
+  .glass-opacity-control {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  .glass-opacity-control input[type="range"] {
+    width: auto;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+}
+
+/* Logo dialog: the current logo (or an empty mark) with upload/replace beside it. */
+.logo-source {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 12px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--rounded-md);
+  background: rgb(var(--wash-rgb) / 0.03);
+}
+
+.logo-source.has-logo {
+  border-style: solid;
+  border-color: var(--line);
+}
+
+.logo-source img,
+.logo-source .christian-cross-icon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  object-fit: contain;
+  border-radius: var(--rounded-sm);
+}
+
+.logo-source img.is-circle {
+  border-radius: 50%;
+}
+
+.logo-source .christian-cross-icon {
+  opacity: 0.4;
+}
+
+.logo-corner-option:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.logo-all-slides {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  color: var(--text-2);
+  font-size: var(--text-ui);
+  cursor: pointer;
+}
+
+.logo-all-slides input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--violet);
+}
+
+/* Top bar avatar: the mark fills the round button (no inner circle inside a
+   ring), the arch is dropped at this size and the initials sit centred. */
+body:not(.output-mode) .avatar {
+  overflow: hidden;
+  padding: 0;
+}
+
+body:not(.output-mode) .avatar .brand-mark {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.brand-mark-sm .brand-mark-arch {
+  display: none;
+}
+
+.brand-mark-sm .brand-mark-initials {
+  margin-top: 0;
+  font-size: 11px;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.avatar .brand-mark.has-logo {
+  background: var(--surface-solid-raised);
+}
+
+.avatar .brand-mark img {
+  object-fit: contain;
+  padding: 3px;
+}
+
+/* ── Home: recent services as slide cards ───────────────────────────
+   Each recent service is a card led by a full-width 16:9 preview of its
+   first slide, with title and meta under it. The grid fills whatever width
+   the panel gets: three across on a wide home, one per row on a phone. */
+.recent-list {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 12px;
+}
+
+body:not(.output-mode) .recent-row {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 8px 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--rounded-lg);
+  background: rgb(var(--wash-rgb) / 0.025);
+  transition: border-color 0.16s var(--ease-out), background 0.16s var(--ease-out), transform 0.16s var(--ease-out);
+}
+
+body:not(.output-mode) .recent-row:hover {
+  border-color: var(--line-strong);
+  background: rgb(var(--wash-rgb) / 0.05);
+  transform: translateY(-1px);
+}
+
+body:not(.output-mode) .recent-row:focus-visible {
+  outline: none;
+  border-color: var(--amber);
+  box-shadow: var(--focus-ring);
+}
+
+body:not(.output-mode) .recent-thumb {
+  width: 100%;
+  flex: 0 0 auto;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--rounded-sm);
+}
+
+.recent-thumb .slide-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.recent-row > span:nth-child(2) {
+  padding: 0 4px;
+  gap: 3px;
+}
+
+.recent-row strong {
+  font-size: var(--text-body);
+}
+
+.recent-row span span {
+  font-size: var(--text-meta);
+}
+
+/* The whole card is the link; the trailing chevron only made sense in a list row. */
+.recent-row > svg {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:not(.output-mode) .recent-row:hover {
+    transform: none;
+  }
+}
+
+/* ── Home: setup checklist and backup ───────────────────────────────
+   Both panels lay out by their own width. Header row: icon, title, and the
+   count or action on the right; copy below; steps as a full-width list. */
+.home-lower {
+  container-type: inline-size;
+}
+
+body:not(.output-mode) .setup-panel {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  grid-template-areas:
+    'icon copy dismiss';
+  align-items: start;
+  gap: 14px;
+}
+
+body:not(.output-mode) .setup-panel .setup-icon {
+  grid-area: icon;
+}
+
+body:not(.output-mode) .setup-panel .setup-copy {
+  grid-area: copy;
+  flex: none;
+  min-width: 0;
+}
+
+body:not(.output-mode) .setup-panel > .btn {
+  grid-area: dismiss;
+  margin: 0;
+}
+
+.setup-title {
+  justify-content: space-between;
+  min-height: 38px;
+}
+
+.setup-title h3 {
+  line-height: 1.25;
+}
+
+.setup-title > span {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.setup-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 6px;
+}
+
+.setup-step {
+  justify-content: flex-start;
+  min-height: 36px;
+  padding: 7px 10px;
+  border-radius: var(--rounded-sm);
+  font-size: var(--text-meta);
+  line-height: 1.3;
+  text-align: left;
+}
+
+.setup-step svg {
+  flex: 0 0 auto;
+}
+
+body:not(.output-mode) .backup-panel {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px 14px;
+}
+
+/* The export action sits under the copy, aligned with the text column. */
+body:not(.output-mode) .backup-actions {
+  grid-column: 2;
+  align-self: start;
+}
+
+body:not(.output-mode) .backup-panel > div:nth-child(2) {
+  min-width: 0;
+}
+
+.backup-panel h3 {
+  line-height: 1.25;
+}
+
+.backup-actions .btn {
+  white-space: nowrap;
+}
+
+/* Narrow panels: the action moves under the text, full width, so the title
+   and copy keep the whole row instead of wrapping one word per line. */
+@container (max-width: 560px) {
+  body:not(.output-mode) .setup-panel {
+    grid-template-columns: 38px minmax(0, 1fr);
+    grid-template-areas:
+      'icon copy'
+      'dismiss dismiss';
+  }
+
+  body:not(.output-mode) .setup-panel > .btn {
+    justify-self: end;
+  }
+
+  .setup-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body:not(.output-mode) .backup-actions {
+    grid-column: 1 / -1;
+  }
+
+  body:not(.output-mode) .backup-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Calendar toolbar: tools wrap to a second row before they run past the panel. */
+.calendar-toolbar {
+  flex-wrap: wrap;
+}
+
+.calendar-tools {
+  flex-wrap: wrap;
+  min-width: 0;
+}
