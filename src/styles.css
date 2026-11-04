@@ -10240,7 +10240,7 @@ dialog.modal::backdrop {
     padding: 0;
   }
 
-  .nav-item span:not(.nav-badge),
+  .nav-item span:not(.nav-badge):not(.nav-app-icon),
   .nav-item .nav-badge,
   .sidebar-label,
   .sidebar-service,
@@ -11566,7 +11566,7 @@ body.reduced-motion .media-shimmer {
     padding: 0;
   }
 
-  .nav-item span:not(.nav-badge),
+  .nav-item span:not(.nav-badge):not(.nav-app-icon),
   .nav-item .nav-badge,
   .sidebar-label,
   .sidebar-service,
@@ -11599,7 +11599,7 @@ body.reduced-motion .media-shimmer {
     padding: 0;
   }
 
-  .is-editing .nav-item span:not(.nav-badge),
+  .is-editing .nav-item span:not(.nav-badge):not(.nav-app-icon),
   .is-editing .nav-item .nav-badge,
   .is-editing .sidebar-label,
   .is-editing .sidebar-service,
@@ -15052,4 +15052,228 @@ body:not(.output-mode) .bible-screen .bible-selector-grid select {
   body:not(.output-mode) .bible-screen .bible-selector-grid {
     grid-template-columns: minmax(105px, 1.1fr) 88px minmax(180px, 1fr) minmax(125px, 1.2fr) minmax(125px, 1.2fr);
   }
+}
+
+/* ── Top bar, refined ─────────────────────────────────────────────
+   Title reads as the page heading; the right cluster is quiet status,
+   then the two controls (language, settings) after a hairline. Neutral
+   check for "saved": green stays reserved for LIVE. */
+body:not(.output-mode) .topbar-breadcrumb strong {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+body:not(.output-mode) .topbar-actions {
+  gap: 6px;
+}
+
+body:not(.output-mode) .topbar-status {
+  gap: 6px;
+  padding: 0 6px;
+  color: var(--muted);
+  background: none;
+  cursor: default;
+}
+
+body:not(.output-mode) .topbar-status svg {
+  color: var(--text-2);
+}
+
+body:not(.output-mode) .topbar-clock {
+  padding: 0 6px;
+  color: var(--muted);
+  background: none;
+}
+
+.topbar-divider {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--line-strong);
+}
+
+/* Wrapper only; the trigger carries the pill. Neutralises the older .topbar-language rules. */
+body:not(.output-mode) .topbar-language {
+  position: relative;
+  display: flex;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+body:not(.output-mode) .topbar-language:hover {
+  border: 0;
+  background: none;
+}
+
+.topbar-language-trigger {
+  display: flex;
+  height: 30px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 8px 0 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--rounded-pill);
+  color: var(--muted);
+  background: rgb(var(--wash-rgb) / 0.03);
+  transition: border-color 0.15s var(--ease-out), background 0.15s var(--ease-out), color 0.15s var(--ease-out);
+}
+
+.topbar-language-trigger:hover,
+.topbar-language-trigger.is-open {
+  border-color: var(--line-strong);
+  color: var(--text);
+  background: rgb(var(--wash-rgb) / 0.07);
+}
+
+.topbar-language-trigger:focus-visible {
+  outline: none;
+  border-color: var(--amber);
+  box-shadow: var(--focus-ring);
+}
+
+.locale-flag {
+  flex: 0 0 auto;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+}
+
+.topbar-language-code {
+  color: var(--text-2);
+  font-size: var(--text-meta);
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.topbar-language-trigger:hover .topbar-language-code,
+.topbar-language-trigger.is-open .topbar-language-code {
+  color: var(--text);
+}
+
+.topbar-language-chevron {
+  opacity: 0.7;
+  transition: transform 0.18s var(--ease-out);
+}
+
+.topbar-language-trigger.is-open .topbar-language-chevron {
+  transform: rotate(180deg);
+}
+
+.topbar-language-menu {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  margin: 0;
+  padding: 5px;
+  list-style: none;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--rounded-md);
+  background: var(--surface-solid);
+  box-shadow: 0 18px 40px rgb(0 0 0 / 0.45), 0 2px 6px rgb(0 0 0 / 0.3);
+  outline: none;
+  transform-origin: top right;
+  animation: topbar-menu-in 0.16s var(--ease-out);
+}
+
+@keyframes topbar-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+.topbar-language-option {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) 14px;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 0 10px 0 8px;
+  border-radius: var(--rounded-sm);
+  color: var(--text-2);
+  font-size: var(--text-ui);
+  cursor: pointer;
+}
+
+.topbar-language-option.is-active {
+  color: var(--text);
+  background: rgb(var(--wash-rgb) / 0.07);
+}
+
+.topbar-language-menu:focus-visible .topbar-language-option.is-active {
+  box-shadow: inset 0 0 0 1px rgb(var(--amber-rgb) / 0.5);
+}
+
+.topbar-language-option[aria-selected='true'] {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Region code after the name ("Português BR"), quieter than the name itself. */
+.topbar-language-region {
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.topbar-language-check {
+  color: var(--violet-text);
+  opacity: 0;
+}
+
+.topbar-language-option[aria-selected='true'] .topbar-language-check {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topbar-language-menu {
+    animation: none;
+  }
+}
+
+body:not(.output-mode) .avatar {
+  width: 30px;
+  height: 30px;
+  background: none;
+  box-shadow: 0 0 0 1px var(--line-strong);
+  transition: box-shadow 0.15s var(--ease-out), transform 0.15s var(--ease-out);
+}
+
+body:not(.output-mode) .avatar:hover {
+  background: none;
+  box-shadow: 0 0 0 2px rgb(var(--wash-rgb) / 0.28);
+}
+
+body:not(.output-mode) .avatar:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--amber), var(--focus-ring);
+}
+
+body:not(.output-mode) .avatar:active {
+  transform: scale(0.96);
+}
+
+@media (max-width: 1023px) {
+  .topbar-divider {
+    display: none;
+  }
+}
+
+/* The compact pill fits small windows, so language stays reachable there too. */
+@media (max-width: 820px) {
+  body:not(.output-mode) .topbar-language {
+    display: flex;
+  }
+}
+
+/* The language menu drops below the top bar, so the bar stacks above page content. */
+body:not(.output-mode) .topbar {
+  position: relative;
+  z-index: 40;
 }
