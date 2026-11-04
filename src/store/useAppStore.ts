@@ -1256,6 +1256,10 @@ export const useAppStore = create<AppState>()(
               currentSlideId: next.slide.id,
               history: [...state.live.history, next.slide.id].slice(-20),
             },
+            // The editor, rundown and slide strip follow the slide on the audience screen.
+            selectedItemId: next.item.id,
+            selectedSlideId: next.slide.id,
+            selectedElementId: null,
           })
           return true
         },
@@ -1274,6 +1278,10 @@ export const useAppStore = create<AppState>()(
               currentSlideId: prev.slide.id,
               history: [...state.live.history, prev.slide.id].slice(-20),
             },
+            // The editor, rundown and slide strip follow the slide on the audience screen.
+            selectedItemId: prev.item.id,
+            selectedSlideId: prev.slide.id,
+            selectedElementId: null,
           })
           return true
         },
@@ -1282,14 +1290,17 @@ export const useAppStore = create<AppState>()(
           if (!state.live) return false
           const service = findService(state.services, state.live.serviceId)
           if (!service) return false
-          const exists = flatSlides(service).some((entry) => entry.slide.id === slideId)
-          if (!exists) return false
+          const target = flatSlides(service).find((entry) => entry.slide.id === slideId)
+          if (!target) return false
           set({
             live: {
               ...state.live,
               currentSlideId: slideId,
               history: [...state.live.history, slideId].slice(-20),
             },
+            selectedItemId: target.item.id,
+            selectedSlideId: slideId,
+            selectedElementId: null,
           })
           return true
         },

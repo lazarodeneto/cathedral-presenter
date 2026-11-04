@@ -254,6 +254,19 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   const [mobileInspector, setMobileInspector] = useState(false)
   const [endOpen, setEndOpen] = useState(false)
   const thumbsRef = useRef<HTMLDivElement>(null)
+  // Keep the live slide in view in the slide strip as the presenter moves through the service.
+  const liveSlideId = live?.currentSlideId ?? null
+  useEffect(() => {
+    const strip = thumbsRef.current
+    if (!strip || !liveSlideId) return
+    const thumb = strip.querySelector<HTMLElement>(`[data-slide-id="${CSS.escape(liveSlideId)}"]`)
+    if (!thumb) return
+    const stripBox = strip.getBoundingClientRect()
+    const thumbBox = thumb.getBoundingClientRect()
+    const left = strip.scrollLeft + (thumbBox.left - stripBox.left) - (strip.clientWidth - thumbBox.width) / 2
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    strip.scrollTo?.({ left: Math.max(0, left), behavior: reduce ? 'auto' : 'smooth' })
+  }, [liveSlideId])
   const [draggedSlide, setDraggedSlide] = useState<{ itemId: string; slideId: string } | null>(null)
   const [slideDropTarget, setSlideDropTarget] = useState<{ slideId: string; side: 'before' | 'after' } | null>(null)
   const canvasAreaRef = useRef<HTMLDivElement>(null)
@@ -1120,6 +1133,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   return (
                     <div
                       key={entry.slide.id}
+                      data-slide-id={entry.slide.id}
                       className={`slide-thumb-wrap ${draggedSlide?.slideId === entry.slide.id ? 'is-dragging' : ''} ${
                         slideDropTarget?.slideId === entry.slide.id ? `drop-${slideDropTarget.side}` : ''
                       }`}
