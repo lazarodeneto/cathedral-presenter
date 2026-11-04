@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react'
+import { SCREEN_META, type ScreenName } from './components/ScreenIcon'
 import { navigate, useHashRoute } from './hooks/useHashRoute'
 import { useOutputBridge } from './hooks/useOutputBridge'
 import { useAppStore } from './store/useAppStore'
@@ -218,7 +219,11 @@ export default function App() {
   }
 
   return (
-    <div className={`app-shell ${route.name === 'service' ? 'is-editing' : ''}`}>
+    <div
+      className={`app-shell ${route.name === 'service' ? 'is-editing' : ''}`}
+      // The current screen's tone colours the full-width top band (a service uses the Services tone).
+      data-band-tone={(SCREEN_META[(route.name === 'service' ? 'services' : route.name) as ScreenName] ?? SCREEN_META.home).tone}
+    >
       <Sidebar current={route.name} />
       <div className="app-main">
         <TopBar route={route} />

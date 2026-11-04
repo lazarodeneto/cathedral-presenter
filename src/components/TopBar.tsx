@@ -284,11 +284,27 @@ export function TopBar({ route }: { route: Route }) {
         ? t('output.role')
         : t(LABELS[route.name] || 'nav.home')
 
+  // The screen's own icon and tone (a service uses the Services tone) colour the bar.
+  const screen = (route.name === 'service' ? 'services' : route.name) as ScreenName
+  const meta = SCREEN_META[screen] ?? SCREEN_META.home
+  const ScreenGlyph = meta.icon
+
   return (
     <>
-      <header className="topbar">
+      <header className="topbar" data-tone={meta.tone}>
         <div className="topbar-breadcrumb">
-          <strong>{label}</strong>
+          <span className="topbar-screen-icon tone-chip" data-tone={meta.tone} aria-hidden="true">
+            <ScreenGlyph size={15} strokeWidth={2} />
+          </span>
+          {route.name === 'service' && activeService ? (
+            // The rundown already shows the service title; here the screen name and the date.
+            <span className="topbar-title-stack">
+              <strong>{t('nav.services')}</strong>
+              <small>{label}</small>
+            </span>
+          ) : (
+            <strong>{label}</strong>
+          )}
           {live && (
             <button className="live-chip" onClick={() => navigate(`/service/${live.serviceId}`)}>
               <span className="live-dot" />
