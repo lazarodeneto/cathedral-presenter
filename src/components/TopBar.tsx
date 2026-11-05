@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { CalendarDays, CheckCircle2, Clock3, Languages, Search, TriangleAlert, X } from 'lucide-react'
-import type { Locale } from '../types'
-import { LOCALE_OPTIONS } from '../i18n/dictionary'
+import { CalendarDays, CheckCircle2, Clock3, Search, TriangleAlert, X } from 'lucide-react'
 import { useT } from '../i18n/useT'
 import { useAppStore } from '../store/useAppStore'
 import { navigate, type Route } from '../hooks/useHashRoute'
@@ -10,6 +8,7 @@ import { useShortcutHandlers } from '../shortcuts/registry'
 import { useShortcutLabel } from '../shortcuts/useShortcutLabel'
 import { formatClock, formatLongDate, formatToolbarDate } from '../utils/dates'
 import { BrandMark } from './BrandMark'
+import { LanguagePicker } from './LanguagePicker'
 import { SCREEN_META, type ScreenName } from './ScreenIcon'
 
 const LABELS: Record<string, string> = {
@@ -207,10 +206,11 @@ export function TopBar({ route }: { route: Route }) {
             <CheckCircle2 size={14} />
             {t('status.storageLocal')}
           </span>
-          <span className="topbar-clock">
+          <span className="topbar-clock" aria-label={t('topbar.clock')}>
             <Clock3 size={14} />
-            {formatClock(locale, clock)}
+            <time>{formatClock(locale, clock)}</time>
           </span>
+          <span className="topbar-divider" aria-hidden="true" />
           <button
             className="avatar"
             onClick={() => navigate('/settings')}
@@ -218,20 +218,7 @@ export function TopBar({ route }: { route: Route }) {
           >
             <BrandMark branding={branding} size="sm" />
           </button>
-          <label className="topbar-language" title={t('settings.language')}>
-            <Languages size={14} />
-            <select
-              value={locale}
-              onChange={(event) => setLocale(event.target.value as Locale)}
-              aria-label={t('settings.language')}
-            >
-              {LOCALE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.flag} {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <LanguagePicker value={locale} onChange={setLocale} label={t('settings.language')} compact className="topbar-language-picker" />
         </div>
       </header>
       {commandOpen && <CommandPalette onClose={() => setCommandOpen(false)} />}

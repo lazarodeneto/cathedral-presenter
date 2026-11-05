@@ -15,8 +15,8 @@ import {
   Upload,
   WifiOff,
 } from 'lucide-react'
-import type { AppSettings, Locale, MonitorRole } from '../types'
-import { LOCALE_OPTIONS, languageName } from '../i18n/dictionary'
+import type { AppSettings, MonitorRole } from '../types'
+import { languageName } from '../i18n/dictionary'
 import { bibleTranslationsWith } from '../providers/bible/customBibles'
 import { useAppStore } from '../store/useAppStore'
 import { useToasts } from '../store/useToasts'
@@ -30,6 +30,7 @@ import { ShortcutSettings } from '../components/settings/ShortcutSettings'
 import { ConfirmDialog } from '../components/Modal'
 import { formatNumericDateTime } from '../utils/dates'
 import { SCREEN_META, ScreenIcon, type ScreenTone } from '../components/ScreenIcon'
+import { LanguagePicker } from '../components/LanguagePicker'
 
 type Tab = 'general' | 'bibles' | 'identity' | 'outputs' | 'data' | 'security' | 'shortcuts'
 
@@ -229,19 +230,10 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
                 </div>
               </div>
               <div className="settings-grid">
-                <label className="field">
+                <div className="field">
                   <span>{t('settings.language')}</span>
-                  <select
-                    value={settings.locale}
-                    onChange={(event) => setLocale(event.target.value as Locale)}
-                  >
-                    {LOCALE_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.flag} {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                  <LanguagePicker value={settings.locale} onChange={setLocale} label={t('settings.language')} className="is-field" />
+                </div>
                 <label className="field">
                   <span>{t('settings.defaultTranslation')}</span>
                   <select

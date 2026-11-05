@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { Archive, BookOpen, Eye, EyeOff, Pencil, Plus, ShieldCheck, Trash2, Upload } from 'lucide-react'
 import type { BibleTranslation, CustomBibleTranslation, Locale } from '../../types'
-import { LOCALE_OPTIONS, languageName } from '../../i18n/dictionary'
+import { languageName } from '../../i18n/dictionary'
 import {
   allBundledTranslations,
   bibleTranslationsWith,
@@ -20,6 +20,7 @@ import {
   type BibleImportError,
 } from '../../utils/bibleImport'
 import { IncludedBibles } from './IncludedBibles'
+import { LanguagePicker } from '../LanguagePicker'
 
 const LICENSE_TYPES: BibleTranslation['licenseType'][] = [
   'church-import',
@@ -525,20 +526,11 @@ function BibleImportDialog({
               required
             />
           </label>
-          <label className="field">
+          <div className="field">
             <span>{t('settings.bibleLanguage')}</span>
-            <select
-              value={language}
-              onChange={(event) => setLanguage(event.target.value as Locale)}
-            >
-              {LOCALE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.flag} {option.label}
-                </option>
-              ))}
-            </select>
+            <LanguagePicker value={language} onChange={setLanguage} label={t('settings.bibleLanguage')} className="is-field" />
             <small className="field-hint">{t('settings.bibleLanguageHint')}</small>
-          </label>
+          </div>
           <label className="field">
             <span>{t('settings.bibleLicense')}</span>
             <select

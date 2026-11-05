@@ -7,6 +7,7 @@ import { bibleAdminStrings } from './bibleAdminStrings'
 type Dict = Record<string, string>
 
 const en: Dict = {
+  'topbar.clock': 'Current time',
   'editor.notLive': 'Not live',
   'editor.outputStatus': 'Audience output',
   'live.doubleClickHint': 'Double-click a slide to show it live',
@@ -1085,6 +1086,7 @@ const en: Dict = {
 }
 
 const pt: Dict = {
+  'topbar.clock': 'Hora atual',
   'editor.notLive': 'Fora do ar',
   'editor.outputStatus': 'Saída para a congregação',
   'live.doubleClickHint': 'Clique duas vezes num slide para o mostrar ao vivo',
@@ -1570,6 +1572,7 @@ const ptBR: Dict = {
 }
 
 const es: Dict = {
+  'topbar.clock': 'Hora actual',
   'editor.notLive': 'Fuera del aire',
   'editor.outputStatus': 'Salida para la congregación',
   'live.doubleClickHint': 'Haz doble clic en una diapositiva para mostrarla en vivo',
@@ -1953,6 +1956,7 @@ const es: Dict = {
 }
 
 const fr: Dict = {
+  'topbar.clock': 'Heure actuelle',
   'editor.notLive': 'Hors antenne',
   'editor.outputStatus': 'Sortie pour l’assemblée',
   'live.doubleClickHint': 'Double-cliquez sur une diapositive pour l’afficher en direct',
@@ -2335,6 +2339,7 @@ const fr: Dict = {
 }
 
 const de: Dict = {
+  'topbar.clock': 'Aktuelle Uhrzeit',
   'editor.notLive': 'Nicht live',
   'editor.outputStatus': 'Ausgabe für die Gemeinde',
   'live.doubleClickHint': 'Doppelklick auf eine Folie zeigt sie live',
@@ -2717,6 +2722,7 @@ const de: Dict = {
 }
 
 const it: Dict = {
+  'topbar.clock': 'Ora attuale',
   'editor.notLive': 'Non in onda',
   'editor.outputStatus': 'Uscita per la congregazione',
   'live.doubleClickHint': 'Doppio clic su una diapositiva per mostrarla dal vivo',
