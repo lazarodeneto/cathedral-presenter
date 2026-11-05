@@ -92,7 +92,10 @@ export function BibleScreen() {
   const hiddenBibleIds = useAppStore((state) => state.hiddenBibleIds)
   const archivedBibleIds = useAppStore((state) => state.archivedBibleIds)
   const deletedBibleIds = useAppStore((state) => state.deletedBibleIds)
-  const translations = useMemo(() => bibleTranslationsWith(customBibles), [customBibles, hiddenBibleIds, archivedBibleIds, deletedBibleIds])
+  const translations = useMemo(
+    () => bibleTranslationsWith(customBibles, { hidden: hiddenBibleIds, archived: archivedBibleIds, deleted: deletedBibleIds }),
+    [customBibles, hiddenBibleIds, archivedBibleIds, deletedBibleIds],
+  )
   const [query, setQuery] = useState('Psalm 23:1-6')
   const [translationId, setTranslationId] = useState(() =>
     validTranslationId(translations, settings.defaultTranslationId, 'web'),

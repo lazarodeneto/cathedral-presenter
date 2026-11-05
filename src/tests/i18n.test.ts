@@ -26,3 +26,19 @@ describe('editor and media translations', () => {
     }
   })
 })
+
+describe('all-app translations', () => {
+  // Formats and names that read the same in every language.
+  const SAME_EVERYWHERE = new Set(['app.name', 'settings.churchNamePlaceholder', 'home.statDaysHours', 'culto.duration', 'home.statSections'])
+
+  it('has no sentence left in English in any locale, on any screen', () => {
+    const en = dictionaries.en
+    for (const [locale, dictionary] of Object.entries(dictionaries)) {
+      if (locale === 'en') continue
+      const untranslated = Object.keys(en).filter(
+        (key) => !SAME_EVERYWHERE.has(key) && !key.startsWith('template.') && dictionary[key] === en[key] && en[key].length > 6 && /\s/.test(en[key]),
+      )
+      expect({ locale, untranslated }).toEqual({ locale, untranslated: [] })
+    }
+  })
+})

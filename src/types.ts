@@ -33,6 +33,24 @@ export type BackgroundPreset =
   | 'violet'
   | 'dawn'
   | 'linen'
+  | 'ocean'
+  | 'emerald'
+  | 'sunset'
+  | 'nebula'
+  | 'midnight'
+  | 'crimson'
+  | 'mesh'
+  | 'spotlight'
+  | 'lagoon'
+  | 'royal'
+  | 'sky'
+  | 'blush'
+  | 'flow'
+  | 'ember'
+  | 'tide'
+  | 'stars'
+  | 'rays'
+  | 'breathe'
 
 export type ElementType = 'text' | 'image' | 'video' | 'shape' | 'qr' | 'embed' | 'message'
 
@@ -61,6 +79,10 @@ export type MediaElementSettings = {
   youtubeId?: string
   localOnly?: boolean
   missing?: boolean
+  /** Video placeholder from a template: invisible on outputs until a video fills it. */
+  videoSlot?: boolean
+  /** Gentle looping motion for decorative elements. */
+  motion?: 'pulse' | 'float' | 'spin' | 'drift' | 'sway'
   onlineOnly?: boolean
   status?: MediaStatus
 }
@@ -232,7 +254,7 @@ export interface ServiceSection {
 }
 
 export type ServiceStatus = 'draft' | 'scheduled' | 'active' | 'completed' | 'archived'
-export type TransitionType = 'fade' | 'cut' | 'slide'
+export type TransitionType = 'fade' | 'cut' | 'slide' | 'zoom'
 
 export interface SlideTransition {
   type: TransitionType
@@ -449,7 +471,41 @@ export interface SlideTemplate {
   background: BackgroundPreset
   text: string
   textAlign: TextAlign
-  elementPreset?: 'image-right' | 'centered' | 'two-column' | 'lower-third'
+  elementPreset?:
+    | 'image-right'
+    | 'centered'
+    | 'two-column'
+    | 'lower-third'
+    | 'cross'
+    | 'quote-bar'
+    | 'frame'
+    | 'band'
+    | 'halo'
+    | 'tag'
+    | 'split'
+    | 'underline'
+    | 'glass'
+    | 'diagonal'
+    | 'ring'
+    | 'corners'
+    | 'glow'
+    | 'video'
+    | 'art-water'
+    | 'art-night'
+    | 'art-dove'
+    | 'art-calvary'
+    | 'art-kneeling'
+    | 'art-worship'
+  /** Small label drawn by presets that carry one (tag, band, split, quote-bar reference). */
+  label?: string
+  /** Accent colour (any CSS colour) for the preset's lines, panels and glows. Gold by default. */
+  accent?: string
+  /** Gentle looping motion applied to the preset's decorative shapes. */
+  motion?: 'pulse' | 'float' | 'spin' | 'drift' | 'sway'
+  fontFamily?: 'serif' | 'sans'
+  fontSize?: number
+  fontWeight?: number
+  textVerticalAlign?: 'top' | 'middle' | 'bottom'
 }
 
 export interface BrandingTheme {
@@ -486,11 +542,15 @@ export interface AppSettings {
   shortcutsEnabled: boolean
   /** Customized keyboard shortcuts by action id; [] disables one. Missing ids use defaults. */
   shortcutOverrides: Record<string, string[]>
-  transition: 'fade' | 'cut' | 'slide'
+  transition: 'fade' | 'cut' | 'slide' | 'zoom'
   transitionDuration: number
   lastBackupAt: string | null
   showSetupChecklist: boolean
   defaultSectionTitle: string
+  /** Editor canvas: draw the alignment grid. */
+  showGrid?: boolean
+  /** Editor canvas: snap elements to the canvas, other elements and the grid. On when missing. */
+  snapToObjects?: boolean
 }
 
 export interface LiveSession {
@@ -521,6 +581,8 @@ export interface AudienceOutputState {
   monitorName: string
   testMonitorName?: string
   isFrozen?: boolean
+  /** How the audience screen moves into `slide`: the slide's own transition, else the service default. */
+  transition?: SlideTransition
   updatedAt: string
 }
 

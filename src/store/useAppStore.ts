@@ -98,6 +98,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   lastBackupAt: null,
   showSetupChecklist: true,
   defaultSectionTitle: 'Message',
+  showGrid: false,
+  snapToObjects: true,
 }
 
 export { DEFAULT_BRANDING }
@@ -182,6 +184,8 @@ interface AppState {
   addItem: (serviceId: string, sectionId: string, item: SlideItem) => void
   removeItem: (serviceId: string, itemId: string) => void
   moveItem: (serviceId: string, itemId: string, direction: -1 | 1) => void
+  /** Move an item next to another item, possibly into a different section. */
+  moveItemNextTo: (serviceId: string, itemId: string, targetItemId: string, side: 'before' | 'after') => void
   updateSlide: (
     serviceId: string,
     itemId: string,
@@ -197,6 +201,8 @@ interface AppState {
   ) => void
   addBlankSlide: (serviceId: string, itemId: string) => void
   duplicateSlide: (serviceId: string, itemId: string, slideId: string) => void
+  /** Move a slide to `toIndex` within its own item (index in the item's slide list after removal). */
+  moveSlide: (serviceId: string, itemId: string, slideId: string, toIndex: number) => void
   pasteSlide: (serviceId: string, itemId: string, source: Slide) => void
   deleteSlide: (serviceId: string, itemId: string, slideId: string) => void
   addElement: (serviceId: string, itemId: string, slideId: string, element: SlideElement) => void
@@ -776,6 +782,28 @@ export const useAppStore = create<AppState>()(
             lastSavedAt: now(),
           })),
 
+        moveItemNextTo: (serviceId, itemId, targetItemId, side) =>
+          set((state) => {
+            if (itemId === targetItemId) return {}
+            const service = findService(state.services, serviceId)
+            if (!service?.sections.some((section) => section.itemIds.includes(targetItemId))) return {}
+            if (!service.sections.some((section) => section.itemIds.includes(itemId))) return {}
+            return {
+              services: mapService(state.services, serviceId, (entry) => ({
+                ...entry,
+                sections: entry.sections.map((section) => {
+                  const ids = section.itemIds.filter((id) => id !== itemId)
+                  const at = ids.indexOf(targetItemId)
+                  if (at >= 0) ids.splice(side === 'after' ? at + 1 : at, 0, itemId)
+                  return ids.length === section.itemIds.length && ids.every((id, i) => id === section.itemIds[i])
+                    ? section
+                    : { ...section, itemIds: ids }
+                }),
+              })),
+              lastSavedAt: now(),
+            }
+          }),
+
         updateSlide: (serviceId, itemId, slideId, patch) =>
           set((state) => ({
             services: mapService(state.services, serviceId, (service) => ({
@@ -889,6 +917,25 @@ export const useAppStore = create<AppState>()(
             lastSavedAt: now(),
           }))
         },
+        moveSlide: (serviceId, itemId, slideId, toIndex) =>
+          set((state) => {
+            const service = findService(state.services, serviceId)
+            const item = service?.items.find((entry) => entry.id === itemId)
+            const from = item?.slides.findIndex((slide) => slide.id === slideId) ?? -1
+            if (!item || from < 0) return {}
+            const target = Math.max(0, Math.min(toIndex, item.slides.length - 1))
+            if (target === from) return {}
+            const slides = [...item.slides]
+            const [moved] = slides.splice(from, 1)
+            slides.splice(target, 0, moved)
+            return {
+              services: mapService(state.services, serviceId, (entry) => ({
+                ...entry,
+                items: entry.items.map((entryItem) => (entryItem.id === itemId ? { ...entryItem, slides } : entryItem)),
+              })),
+              lastSavedAt: now(),
+            }
+          }),
         duplicateSlide: (serviceId, itemId, slideId) => {
           const state = get()
           const service = findService(state.services, serviceId)
@@ -1209,6 +1256,10 @@ export const useAppStore = create<AppState>()(
               currentSlideId: next.slide.id,
               history: [...state.live.history, next.slide.id].slice(-20),
             },
+            // The editor, rundown and slide strip follow the slide on the audience screen.
+            selectedItemId: next.item.id,
+            selectedSlideId: next.slide.id,
+            selectedElementId: null,
           })
           return true
         },
@@ -1227,6 +1278,10 @@ export const useAppStore = create<AppState>()(
               currentSlideId: prev.slide.id,
               history: [...state.live.history, prev.slide.id].slice(-20),
             },
+            // The editor, rundown and slide strip follow the slide on the audience screen.
+            selectedItemId: prev.item.id,
+            selectedSlideId: prev.slide.id,
+            selectedElementId: null,
           })
           return true
         },
@@ -1235,14 +1290,17 @@ export const useAppStore = create<AppState>()(
           if (!state.live) return false
           const service = findService(state.services, state.live.serviceId)
           if (!service) return false
-          const exists = flatSlides(service).some((entry) => entry.slide.id === slideId)
-          if (!exists) return false
+          const target = flatSlides(service).find((entry) => entry.slide.id === slideId)
+          if (!target) return false
           set({
             live: {
               ...state.live,
               currentSlideId: slideId,
               history: [...state.live.history, slideId].slice(-20),
             },
+            selectedItemId: target.item.id,
+            selectedSlideId: slideId,
+            selectedElementId: null,
           })
           return true
         },

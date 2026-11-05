@@ -1,3 +1,4 @@
+import { ART_CALVARY, ART_DOVE, ART_KNEELING, ART_NIGHTSCAPE, ART_WATER, ART_WORSHIP } from '../assets/templateArt'
 import type {
   BiblePassage,
   ContentType,
@@ -351,6 +352,172 @@ export function createMediaItem(title: string, element: SlideElement): SlideItem
   }
 }
 
+const shape = (x: number, y: number, width: number, height: number, fill: string, extra: Partial<SlideElement['settings']> = {}, opacity = 1) =>
+  makeElement('shape', { x, y, width, height, zIndex: 1, opacity, settings: { shape: 'rect', fill, radius: 0, ...extra } })
+
+type Motion = NonNullable<NonNullable<SlideElement['settings']>['motion']>
+
+// An illustration layer; contain keeps the drawing's proportions, anchored to the bottom of its box.
+const art = (source: string, x: number, y: number, width: number, height: number, motion?: Motion, opacity = 1) =>
+  makeElement('image', {
+    x,
+    y,
+    width,
+    height,
+    zIndex: 1,
+    opacity,
+    source,
+    text: '',
+    settings: { fit: 'contain', cropX: 50, cropY: 100, cropZoom: 1, ...(motion ? { motion } : {}) },
+  })
+
+const label = (text: string, overrides: Partial<SlideElement>, settings: Partial<SlideElement['settings']> = {}) =>
+  makeTextElement(text, {
+    zIndex: 3,
+    ...overrides,
+    settings: {
+      fontFamily: 'sans',
+      fontSize: 18,
+      fontWeight: 650,
+      align: 'center',
+      lineHeight: 1.2,
+      letterSpacing: 4,
+      uppercase: true,
+      color: 'rgba(255,255,255,0.78)',
+      textShadow: false,
+      ...settings,
+    },
+  })
+
+/**
+ * Decorative layers for the newer templates, built from plain shapes and text
+ * elements so every piece stays editable on the slide. Coordinates are canvas %.
+ */
+function decorElements(template: SlideTemplate): SlideElement[] {
+  const gold = template.accent ?? 'linear-gradient(180deg, #f6d58a, #d9a441)'
+  // A solid version of the accent for gradients and glows (gold when the accent is a gradient).
+  const solid = template.accent && !template.accent.includes('gradient') ? template.accent : '#e0b04f'
+  const tint = (percent: number) => `color-mix(in srgb, ${solid} ${percent}%, transparent)`
+  switch (template.elementPreset) {
+    case 'cross':
+      // A slim cross above the text: one tall and one short bar, softly lit.
+      return [
+        shape(49.4, 11, 1.2, 22, gold, { shape: 'line' }, 0.9),
+        shape(46, 17, 8, 2.1, gold, { shape: 'line' }, 0.9),
+      ]
+    case 'quote-bar':
+      return [
+        shape(4.6, 24, 0.7, 52, gold, { shape: 'line' }),
+        ...(template.label ? [label(template.label, { x: 9, y: 80, width: 60, height: 7 }, { align: 'left', color: '#f2c56b', fontSize: 22 })] : []),
+      ]
+    case 'frame':
+      // A thin inset frame: four hairlines with a gap from the edge.
+      return [
+        shape(6, 8, 88, 0.35, 'rgba(255,255,255,0.35)'),
+        shape(6, 91.65, 88, 0.35, 'rgba(255,255,255,0.35)'),
+        shape(6, 8, 0.2, 84, 'rgba(255,255,255,0.35)'),
+        shape(93.8, 8, 0.2, 84, 'rgba(255,255,255,0.35)'),
+      ]
+    case 'band':
+      return [
+        shape(0, 72, 100, 28, template.accent ? `linear-gradient(90deg, ${tint(90)}, ${tint(65)})` : 'linear-gradient(90deg, rgba(37,99,235,0.85), rgba(14,165,233,0.75))'),
+        ...(template.label ? [label(template.label, { x: 8, y: 80, width: 84, height: 10 }, { color: '#ffffff', fontSize: 26 })] : []),
+      ]
+    case 'halo':
+      return [
+        shape(30, 10, 40, 80, template.accent ? `radial-gradient(circle, ${tint(36)} 0%, ${tint(10)} 45%, transparent 70%)` : 'radial-gradient(circle, rgba(255,214,140,0.32) 0%, rgba(255,214,140,0.08) 45%, rgba(255,214,140,0) 70%)', { shape: 'circle' }),
+      ]
+    case 'tag':
+      return template.label
+        ? [
+            shape(6, 8, 22, 9, 'rgba(255,255,255,0.14)', { radius: 999 }),
+            label(template.label, { x: 6, y: 9.8, width: 22, height: 5.4 }, { fontSize: 22, letterSpacing: 3, color: '#ffffff' }),
+          ]
+        : []
+    case 'split': {
+      // Text: "Title\n\nSubtitle". The title sits on the coloured panel, the subtitle beside it.
+      const [heading = '', subtitle = ''] = template.text.split('\n\n')
+      return [
+        shape(0, 0, 42, 100, template.accent ? `linear-gradient(160deg, ${tint(92)}, color-mix(in srgb, ${solid} 35%, #0b0b14))` : 'linear-gradient(160deg, rgba(124,58,237,0.9), rgba(30,27,75,0.95))'),
+        ...(template.label ? [label(template.label, { x: 6, y: 30, width: 32, height: 7 }, { align: 'left', fontSize: 18 })] : []),
+        makeTextElement(heading, {
+          x: 6,
+          y: 38,
+          width: 32,
+          height: 34,
+          zIndex: 3,
+          settings: { fontFamily: 'sans', fontSize: 64, fontWeight: 750, align: 'left', lineHeight: 1.02, letterSpacing: -1, color: '#ffffff', textShadow: false },
+        }),
+        ...(subtitle
+          ? [label(subtitle, { x: 48, y: 42, width: 44, height: 16 }, { align: 'left', uppercase: false, letterSpacing: 0, fontSize: 30, fontWeight: 500, color: 'rgba(255,255,255,0.85)' })]
+          : []),
+      ]
+    }
+    case 'underline':
+      return [shape(45, 70, 10, 1.1, gold, { shape: 'line' })]
+    case 'glass':
+      // A frosted card behind the text.
+      return [shape(12, 18, 76, 64, 'rgba(255,255,255,0.08)', { radius: 36 }), shape(12, 18, 76, 0.25, 'rgba(255,255,255,0.22)')]
+    case 'diagonal':
+      return [shape(0, 0, 100, 100, `linear-gradient(115deg, ${tint(85)} 0 34%, transparent 34.2%)`)]
+    case 'ring':
+      // A thin ring around the text (40% × 71% is square on a 16:9 canvas).
+      return [shape(30, 14.5, 40, 71, `radial-gradient(circle, transparent 66%, ${tint(80)} 67%, ${tint(80)} 68.5%, transparent 69.5%)`, { shape: 'circle' })]
+    case 'corners': {
+      const c = tint(85)
+      return [
+        shape(6, 9, 9, 0.5, c), shape(6, 9, 0.3, 16, c),
+        shape(85, 9, 9, 0.5, c), shape(93.7, 9, 0.3, 16, c),
+        shape(6, 90.5, 9, 0.5, c), shape(6, 75, 0.3, 16, c),
+        shape(85, 90.5, 9, 0.5, c), shape(93.7, 75, 0.3, 16, c),
+      ]
+    }
+    case 'video':
+      // A full-bleed slot for the church's own video, under a soft shade that keeps text readable.
+      return [
+        makeElement('video', {
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+          zIndex: 0,
+          source: '',
+          text: '',
+          settings: { videoSlot: true, fit: 'cover' },
+        }),
+        shape(0, 0, 100, 100, 'linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.55))'),
+      ]
+    case 'art-water':
+      return [art(ART_WATER, 0, 62, 100, 38, 'sway'), art(ART_WATER, -4, 70, 108, 30, 'sway', 0.7)]
+    case 'art-night':
+      return [art(ART_NIGHTSCAPE, 0, 0, 100, 100)]
+    case 'art-dove':
+      return [
+        shape(32, 2, 36, 64, `radial-gradient(circle, ${tint(45)}, transparent 68%)`, { shape: 'circle', motion: 'pulse' }),
+        art(ART_DOVE, 38, 6, 24, 33, 'float'),
+      ]
+    case 'art-calvary':
+      return [
+        shape(25, 18, 50, 60, `radial-gradient(circle, ${tint(55)}, transparent 70%)`, { shape: 'circle', motion: 'pulse' }),
+        art(ART_CALVARY, 0, 50, 100, 50),
+      ]
+    case 'art-kneeling':
+      return [
+        shape(55, 22, 40, 76, `radial-gradient(circle, ${tint(40)}, transparent 68%)`, { shape: 'circle', motion: 'pulse' }),
+        art(ART_KNEELING, 62, 40, 28, 52),
+      ]
+    case 'art-worship':
+      return [
+        shape(10, 30, 80, 70, `radial-gradient(60% 60% at 50% 100%, ${tint(50)}, transparent 75%)`, { motion: 'pulse' }),
+        art(ART_WORSHIP, -2, 64, 104, 36, 'sway'),
+      ]
+    case 'glow':
+      return [shape(0, 45, 100, 55, `radial-gradient(60% 100% at 50% 100%, ${tint(60)}, transparent 72%)`)]
+    default:
+      return []
+  }
+}
+
 export function createTemplateItem(template: SlideTemplate, title: string): SlideItem {
   const elements: SlideElement[] = []
   if (template.elementPreset === 'image-right') {
@@ -383,6 +550,11 @@ export function createTemplateItem(template: SlideTemplate, title: string): Slid
       }),
     )
   }
+  elements.push(
+    ...decorElements(template).map((element) =>
+      template.motion && element.type === 'shape' ? { ...element, settings: { ...element.settings, motion: template.motion } } : element,
+    ),
+  )
   return {
     id: newId('item'),
     type: 'blank',
@@ -391,7 +563,11 @@ export function createTemplateItem(template: SlideTemplate, title: string): Slid
       makeSlide({
         kind: template.kind,
         title: template.name,
-        text: template.elementPreset === 'two-column' ? '' : template.text,
+        text: template.elementPreset === 'two-column' || template.elementPreset === 'split' ? '' : template.text,
+        ...(template.fontFamily ? { fontFamily: template.fontFamily } : {}),
+        ...(template.fontSize ? { fontSize: template.fontSize } : {}),
+        ...(template.fontWeight ? { fontWeight: template.fontWeight } : {}),
+        ...(template.textVerticalAlign ? { textVerticalAlign: template.textVerticalAlign } : {}),
         background: { type: 'preset', preset: template.background, tone: BACKGROUND_PRESETS.find((preset) => preset.id === template.background)?.tone ?? 'dark' },
         textAlign: template.textAlign,
         elements,
@@ -403,15 +579,6 @@ export function createTemplateItem(template: SlideTemplate, title: string): Slid
 
 export function section(title: string, itemIds: string[] = []): ServiceSection {
   return { id: newId('section'), title, itemIds }
-}
-
-export function defaultSections(): ServiceSection[] {
-  return [
-    section('Welcome'),
-    section('Worship'),
-    section('Message'),
-    section('Response'),
-  ]
 }
 
 export function itemSlides(item: SlideItem): Slide[] {

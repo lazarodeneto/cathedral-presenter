@@ -81,7 +81,10 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
   const hiddenBibleIds = useAppStore((state) => state.hiddenBibleIds)
   const archivedBibleIds = useAppStore((state) => state.archivedBibleIds)
   const deletedBibleIds = useAppStore((state) => state.deletedBibleIds)
-  const bibleTranslations = useMemo(() => bibleTranslationsWith(customBibles), [customBibles, hiddenBibleIds, archivedBibleIds, deletedBibleIds])
+  const bibleTranslations = useMemo(
+    () => bibleTranslationsWith(customBibles, { hidden: hiddenBibleIds, archived: archivedBibleIds, deleted: deletedBibleIds }),
+    [customBibles, hiddenBibleIds, archivedBibleIds, deletedBibleIds],
+  )
   const updateSettings = useAppStore((state) => state.updateSettings)
   const setLocale = useAppStore((state) => state.setLocale)
   const assignMonitorRole = useAppStore((state) => state.assignMonitorRole)
@@ -279,6 +282,7 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
                     <option value="fade">{t('settings.transitionFade')}</option>
                     <option value="cut">{t('settings.transitionCut')}</option>
                     <option value="slide">{t('settings.transitionSlide')}</option>
+                    <option value="zoom">{t('culto.transitionName.zoom')}</option>
                   </select>
                 </label>
               </div>

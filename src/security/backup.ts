@@ -180,7 +180,7 @@ function normalizeBackground(value: unknown): SlideBackground {
   const record = obj(value)
   const preset = allowed<BackgroundPreset>(record?.preset, PRESETS, 'graphite')
   const type = record?.type === 'image' && typeof record.source === 'string' && validateImageDataUrl(record.source, 2_500_000) ? 'image' : 'preset'
-  const tone = PRESETS.includes(preset) && ['linen', 'ivory'].includes(preset) ? 'light' : 'dark'
+  const tone = BACKGROUND_PRESETS.find((entry) => entry.id === preset)?.tone ?? 'dark'
   return {
     type,
     preset,
@@ -208,6 +208,31 @@ function normalizeBlock(value: unknown): ScriptureBlock | null {
   }
 }
 
+const MOTIONS = ['pulse', 'float', 'spin', 'drift', 'sway'] as const
+/** CSS functions that would load or run something from a style value (fill, colour…). */
+const UNSAFE_STYLE = /url\s*\(|image-set\s*\(|expression\s*\(|@import|javascript:/i
+
+/**
+ * Imported element settings: drop string values that could fetch a remote
+ * resource through CSS (a crafted backup could otherwise track who opens it),
+ * cap their length, and keep the template-only fields to known values.
+ */
+function safeElementSettings(settings: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {}
+  for (const [key, entry] of Object.entries(settings)) {
+    if (typeof entry === 'string') {
+      if (UNSAFE_STYLE.test(entry)) continue
+      out[key] = entry.slice(0, 2000)
+    } else {
+      out[key] = entry
+    }
+  }
+  if (typeof settings.motion === 'string' && (MOTIONS as readonly string[]).includes(settings.motion)) out.motion = settings.motion
+  else delete out.motion
+  if ('videoSlot' in settings) out.videoSlot = settings.videoSlot === true
+  return out
+}
+
 function normalizeElement(value: unknown, seen: Set<string>): SlideElement | null {
   const record = obj(value)
   if (!record) return null
@@ -229,7 +254,7 @@ function normalizeElement(value: unknown, seen: Set<string>): SlideElement | nul
         ? record.source.slice(0, 5_000_000)
         : undefined,
     settings: {
-      ...(redactSecrets(settings) as SlideElement['settings']),
+      ...(safeElementSettings(redactSecrets(settings) as Record<string, unknown>) as SlideElement['settings']),
       fontSize: num(settings.fontSize, 8, 200, 64),
       ...(type === 'message' ? { message: normalizeMessageStyle(settings.message) } : {}),
     },
@@ -405,7 +430,7 @@ function normalizeSettings(value: unknown, translationIds: Set<string>): AppSett
     reducedMotion: bool(record.reducedMotion),
     shortcutsEnabled: bool(record.shortcutsEnabled, true),
     shortcutOverrides: normalizeOverrides(record.shortcutOverrides),
-    transition: allowed(record.transition, ['fade', 'cut', 'slide'] as const, 'fade'),
+    transition: allowed(record.transition, ['fade', 'cut', 'slide', 'zoom'] as const, 'fade'),
     transitionDuration: num(record.transitionDuration, 0.1, 3, 1),
     lastBackupAt: oneLine(record.lastBackupAt, 40) || null,
     showSetupChecklist: bool(record.showSetupChecklist, true),

@@ -1,6 +1,6 @@
 # Church Presenter — Security Review
 
-Date: 2026-10-27 (updated 2026-10-28 for the editor media toolbar)
+Date: 2026-10-27 (updated 2026-10-28 for the editor media toolbar; 2026-11-04 full-app review)
 Scope: current browser application (`src/`), build configuration, content sources, and planning documents. This is a code-level review of the local-first prototype, not a formal penetration test or production security clearance.
 
 ## Result
@@ -27,6 +27,8 @@ The main controls currently implemented are input validation, strict media type 
 - SVG is explicitly rejected as media. SVG church logos are accepted only to be converted to PNG in the browser: the SVG loads as an `<img>` (no scripts, no external requests), is drawn to a canvas, and only the PNG is stored. An SVG that taints the canvas or fails to decode is refused.
 - Separate byte limits apply to images, video, inline images, logos, and backups.
 - Logo and background data URLs are validated as image data URLs before use.
+- Imported element settings drop string values containing `url(`, `image-set(`, `expression(`, `@import` or `javascript:`, so a crafted backup cannot make a shape fill or colour fetch a remote resource. Template-only fields (`motion`, `videoSlot`) are kept to known values.
+- Template illustrations and the default logo are original PNGs bundled as validated image data URLs; no template loads anything from the network. Empty template video slots render nothing on outputs until the church adds its own validated video.
 - File picker, media dialog, background dialog, and drag-and-drop onto the editor canvas all go through the same `prepareUploadedMedia` check. No upload path bypasses validation.
 - Uploaded video and large images become session-only `blob:` URLs. They are labeled "Session only", are never exported, and are marked missing after a restart.
 - Imported media paths are checked for absolute paths, drive paths, UNC paths, traversal, alternate data streams, null bytes, and invalid characters. A future desktop shell must repeat this check and canonicalize the path inside its allowlisted media root.

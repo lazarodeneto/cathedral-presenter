@@ -6,7 +6,7 @@ import { elapsedLabel } from '../../utils/dates'
 /**
  * The top of the inspector: whether this service is on the audience screen,
  * and the one action that changes that. Not live: a calm status and a single
- * Present button (with its shortcut, or the reason it cannot start yet).
+ * green Present button (shortcut in its tooltip), or the reason it cannot start yet.
  * Live: the green LIVE state, elapsed time, and End live.
  */
 export function OutputStatusCard({
@@ -58,14 +58,16 @@ export function OutputStatusCard({
       ) : (
         <button
           type="button"
-          className="btn btn-primary output-status-action"
+          className="btn output-status-action is-go"
           onClick={onPresent}
           disabled={Boolean(problem)}
           aria-describedby={problem ? 'output-status-problem' : undefined}
+          title={presentShortcut ? `${t('editor.present')} (${presentShortcut})` : t('editor.present')}
         >
-          <Play size={15} fill="currentColor" />
-          {t('editor.present')}
-          {presentShortcut && <kbd>{presentShortcut}</kbd>}
+          <span className="output-status-go-icon" aria-hidden="true">
+            <Play size={13} fill="currentColor" strokeWidth={0} />
+          </span>
+          <span>{t('editor.present')}</span>
         </button>
       )}
 

@@ -2,16 +2,18 @@ import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 're
 import * as QRCode from 'qrcode'
 import { TriangleAlert } from 'lucide-react'
 import type { Branding, Slide, SlideElement } from '../types'
-import { BrandMark } from './BrandMark'
 import { isSafeQrPayload } from '../security/url'
 import { useT } from '../i18n/useT'
 import { TimerFace } from './timer/TimerFace'
 import { MessageBoxView } from './MessageBoxView'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import { DEFAULT_CONTENT_Z, SLIDE_TEXT_DEFAULTS } from '../utils/slides'
+import { GRID_COLUMNS, gridRows, snapAxis, snapTargets, type SnapTargets } from '../utils/snap'
 
 /** Smallest auto-fit scale: 64 shrinks to about 19 before text is allowed to clip. */
 const MIN_FIT_SCALE = 0.3
+/** How close, in screen pixels, an edge must come to a line to snap to it. */
+const SNAP_PX = 6
 
 function overflows(element: HTMLElement): boolean {
   return element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1
@@ -118,10 +120,12 @@ function SlideMedia({
   element,
   source,
   online,
+  interactive = false,
 }: {
   element: SlideElement
   source?: string
   online: boolean
+  interactive?: boolean
 }) {
   const t = useT()
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading')
@@ -140,6 +144,16 @@ function SlideMedia({
   }, [source, element.id])
 
   const blocked = missing || unsupported || offline || state === 'error'
+
+  // An empty template video slot: a hint in the editor, nothing on outputs (the background shows).
+  if (settings.videoSlot && !source) {
+    return interactive ? (
+      <span className="slide-video-slot" style={{ borderRadius: mediaRadius }}>
+        <strong>{t('editor.videoSlot')}</strong>
+        <span>{t('editor.videoSlotHint')}</span>
+      </span>
+    ) : null
+  }
 
   return (
     <span
@@ -234,6 +248,10 @@ export interface SlideRendererProps {
   messageVisible?: boolean
   songFooter?: { title: string; author?: string }
   aspectRatio?: 'wide' | 'classic'
+  /** Editor only: draw the alignment grid over the canvas. */
+  showGrid?: boolean
+  /** Editor only: snap dragged and resized elements to the canvas, other elements and the grid. */
+  snapToObjects?: boolean
 }
 
 const ELEMENT_TYPE_KEYS: Record<string, string> = {
@@ -272,6 +290,8 @@ export function SlideRenderer({
   messageVisible,
   songFooter,
   aspectRatio = 'wide',
+  showGrid = false,
+  snapToObjects = false,
 }: SlideRendererProps) {
   const t = useT()
   const online = useOnlineStatus()
@@ -296,6 +316,8 @@ export function SlideRenderer({
     originW: number
     originH: number
   } | null>(null)
+  // Snap lines shown while dragging or resizing, in canvas %.
+  const [guides, setGuides] = useState<SnapTargets>({ x: [], y: [] })
 
   // Refit whenever anything that changes the text's size changes.
   useAutoFit(
@@ -320,15 +342,63 @@ export function SlideRenderer({
   const tone = background.tone ?? 'dark'
   const align = slide.textAlign
 
+  // Elements under a canvas point, topmost first (same stacking as the render).
+  const elementsAt = (clientX: number, clientY: number): SlideElement[] => {
+    const rect = rootRef.current?.getBoundingClientRect()
+    if (!rect || !rect.width || !rect.height) return []
+    const px = ((clientX - rect.left) / rect.width) * 100
+    const py = ((clientY - rect.top) / rect.height) * 100
+    const stack = (entry: SlideElement) => (entry.type === 'message' ? Math.max(contentZ + 1, entry.zIndex) : entry.zIndex)
+    return slide.elements
+      .map((entry, index) => ({ entry, index }))
+      .filter(({ entry }) => entry.visible && px >= entry.x && px <= entry.x + entry.width && py >= entry.y && py <= entry.y + entry.height)
+      .sort((a, b) => stack(b.entry) - stack(a.entry) || b.index - a.index)
+      .map(({ entry }) => entry)
+  }
+
+  // Plain click picks the topmost element under the pointer; Alt+click picks the one
+  // below the current selection, so stacked elements can be reached without Layers.
+  const pickAt = (event: React.PointerEvent, fallback: SlideElement | null): SlideElement | null => {
+    const hits = elementsAt(event.clientX, event.clientY)
+    if (!event.altKey || hits.length < 2) return fallback ?? hits[0] ?? null
+    const current = hits.findIndex((entry) => entry.id === selectedElementId)
+    return hits[(current + 1) % hits.length]
+  }
+
+  // Clicks on the slide's own text layer fall through to elements underneath it.
+  const onTextLayerPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!interactive) return
+    event.stopPropagation()
+    const hit = pickAt(event, null)
+    const node = hit && rootRef.current?.querySelector<HTMLElement>(`[data-element-id="${CSS.escape(hit.id)}"]`)
+    if (hit && node) {
+      onElementPointerDown(event as React.PointerEvent<HTMLDivElement>, hit, node)
+      return
+    }
+    onSelectElement?.(null)
+  }
+
   const onElementPointerDown = (
     event: React.PointerEvent<HTMLDivElement>,
-    element: SlideElement,
+    clicked: SlideElement,
+    captureNode?: HTMLElement,
   ) => {
     if (!interactive) return
     event.stopPropagation()
+    const isHandle = Boolean((event.target as HTMLElement).dataset.resize)
+    let element = clicked
+    let node = captureNode ?? event.currentTarget
+    if (!captureNode && !isHandle && event.altKey) {
+      const next = pickAt(event, clicked)
+      const nextNode = next && rootRef.current?.querySelector<HTMLElement>(`[data-element-id="${CSS.escape(next.id)}"]`)
+      if (next && nextNode) {
+        element = next
+        node = nextNode
+      }
+    }
     if (editingId && editingId !== element.id) setEditingId(null)
     onSelectElement?.(element.id)
-    const corner = (event.target as HTMLElement).dataset.resize as
+    const corner = (captureNode ? undefined : (event.target as HTMLElement).dataset.resize) as
       | 'nw'
       | 'ne'
       | 'sw'
@@ -349,7 +419,7 @@ export function SlideRenderer({
       return
     }
     if (!onMoveElement) return
-    event.currentTarget.setPointerCapture(event.pointerId)
+    node.setPointerCapture(event.pointerId)
     setDrag({
       id: element.id,
       startX: event.clientX,
@@ -358,6 +428,12 @@ export function SlideRenderer({
       originY: element.y,
     })
   }
+
+  const targetsFor = (id: string) =>
+    snapTargets(
+      slide.elements.filter((entry) => entry.visible && entry.id !== id),
+      showGrid ? { columns: GRID_COLUMNS, rows: gridRows(aspectRatio) } : null,
+    )
 
   const onElementPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!rootRef.current) return
@@ -379,6 +455,37 @@ export function SlideRenderer({
         y = resize.originY + dy
         height = resize.originH - dy
       }
+      // Shift or Ctrl/Cmd: lock to a perfect square (a circle for ellipses), measured in
+      // pixels since x/width are % of the canvas width and y/height % of its height.
+      const constrained = event.shiftKey || event.ctrlKey || event.metaKey
+      if (snapToObjects && !constrained) {
+        const targets = targetsFor(resize.id)
+        const sx = snapAxis([resize.corner.includes('w') ? x : x + width], targets.x, (SNAP_PX / rect.width) * 100)
+        const sy = snapAxis([resize.corner.includes('n') ? y : y + height], targets.y, (SNAP_PX / rect.height) * 100)
+        if (sx) {
+          if (resize.corner.includes('w')) {
+            x += sx.delta
+            width -= sx.delta
+          } else width += sx.delta
+        }
+        if (sy) {
+          if (resize.corner.includes('n')) {
+            y += sy.delta
+            height -= sy.delta
+          } else height += sy.delta
+        }
+        setGuides({ x: sx ? [sx.line] : [], y: sy ? [sy.line] : [] })
+      }
+      if (constrained) {
+        const minSide = Math.max(4 * rect.width, 4 * rect.height) / 100
+        const maxSide = Math.min(160 * rect.width, 160 * rect.height) / 100
+        const side = Math.max(minSide, Math.min(maxSide, Math.max((width * rect.width) / 100, (height * rect.height) / 100)))
+        width = (side / rect.width) * 100
+        height = (side / rect.height) * 100
+        // Keep the corner opposite the handle fixed.
+        x = resize.corner.includes('w') ? resize.originX + resize.originW - width : resize.originX
+        y = resize.corner.includes('n') ? resize.originY + resize.originH - height : resize.originY
+      }
       const round = (value: number) => Math.round(value * 10) / 10
       onResizeElement(resize.id, {
         x: round(Math.max(-20, Math.min(120, x))),
@@ -391,14 +498,24 @@ export function SlideRenderer({
     if (!drag || !onMoveElement) return
     const dx = ((event.clientX - drag.startX) / rect.width) * 100
     const dy = ((event.clientY - drag.startY) / rect.height) * 100
-    const x = Math.max(-10, Math.min(100, drag.originX + dx))
-    const y = Math.max(-10, Math.min(100, drag.originY + dy))
+    let x = Math.max(-10, Math.min(100, drag.originX + dx))
+    let y = Math.max(-10, Math.min(100, drag.originY + dy))
+    const moving = slide.elements.find((entry) => entry.id === drag.id)
+    if (snapToObjects && moving) {
+      const targets = targetsFor(drag.id)
+      const sx = snapAxis([x, x + moving.width / 2, x + moving.width], targets.x, (SNAP_PX / rect.width) * 100)
+      const sy = snapAxis([y, y + moving.height / 2, y + moving.height], targets.y, (SNAP_PX / rect.height) * 100)
+      if (sx) x += sx.delta
+      if (sy) y += sy.delta
+      setGuides({ x: sx ? [sx.line] : [], y: sy ? [sy.line] : [] })
+    }
     onMoveElement(drag.id, Math.round(x * 10) / 10, Math.round(y * 10) / 10)
   }
 
   const endDrag = () => {
     setDrag(null)
     setResize(null)
+    setGuides({ x: [], y: [] })
   }
 
   // Keyboard alternative to dragging (WCAG 2.5.7): arrows move, Alt+arrows
@@ -454,7 +571,7 @@ export function SlideRenderer({
     return (
       <div
         key={element.id}
-        className={`slide-element slide-element-${element.type} ${
+        className={`slide-element slide-element-${element.type} ${settings.motion ? `has-motion motion-${settings.motion}` : ''} ${
           selectedElementId === element.id ? 'is-selected' : ''
         } ${interactive ? 'is-interactive' : ''}`}
         style={style}
@@ -470,6 +587,7 @@ export function SlideRenderer({
           }
         }}
         onKeyDown={(event) => onElementKeyDown(event, element)}
+        data-element-id={element.id}
         onPointerDown={(event) => onElementPointerDown(event, element)}
         onPointerMove={onElementPointerMove}
         onPointerUp={endDrag}
@@ -477,7 +595,15 @@ export function SlideRenderer({
         onLostPointerCapture={endDrag}
         onClick={(event) => event.stopPropagation()}
         onDoubleClick={(event) => {
-          if (interactive && element.type === 'text' && onEditElementText && editingId !== element.id) {
+          if (!interactive) return
+          // A shape, image etc. stacked under the slide text: double-click edits that text,
+          // as it did before clicks passed through the text to reach the element.
+          if (element.type !== 'text' && element.type !== 'message' && element.zIndex < contentZ && onEditSlideText && !editingSlideText) {
+            event.stopPropagation()
+            setEditingSlideText(true)
+            return
+          }
+          if (element.type === 'text' && onEditElementText && editingId !== element.id) {
             event.stopPropagation()
             setEditingId(element.id)
           }
@@ -534,7 +660,7 @@ export function SlideRenderer({
           />
         )}
         {(element.type === 'image' || element.type === 'video') && (
-          <SlideMedia element={element} source={source} online={online} />
+          <SlideMedia element={element} source={source} online={online} interactive={interactive} />
         )}
         {element.type === 'embed' &&
           source &&
@@ -609,14 +735,28 @@ export function SlideRenderer({
             }
           : undefined
       }
-      onPointerDown={() => {
+      onPointerDown={(event) => {
         if (!interactive) return
         setEditingId(null)
         setEditingSlideText(false)
-        onSelectElement?.(null)
+        // Scripture and timer layers have no handler of their own; elements under them still get picked.
+        onTextLayerPointerDown(event)
       }}
     >
       {showSafeArea && <div className="safe-area" />}
+      {interactive && showGrid && (
+        <div
+          className="canvas-grid"
+          aria-hidden="true"
+          style={{ backgroundSize: `calc(100% / ${GRID_COLUMNS}) calc(100% / ${gridRows(aspectRatio)})` }}
+        />
+      )}
+      {interactive && guides.x.map((line) => (
+        <span key={`gx-${line}`} className="snap-guide is-vertical" style={{ left: `${line}%` }} aria-hidden="true" />
+      ))}
+      {interactive && guides.y.map((line) => (
+        <span key={`gy-${line}`} className="snap-guide is-horizontal" style={{ top: `${line}%` }} aria-hidden="true" />
+      ))}
       {backgroundImage && (
         <span
           className="background-image-wash"
@@ -629,7 +769,8 @@ export function SlideRenderer({
           <div className="scripture-stack" ref={fitRef}>
             <section className="scripture-block scripture-primary">
               <span className="translation-tag">
-                {primary.abbreviation} · {primary.reference}
+                <span className="translation-tag-code">{primary.abbreviation}</span>
+                <span className="translation-tag-ref">{primary.reference}</span>
               </span>
               <p style={scriptureTextStyle(1)}>{primary.text}</p>
             </section>
@@ -638,8 +779,9 @@ export function SlideRenderer({
                 <span className="scripture-divider" />
                 <section className="scripture-block scripture-secondary">
                   <span className="translation-tag">
-                    {secondary.abbreviation} · {secondary.reference}
-                  </span>
+                <span className="translation-tag-code">{secondary.abbreviation}</span>
+                <span className="translation-tag-ref">{secondary.reference}</span>
+              </span>
                   <p style={scriptureTextStyle(0.8)}>{secondary.text}</p>
                 </section>
               </>
@@ -656,11 +798,7 @@ export function SlideRenderer({
             zIndex: contentZ,
             justifyContent: slide.textVerticalAlign === 'top' ? 'flex-start' : slide.textVerticalAlign === 'bottom' ? 'flex-end' : undefined,
           }}
-          onPointerDown={(event) => {
-            if (!interactive) return
-            event.stopPropagation()
-            onSelectElement?.(null)
-          }}
+          onPointerDown={onTextLayerPointerDown}
           onDoubleClick={(event) => {
             if (interactive && onEditSlideText && !editingSlideText) {
               event.stopPropagation()
@@ -688,7 +826,7 @@ export function SlideRenderer({
           ) : (
             <>
               <span className="eyebrow slide-eyebrow">
-                {branding.name.trim() || 'Church Presenter'}
+                {branding.name.trim() || 'CATHEDRAL INTL'}
               </span>
               <h1 style={slideTextStyle(slide)}>{titleHeadline}</h1>
               {titleSub && <p>{titleSub}</p>}
@@ -706,11 +844,7 @@ export function SlideRenderer({
             zIndex: contentZ,
             justifyContent: slide.textVerticalAlign === 'top' ? 'flex-start' : slide.textVerticalAlign === 'bottom' ? 'flex-end' : undefined,
           }}
-          onPointerDown={(event) => {
-            if (!interactive) return
-            event.stopPropagation()
-            onSelectElement?.(null)
-          }}
+          onPointerDown={onTextLayerPointerDown}
           onDoubleClick={(event) => {
             if (interactive && onEditSlideText && !editingSlideText) {
               event.stopPropagation()
@@ -745,13 +879,6 @@ export function SlideRenderer({
         .slice()
         .sort((a, b) => a.zIndex - b.zIndex)
         .map(renderElement)}
-
-      {!primary && slide.kind !== 'title' && (
-        <div className="slide-footer-brand">
-          <BrandMark branding={branding} size="sm" />
-          <span>{branding.name.trim() || 'Church Presenter'}</span>
-        </div>
-      )}
 
       {songFooter && !compact && (
         <div className="slide-song-footer">

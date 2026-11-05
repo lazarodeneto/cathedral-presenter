@@ -1,6 +1,7 @@
 import type { Branding, BrandingTheme } from '../types'
 import { sanitizeSingleLine } from '../security/text'
 import { validateImageDataUrl } from '../security/media'
+import { DEFAULT_LOGO_DATA_URL } from '../assets/defaultLogo'
 
 export const DEFAULT_THEME: BrandingTheme = {
   primary: '#ececf0',
@@ -9,9 +10,9 @@ export const DEFAULT_THEME: BrandingTheme = {
 }
 
 export const DEFAULT_BRANDING: Branding = {
-  name: 'Grace Community Church',
-  appTitle: 'Church Presenter',
-  logoUrl: null,
+  name: 'Campus Algarve',
+  appTitle: 'CATHEDRAL INTL',
+  logoUrl: DEFAULT_LOGO_DATA_URL,
   logoAsFavicon: true,
   theme: DEFAULT_THEME,
 }
@@ -19,6 +20,9 @@ export const DEFAULT_BRANDING: Branding = {
 export const DEFAULT_BACKGROUND = '#0b0b0c'
 /** Default primary before the graphite theme. Saved branding with this value is migrated to the new default. */
 export const LEGACY_DEFAULT_PRIMARY = '#e5a44f'
+/** Identity defaults before Cathedral INTL. A save still holding them is moved to the new defaults. */
+export const LEGACY_DEFAULT_NAME = 'Grace Community Church'
+export const LEGACY_DEFAULT_APP_TITLE = 'Church Presenter'
 export const MAX_CHURCH_NAME = 80
 export const MAX_APP_TITLE = 60
 
@@ -208,8 +212,13 @@ export function validateBranding(draft: Branding): Partial<Record<BrandingField,
 export function normalizeBranding(value: unknown): Branding {
   const record = value && typeof value === 'object' ? (value as Record<string, unknown>) : {}
   const theme = record.theme && typeof record.theme === 'object' ? (record.theme as Record<string, unknown>) : {}
-  const name = sanitizeSingleLine(record.name, MAX_CHURCH_NAME)
-  const appTitle = sanitizeSingleLine(record.appTitle, MAX_APP_TITLE)
+  const storedName = sanitizeSingleLine(record.name, MAX_CHURCH_NAME)
+  const storedTitle = sanitizeSingleLine(record.appTitle, MAX_APP_TITLE)
+  // Old installs saved the previous placeholder identity; treat it as "use the default".
+  const legacyIdentity = storedName === LEGACY_DEFAULT_NAME && (!storedTitle || storedTitle === LEGACY_DEFAULT_APP_TITLE)
+  const name = legacyIdentity ? '' : storedName
+  const appTitle = legacyIdentity || storedTitle === LEGACY_DEFAULT_APP_TITLE ? '' : storedTitle
+  const storedLogo = validateImageDataUrl(record.logoUrl) ? (record.logoUrl as string) : null
   const storedPrimary = normalizeHex(theme.primary)
   const candidate: BrandingTheme = {
     // The old default gold was saved with every branding record; it now means "use the default".
@@ -222,7 +231,9 @@ export function normalizeBranding(value: unknown): Branding {
   return {
     name: name || DEFAULT_BRANDING.name,
     appTitle: appTitle || DEFAULT_BRANDING.appTitle,
-    logoUrl: validateImageDataUrl(record.logoUrl) ? (record.logoUrl as string) : null,
+    // null means the church removed its logo and stays removed; missing or invalid falls back to the
+    // default logo, as does the old placeholder identity that never had one.
+    logoUrl: storedLogo ?? (record.logoUrl === null && !legacyIdentity ? null : DEFAULT_BRANDING.logoUrl),
     logoAsFavicon: typeof record.logoAsFavicon === 'boolean' ? record.logoAsFavicon : DEFAULT_BRANDING.logoAsFavicon,
     theme:
       themeErrors.primary || themeErrors.accent || themeErrors.background ? DEFAULT_THEME : candidate,

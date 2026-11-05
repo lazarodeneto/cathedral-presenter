@@ -5,7 +5,7 @@ import { createServiceSkeleton } from '../store/serviceUtils'
 import { createAnnouncementItem } from '../utils/slides'
 import type { Branding, LiveSession, Monitor, Service } from '../types'
 
-const branding: Branding = { ...DEFAULT_BRANDING, name: 'Grace Community Church' }
+const branding: Branding = { ...DEFAULT_BRANDING, name: 'Campus Algarve', logoUrl: null }
 const monitors: Monitor[] = [
   {
     id: 'monitor_audience',
@@ -183,5 +183,35 @@ describe('output snapshots', () => {
       testMonitorId: null,
     })
     expect(shown.audience.messageVisible).toBe(true)
+  })
+})
+
+describe('audience transitions', () => {
+  it('uses the slide transition, else the service default, else fade', () => {
+    const service = makeService()
+    const live = liveFor(service)
+    const base = buildOutputSnapshot({ service, live, monitors, branding, testMonitorId: null })
+    expect(base.audience.transition).toEqual({ type: 'fade', durationMs: 600 })
+
+    const withDefault = { ...service, transition: { type: 'slide' as const, durationMs: 400 } }
+    expect(buildOutputSnapshot({ service: withDefault, live, monitors, branding, testMonitorId: null }).audience.transition)
+      .toEqual({ type: 'slide', durationMs: 400 })
+
+    const slide = withDefault.items[0].slides[0]
+    const withOverride = {
+      ...withDefault,
+      items: [{ ...withDefault.items[0], slides: [{ ...slide, transition: { type: 'zoom' as const, durationMs: 900 } }] }, ...withDefault.items.slice(1)],
+    }
+    expect(buildOutputSnapshot({ service: withOverride, live, monitors, branding, testMonitorId: null }).audience.transition)
+      .toEqual({ type: 'zoom', durationMs: 900 })
+  })
+})
+
+describe('settings default transition', () => {
+  it('falls back to the Settings default before the built-in fade', () => {
+    const service = makeService()
+    const live = liveFor(service)
+    const snapshot = buildOutputSnapshot({ service, live, monitors, branding, testMonitorId: null, defaultTransition: { type: 'zoom', durationMs: 900 } })
+    expect(snapshot.audience.transition).toEqual({ type: 'zoom', durationMs: 900 })
   })
 })

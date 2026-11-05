@@ -40,7 +40,7 @@ const settings: AppSettings = {
   defaultSectionTitle: 'Message',
 }
 
-const branding: Branding = { ...DEFAULT_BRANDING, name: 'Grace Community Church' }
+const branding: Branding = { ...DEFAULT_BRANDING, name: 'Campus Algarve', logoUrl: null }
 
 describe('text sanitization', () => {
   it('normalizes line endings and removes control and bidi characters', () => {
@@ -331,9 +331,61 @@ describe('backup parsing', () => {
       }),
     )
     expect(parsed.settings).toMatchObject({ locale: 'en', shortcutsEnabled: true, transitionDuration: 3 })
-    expect(parsed.branding?.logoUrl).toBeNull()
+    // An unsafe logo is replaced by the bundled default logo, never kept.
+    expect(parsed.branding?.logoUrl).toBe(DEFAULT_BRANDING.logoUrl)
     expect(parsed.monitors?.[0].id).toMatch(/^monitor_/)
     expect(parsed.monitors?.[0].width).toBe(16384)
     expect(parsed.media?.[0].source).toBe('')
+  })
+})
+
+describe('imported element style values', () => {
+  const backupForService = (service: ReturnType<typeof createServiceSkeleton>) => ({
+    app: 'church-presenter',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    services: [service],
+    settings,
+    branding,
+    monitors: [],
+    media: [],
+  })
+
+  it('drops CSS that would fetch a remote resource and keeps template fields to known values', () => {
+    const service = createServiceSkeleton({ title: 'Imported', date: '2026-11-01', time: '10:00', locale: 'en' })
+    service.items[0].slides[0].elements = [
+      {
+        id: 'el_shape',
+        type: 'shape',
+        x: 0,
+        y: 0,
+        width: 10,
+        height: 10,
+        zIndex: 1,
+        opacity: 1,
+        visible: true,
+        settings: { shape: 'rect', fill: 'url(https://tracker.example/pixel.png)', color: 'image-set("https://x.example/a.png" 1x)', motion: 'explode' as never, videoSlot: 'yes' as never },
+      },
+      {
+        id: 'el_ok',
+        type: 'shape',
+        x: 0,
+        y: 0,
+        width: 10,
+        height: 10,
+        zIndex: 1,
+        opacity: 1,
+        visible: true,
+        settings: { shape: 'circle', fill: 'radial-gradient(circle, rgba(255,214,140,0.3), transparent 70%)', motion: 'pulse' },
+      },
+    ]
+    const parsed = parseBackup(JSON.stringify(backupForService(service)))
+    const [bad, ok] = parsed.services[0].items[0].slides[0].elements
+    expect(bad.settings?.fill).toBeUndefined()
+    expect(bad.settings?.color).toBeUndefined()
+    expect(bad.settings?.motion).toBeUndefined()
+    expect(bad.settings?.videoSlot).toBe(false)
+    expect(ok.settings?.fill).toContain('radial-gradient')
+    expect(ok.settings?.motion).toBe('pulse')
   })
 })

@@ -2,6 +2,26 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { useResizablePane } from '../hooks/useResizablePane'
 import {
   AlignCenter,
+  CalendarDays,
+  CaseSensitive,
+  ALargeSmall,
+  Bold,
+  Shapes,
+  Droplet,
+  Crop,
+  BookOpenText,
+  Heading,
+  Palette,
+  Clapperboard,
+  StickyNote,
+  SquareRoundCorner,
+  RectangleHorizontal,
+
+  Blend,
+  MoveRight,
+  Scissors,
+  SlidersHorizontal,
+  ZoomIn,
   AlignCenterHorizontal,
   AlignEndHorizontal,
   AlignLeft,
@@ -42,29 +62,33 @@ import {
   ImagePlus,
   Timer as TimerIcon,
 } from 'lucide-react'
-import type { ContentType, ElementType, Slide, SlideElement } from '../types'
+import type { LucideIcon } from 'lucide-react'
+import type { ContentType, ElementType, Slide, SlideElement, SlideTransition } from '../types'
 import { BACKGROUND_PRESETS } from '../data/templates'
 import { useAppStore } from '../store/useAppStore'
 import { useToasts } from '../store/useToasts'
 import { useT } from '../i18n/useT'
 import { navigate } from '../hooks/useHashRoute'
 import { flatSlides, serviceSectionForItem } from '../store/serviceUtils'
-import { isLikelyOverflow, makeElement, makeTextElement, SLIDE_TEXT_DEFAULTS, slideLabel } from '../utils/slides'
+import { formatTime, formatToolbarDate } from '../utils/dates'
+import { createTemplateItem, isLikelyOverflow, makeElement, makeTextElement, SLIDE_TEXT_DEFAULTS, slideLabel } from '../utils/slides'
 import { sanitizeEditableText, sanitizeText } from '../security/text'
 import { webOutputProvider } from '../providers/output/WebOutputProvider'
 import { SlideRenderer } from '../components/SlideRenderer'
 import { AddContentModal } from '../components/AddContentModal'
 import { ConfirmDialog, Modal } from '../components/Modal'
-import { EditorToolbar, ElementActionRail } from '../components/editor/EditorToolbar'
+import { CanvasGuidesRail, EditorToolbar, ElementActionRail } from '../components/editor/EditorToolbar'
 import { EditorMediaDialog, mediaError, type MediaDialogMode } from '../components/editor/EditorMediaDialog'
 import { EditorBackgroundDialog } from '../components/editor/EditorBackgroundDialog'
+import { LOGO_ERROR_KEYS, processLogoFile } from '../utils/logo'
+import { TemplatePickerDialog } from '../components/editor/TemplatePickerDialog'
 import { LogoPlacementDialog, type LogoCorner, type LogoShape } from '../components/editor/LogoPlacementDialog'
 import { QrComposer } from '../components/editor/QrComposer'
 import { LayersPanel } from '../components/editor/LayersPanel'
 import { TimerControls } from '../components/timer/TimerControls'
 import { MessageBoxInspector } from '../components/editor/MessageBoxInspector'
 import { makeMessageElement } from '../utils/messageBox'
-import { itemOrigin, presentationProblem } from '../utils/culto'
+import { DEFAULT_TRANSITION, TRANSITION_TYPES, itemOrigin, presentationProblem } from '../utils/culto'
 import { CultoFormDialog } from '../components/culto/CultoFormDialog'
 import { StatusChip } from '../components/culto/StatusChip'
 import { LiveControlBar } from '../components/editor/LiveControlBar'
@@ -89,6 +113,35 @@ const GEOMETRY_FIELDS = [
   { key: 'width', label: 'editor.width', min: 4, max: 160 },
   { key: 'height', label: 'editor.height', min: 4, max: 160 },
 ] as const
+
+/** Thin spaces around a chapter:verse colon ("23 : 4") for easier reading in the rundown. Display only. */
+function spacedReference(text: string): string {
+  return text.replace(/(\d):(\d)/g, '$1\u2009:\u2009$2')
+}
+
+/** A reference with its verses ("4", "6–7") underlined after the spaced colon. */
+function referenceWithVerses(text: string): React.ReactNode {
+  const match = text.match(/^(.*\d):(\d[\d\s,–-]*)$/)
+  if (!match) return spacedReference(text)
+  return (
+    <>
+      {match[1]}
+      {'\u2009:\u2009'}
+      <span className="reference-verses">{match[2]}</span>
+    </>
+  )
+}
+
+/** Content type to the sidebar tone family, so a song or a Bible reading is recognisable at a glance. */
+const ITEM_TONES: Partial<Record<string, string>> = {
+  song: 'rose',
+  bible: 'amber',
+  announcement: 'blue',
+  sermon: 'violet',
+  media: 'cyan',
+  timer: 'orange',
+  blank: 'wash',
+}
 
 const TYPE_ICONS: Record<ContentType, typeof BookOpen> = {
   bible: BookOpen,
@@ -142,6 +195,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   const selectedSlideId = useAppStore((state) => state.selectedSlideId)
   const selectedElementId = useAppStore((state) => state.selectedElementId)
   const branding = useAppStore((state) => state.branding)
+  const saveBranding = useAppStore((state) => state.saveBranding)
   const pasteSlide = useAppStore((state) => state.pasteSlide)
   const selectService = useAppStore((state) => state.selectService)
   const selectItem = useAppStore((state) => state.selectItem)
@@ -151,6 +205,14 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   const updateNotes = useAppStore((state) => state.updateNotes)
   const setSlideBackground = useAppStore((state) => state.setSlideBackground)
   const addBlankSlide = useAppStore((state) => state.addBlankSlide)
+  const moveSlide = useAppStore((state) => state.moveSlide)
+  const uiLocale = useAppStore((state) => state.settings.locale)
+  const showGrid = useAppStore((state) => state.settings.showGrid ?? false)
+  const snapToObjects = useAppStore((state) => state.settings.snapToObjects ?? true)
+  const updateSettings = useAppStore((state) => state.updateSettings)
+  const moveItemNextTo = useAppStore((state) => state.moveItemNextTo)
+  const addItem = useAppStore((state) => state.addItem)
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false)
   const duplicateSlide = useAppStore((state) => state.duplicateSlide)
   const deleteSlide = useAppStore((state) => state.deleteSlide)
   const removeItem = useAppStore((state) => state.removeItem)
@@ -210,6 +272,21 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   const [mobileInspector, setMobileInspector] = useState(false)
   const [endOpen, setEndOpen] = useState(false)
   const thumbsRef = useRef<HTMLDivElement>(null)
+  // Keep the live slide in view in the slide strip as the presenter moves through the service.
+  const liveSlideId = live?.currentSlideId ?? null
+  useEffect(() => {
+    const strip = thumbsRef.current
+    if (!strip || !liveSlideId) return
+    const thumb = strip.querySelector<HTMLElement>(`[data-slide-id="${CSS.escape(liveSlideId)}"]`)
+    if (!thumb) return
+    const stripBox = strip.getBoundingClientRect()
+    const thumbBox = thumb.getBoundingClientRect()
+    const left = strip.scrollLeft + (thumbBox.left - stripBox.left) - (strip.clientWidth - thumbBox.width) / 2
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    strip.scrollTo?.({ left: Math.max(0, left), behavior: reduce ? 'auto' : 'smooth' })
+  }, [liveSlideId])
+  const [draggedSlide, setDraggedSlide] = useState<{ itemId: string; slideId: string } | null>(null)
+  const [slideDropTarget, setSlideDropTarget] = useState<{ slideId: string; side: 'before' | 'after' } | null>(null)
   const canvasAreaRef = useRef<HTMLDivElement>(null)
   const canvasRailRef = useRef<HTMLDivElement>(null)
   // The canvas fills its area at the exact slide format: 16:9 (1920 × 1080) or 4:3.
@@ -236,6 +313,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
     const strip = thumbsRef.current
     if (strip) strip.scrollBy({ left: direction * Math.max(160, strip.clientWidth - 140), behavior: 'smooth' })
   }
+  // A transition picked in the inspector, waiting for "this slide" or "all slides".
+  const [transitionChoice, setTransitionChoice] = useState<SlideTransition | null>(null)
   const [fontApplyAll, setFontApplyAll] = useState<{
     itemId: string
     patch: Partial<Pick<Slide, 'fontFamily' | 'fontSize' | 'fontWeight'>>
@@ -317,6 +396,10 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
 
   const liveSlides = service ? flatSlides(service) : []
   const liveCurrentSlide = live ? liveSlides.find((s) => s.slide.id === live.currentSlideId) ?? null : null
+  // Live: the inspector folds down to the speaker notes of the slide on screen. Opening it
+  // is remembered per live session (by start time), so the next session starts folded again.
+  const [inspectorOpenForSession, setInspectorOpenForSession] = useState<string | null>(null)
+  const liveNotesOnly = isLive && inspectorOpenForSession !== (live?.startedAt ?? null)
   useShortcutHandlers(
     'presentation',
     {
@@ -459,6 +542,23 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   }
 
   const addMedia = (asset: Parameters<typeof mediaElementFromAsset>[0]) => {
+    // A template's empty video slot takes the first video added to its slide, keeping its frame.
+    const slot = asset.kind === 'video'
+      ? activeSlide?.elements.find((element) => element.type === 'video' && element.settings?.videoSlot && !element.source)
+      : undefined
+    if (slot && activeItem && activeSlide) {
+      const filled = mediaElementFromAsset(asset, {
+        providerLabel: t(asset.provider === 'url' ? 'media.remote' : 'media.localOnly'),
+        fallbackText: t('editor.video'),
+      })
+      updateElement(service.id, activeItem.id, activeSlide.id, slot.id, {
+        source: filled.source,
+        text: filled.text,
+        settings: { ...filled.settings, ...slot.settings, ...{ fit: 'cover' as const }, videoSlot: false, missing: false, status: filled.settings?.status },
+      })
+      selectElement(slot.id)
+      return
+    }
     insertElement(
       mediaElementFromAsset(asset, {
         providerLabel: t(
@@ -522,8 +622,19 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
     push(t('editor.useAsBackground'), 'success')
   }
 
-  const addLogoToSlide = (corner: LogoCorner, shape: LogoShape) => {
-    if (!activeItem || !activeSlide || !branding.logoUrl) {
+  const uploadLogo = async (file: File): Promise<boolean> => {
+    const result = await processLogoFile(file)
+    if (!result.ok) {
+      push(t(LOGO_ERROR_KEYS[result.reason]), 'error')
+      return false
+    }
+    saveBranding({ ...branding, logoUrl: result.logo.dataUrl })
+    return true
+  }
+
+  const addLogoToSlide = (corner: LogoCorner, shape: LogoShape, allSlides: boolean) => {
+    const logoUrl = useAppStore.getState().branding.logoUrl
+    if (!activeItem || !activeSlide || !logoUrl) {
       push(t('settings.uploadLogo'), 'error')
       return
     }
@@ -533,8 +644,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
     // Percentages are relative to canvas width and height independently; canvas is 1920:1080 (wide) or 4:3 (classic).
     const [aw, ah] = slideAspectRatio === 'wide' ? [1920, 1080] : [4, 3]
     const height = Math.round(size * aw / ah * 10) / 10
-    addElement(service.id, activeItem.id, activeSlide.id, makeElement('image', {
-      source: branding.logoUrl,
+    const makeLogo = () => makeElement('image', {
+      source: logoUrl,
       text: branding.name,
       x: corner.includes('right') ? 100 - margin - size : margin,
       y: corner.includes('bottom') ? 100 - margin - height : margin,
@@ -547,7 +658,21 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
         cropY: 50,
         cropZoom: 1,
       },
-    }))
+    })
+    if (!allSlides) {
+      addElement(service.id, activeItem.id, activeSlide.id, makeLogo())
+      return
+    }
+    // Every slide of the service, skipping slides that already carry this logo.
+    let added = 0
+    for (const item of service.items) {
+      for (const slide of item.slides) {
+        if (slide.elements.some((element) => element.type === 'image' && element.source === logoUrl)) continue
+        addElement(service.id, item.id, slide.id, makeLogo())
+        added += 1
+      }
+    }
+    push(t('editor.logoAddedAll', { count: added }), 'success')
   }
 
   const alignSelected = (axis: 'horizontal' | 'vertical', value: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => {
@@ -590,14 +715,18 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
         {mobileInspector && <button className="drawer-scrim" onClick={() => setMobileInspector(false)} aria-label={t('common.close')} />}
         <aside className={`rundown panel ${mobileRundown ? 'is-drawer-open' : ''}`}>
           <div className="rundown-identity">
-            <button className="icon-btn" onClick={() => navigate('/services')} aria-label={t('nav.services')}>
+            <button className="icon-btn rundown-back" onClick={() => navigate('/services')} aria-label={t('nav.services')} title={t('nav.services')}>
               <ArrowLeft size={16} />
             </button>
-            <h1>{service.title}</h1>
-            <StatusChip status={service.status} />
-            <span className="save-state" title={t('editor.autosave')} aria-label={t('editor.autosave')}>
-              <Check size={13} />
-            </span>
+            <h1 title={service.title}>{service.title}</h1>
+            <div className="rundown-identity-meta">
+              <StatusChip status={service.status} />
+              <span className="rundown-identity-when">
+                <CalendarDays size={12} aria-hidden="true" />
+                {formatToolbarDate(service.date, uiLocale)}
+                {service.time ? ` · ${formatTime(service.time, uiLocale)}` : ''}
+              </span>
+            </div>
           </div>
           <div className="rundown-head">
             <div>
@@ -624,7 +753,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     >
                       {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
                       <span>{section.title}</span>
-                      <small>{section.itemIds.length}</small>
+                      <small className="rundown-count">{section.itemIds.length}</small>
                     </button>
                     <div className="section-actions">
                       <button
@@ -658,11 +787,11 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                               aria-current={selected ? 'true' : undefined}
                               onClick={() => { selectItem(item.id); setMobileRundown(false) }}
                             >
-                              <span className="rundown-type">
+                              <span className="rundown-type tone-chip" data-tone={ITEM_TONES[item.type] ?? 'wash'} aria-hidden="true">
                                 <Icon size={15} />
                               </span>
                               <span className="rundown-copy">
-                                <strong>{item.title}</strong>
+                                <strong>{spacedReference(item.title)}</strong>
                                 <span>
                                   {item.slides.length} {t(item.slides.length === 1 ? 'common.slide' : 'common.slides')} · {t(`type.${item.type}`)}
                                 </span>
@@ -703,13 +832,28 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                               {item.slides.map((slide, index) => (
                                 <button
                                   key={slide.id}
-                                  className={`rundown-slide ${slide.id === activeSlide?.id ? 'is-active' : ''}`}
+                                  className={`rundown-slide ${slide.id === activeSlide?.id ? 'is-active' : ''} ${live?.currentSlideId === slide.id ? 'is-live' : ''}`}
+                                  aria-label={live?.currentSlideId === slide.id ? `${t('status.live')}: ${slideLabel(slide, slide.text.slice(0, 42)) || t('editor.blankSlide')}` : undefined}
                                   onClick={() => { selectSlide(item.id, slide.id); setMobileRundown(false) }}
                                   onDoubleClick={() => sendSlideLive(slide.id)}
                                   title={isLive ? t('live.doubleClickHint') : undefined}
                                 >
                                   <span>{index + 1}</span>
-                                  <span>{slideLabel(slide, slide.text.slice(0, 42)) || t('editor.blankSlide')}</span>
+                                  {(() => {
+                                    // "Salmos 23:4 · KJA + WEB": the reference stands out, the translations step back.
+                                    const label = slideLabel(slide, slide.text.slice(0, 42)) || t('editor.blankSlide')
+                                    const split = label.indexOf(' · ')
+                                    return split > 0 ? (
+                                      <span className="rundown-slide-label">
+                                        <strong>{referenceWithVerses(label.slice(0, split))}</strong>
+                                        <small>{label.slice(split + 3)}</small>
+                                      </span>
+                                    ) : (
+                                      <span className="rundown-slide-label">
+                                        <strong>{label}</strong>
+                                      </span>
+                                    )
+                                  })()}
                                 </button>
                               ))}
                             </div>
@@ -780,7 +924,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     disabled={!activeSlide}
                   >
                     <Plus size={14} />
-                    {t('editor.element')}
+                    <span>{t('editor.element')}</span>
                     <ChevronDown size={13} />
                   </button>
                   {addElementOpen && (
@@ -883,12 +1027,12 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
               onText={addText}
               onMedia={(mode) => setMediaDialog({ open: true, mode })}
               onLogo={() => setLogoPlacementOpen(true)}
-              logoAvailable={Boolean(branding.logoUrl)}
               onQr={() => setQrOpen(true)}
               onShape={addShape}
               onMessage={addMessage}
               onBackground={() => setBackgroundOpen(true)}
               onToggleLayers={() => setLayersOpen((value) => !value)}
+              onTemplates={() => setTemplatePickerOpen(true)}
             />
 
             <div className="canvas-area" ref={canvasAreaRef}>
@@ -921,6 +1065,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                       author: activeItem.metadata?.author,
                     } : undefined}
                     interactive
+                    showGrid={showGrid}
+                    snapToObjects={snapToObjects}
                     selectedElementId={selectedElementId}
                     onSelectElement={selectElement}
                     onMoveElement={(id, x, y) => {
@@ -960,6 +1106,12 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     onToggleVisible={toggleSelectedVisible}
                     onDuplicate={duplicateSelected}
                     onDelete={deleteSelected}
+                  />
+                  <CanvasGuidesRail
+                    showGrid={showGrid}
+                    snapToObjects={snapToObjects}
+                    onToggleGrid={() => updateSettings({ showGrid: !showGrid })}
+                    onToggleSnap={() => updateSettings({ snapToObjects: !snapToObjects })}
                   />
                   <button
                     className="editor-tool slide-delete-btn"
@@ -1011,9 +1163,66 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   const prevItem = index > 0 ? allSlides[index - 1].item.id : null
                   const showDivider = prevItem !== null && prevItem !== entry.item.id
                   return (
-                    <div key={entry.slide.id} className="slide-thumb-wrap" style={showDivider ? { marginLeft: 12 } : undefined}>
+                    <div
+                      key={entry.slide.id}
+                      data-slide-id={entry.slide.id}
+                      className={`slide-thumb-wrap ${draggedSlide?.slideId === entry.slide.id ? 'is-dragging' : ''} ${
+                        slideDropTarget?.slideId === entry.slide.id ? `drop-${slideDropTarget.side}` : ''
+                      }`}
+                      style={showDivider ? { marginLeft: 12 } : undefined}
+                      draggable
+                      onDragStart={(event) => {
+                        event.dataTransfer.effectAllowed = 'move'
+                        event.dataTransfer.setData('text/plain', entry.slide.id)
+                        setDraggedSlide({ itemId: entry.item.id, slideId: entry.slide.id })
+                      }}
+                      onDragOver={(event) => {
+                        // Same item: reorder slides. Another item: move the dragged slide's whole item.
+                        if (!draggedSlide || draggedSlide.slideId === entry.slide.id) return
+                        event.preventDefault()
+                        event.dataTransfer.dropEffect = 'move'
+                        const rect = event.currentTarget.getBoundingClientRect()
+                        const side = event.clientX < rect.left + rect.width / 2 ? 'before' : 'after'
+                        if (slideDropTarget?.slideId !== entry.slide.id || slideDropTarget.side !== side) {
+                          setSlideDropTarget({ slideId: entry.slide.id, side })
+                        }
+                      }}
+                      onDragLeave={(event) => {
+                        if (event.currentTarget.contains(event.relatedTarget as Node | null)) return
+                        setSlideDropTarget((current) => (current?.slideId === entry.slide.id ? null : current))
+                      }}
+                      onDrop={(event) => {
+                        event.preventDefault()
+                        if (draggedSlide && slideDropTarget) {
+                          if (draggedSlide.itemId === entry.item.id) {
+                            const slides = entry.item.slides
+                            const from = slides.findIndex((slide) => slide.id === draggedSlide.slideId)
+                            let to = slides.findIndex((slide) => slide.id === entry.slide.id)
+                            if (slideDropTarget.side === 'after') to += 1
+                            if (from < to) to -= 1
+                            moveSlide(service.id, entry.item.id, draggedSlide.slideId, to)
+                          } else {
+                            moveItemNextTo(service.id, draggedSlide.itemId, entry.item.id, slideDropTarget.side)
+                          }
+                        }
+                        setDraggedSlide(null)
+                        setSlideDropTarget(null)
+                      }}
+                      onDragEnd={() => {
+                        setDraggedSlide(null)
+                        setSlideDropTarget(null)
+                      }}
+                    >
                       <button
                         className={`slide-thumb ${isActive ? 'is-active' : ''} ${isLiveSlide ? 'is-live' : ''}`}
+                        onKeyDown={(event) => {
+                          if (!event.altKey || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) return
+                          event.preventDefault()
+                          const from = entry.item.slides.findIndex((slide) => slide.id === entry.slide.id)
+                          moveSlide(service.id, entry.item.id, entry.slide.id, from + (event.key === 'ArrowLeft' ? -1 : 1))
+                          const button = event.currentTarget
+                          requestAnimationFrame(() => button.focus())
+                        }}
                         onClick={() => {
                           selectItem(entry.item.id)
                           selectSlide(entry.item.id, entry.slide.id)
@@ -1028,6 +1237,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                       >
                         <span className="slide-thumb-canvas">
                           <SlideRenderer slide={entry.slide} branding={branding} aspectRatio={slideAspectRatio} compact thumbnail />
+                          {isLiveSlide && <span className="slide-thumb-live">{t('status.live')}</span>}
                         </span>
                         <span className="slide-thumb-label">
                           <span className="slide-thumb-number">{index + 1}</span>
@@ -1172,8 +1382,45 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
               )}
             </div>
           )}
+          {liveNotesOnly && liveCurrentSlide ? (
+            <>
+              <div className="inspector-head">
+                <span className="eyebrow">{t('editor.notes')}</span>
+                <button
+                  type="button"
+                  className="text-link"
+                  onClick={() => setInspectorOpenForSession(live?.startedAt ?? null)}
+                >
+                  <SlidersHorizontal size={13} />
+                  {t('editor.showInspector')}
+                </button>
+              </div>
+              <div className="inspector-scroll live-notes">
+                <p className="live-notes-slide">
+                  <span className="live-notes-dot" aria-hidden="true" />
+                  {slideLabel(liveCurrentSlide.slide, liveCurrentSlide.item.title)}
+                </p>
+                <textarea
+                  className="live-notes-text"
+                  aria-label={t('editor.notes')}
+                  value={liveCurrentSlide.slide.notes ?? ''}
+                  placeholder={t('editor.liveNotesEmpty')}
+                  onChange={(event) =>
+                    updateNotes(service.id, liveCurrentSlide.item.id, liveCurrentSlide.slide.id, event.target.value)
+                  }
+                />
+                <p className="live-notes-hint">{t('editor.notesPlaceholder')}</p>
+              </div>
+            </>
+          ) : (
+          <>
           <div className="inspector-head">
             <span className="eyebrow">{t('editor.inspector')}</span>
+            {isLive && (
+              <button type="button" className="text-link inspector-fold" onClick={() => setInspectorOpenForSession(null)}>
+                {t('editor.hideInspector')}
+              </button>
+            )}
             <div className="segmented segmented-sm">
               <button className={!selectedElement ? 'is-active' : ''} onClick={() => selectElement(null)}>
                 {t('editor.design')}
@@ -1195,7 +1442,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   <span className="badge badge-quiet">z {selectedElement.zIndex}</span>
                 </div>
                 <label className="field">
-                  <span>{t('editor.elementText')}</span>
+                  <FieldTitle icon={Type}>{t('editor.elementText')}</FieldTitle>
                   <textarea
                     rows={3}
                     value={
@@ -1283,7 +1530,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                 {selectedElement.type === 'text' && (
                   <>
                     <label className="field compact">
-                      <span>{t('editor.fontFamily')}</span>
+                      <FieldTitle icon={CaseSensitive}>{t('editor.fontFamily')}</FieldTitle>
                       <select
                         value={selectedElement.settings?.fontFamily ?? SLIDE_TEXT_DEFAULTS.fontFamily}
                         onChange={(event) =>
@@ -1301,7 +1548,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     </label>
                     <div className="field-grid">
                       <label className="field compact">
-                        <span>{t('editor.fontSize')}</span>
+                        <FieldTitle icon={ALargeSmall}>{t('editor.fontSize')}</FieldTitle>
                         <input
                           type="number"
                           min={8}
@@ -1318,7 +1565,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                         />
                       </label>
                       <label className="field compact">
-                        <span>{t('editor.weight')}</span>
+                        <FieldTitle icon={Bold}>{t('editor.weight')}</FieldTitle>
                         <select
                           value={selectedElement.settings?.fontWeight ?? SLIDE_TEXT_DEFAULTS.fontWeight}
                           onChange={(event) =>
@@ -1361,7 +1608,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   <>
                     <div className="field-grid">
                       <label className="field compact">
-                        <span>{t('editor.shapeType')}</span>
+                        <FieldTitle icon={Shapes}>{t('editor.shapeType')}</FieldTitle>
                         <select
                           value={
                             selectedElement.settings?.shape === 'circle'
@@ -1387,7 +1634,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                         </select>
                       </label>
                       <label className="field compact">
-                        <span>{t('editor.cornerRadius')} · {selectedElement.settings?.radius ?? 0}px</span>
+                        <FieldTitle icon={SquareRoundCorner}>{t('editor.cornerRadius')} · {selectedElement.settings?.radius ?? 0}px</FieldTitle>
                         <input
                           type="range"
                           min={0}
@@ -1407,7 +1654,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                       </label>
                     </div>
                     <label className="field">
-                      <span>{t('editor.color')}</span>
+                      <FieldTitle icon={Droplet}>{t('editor.color')}</FieldTitle>
                       <div className="shape-color-picker">
                         <input
                           type="color"
@@ -1453,7 +1700,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   </>
                 )}
                 <div className="inspector-label">
-                  <span>{t('editor.alignment')}</span>
+                  <FieldTitle icon={AlignCenter}>{t('editor.alignment')}</FieldTitle>
                 </div>
                 <div className="align-row">
                   {(['left', 'center', 'right'] as const).map((align) => (
@@ -1483,7 +1730,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   <>
                     <div className="field-grid">
                       <label className="field compact">
-                        <span>{t('editor.crop')}</span>
+                        <FieldTitle icon={Crop}>{t('editor.crop')}</FieldTitle>
                         <select
                           value={selectedElement.settings?.fit ?? (selectedElement.type === 'image' ? 'cover' : 'contain')}
                           onChange={(event) =>
@@ -1500,7 +1747,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                         </select>
                       </label>
                       <label className="field compact">
-                        <span>{t('editor.zoom')}</span>
+                        <FieldTitle icon={ZoomIn}>{t('editor.zoom')}</FieldTitle>
                         <input
                           type="number"
                           min={1}
@@ -1603,11 +1850,11 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                 {activeSlide.bible ? (
                   <>
                     <div className="inspector-label">
-                      <span>{t('editor.scriptureContent')}</span>
+                      <FieldTitle icon={BookOpen}>{t('editor.scriptureContent')}</FieldTitle>
                       <span className="badge badge-amber">{activeSlide.bible.primary.abbreviation}</span>
                     </div>
                     <label className="field">
-                      <span>{t('editor.primaryText')}</span>
+                      <FieldTitle icon={BookOpenText}>{t('editor.primaryText')}</FieldTitle>
                       <textarea
                         rows={5}
                         value={activeSlide.bible.primary.text}
@@ -1670,7 +1917,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                 ) : (
                   <>
                     <label className="field">
-                      <span>{t('common.title')}</span>
+                      <FieldTitle icon={Heading}>{t('common.title')}</FieldTitle>
                       <input
                         value={activeItem.title}
                         onChange={(event) =>
@@ -1679,7 +1926,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                       />
                     </label>
                     <label className="field">
-                      <span>Slide</span>
+                      <FieldTitle icon={RectangleHorizontal}>{t('editor.slideField')}</FieldTitle>
                       <input
                         value={activeSlide.title}
                         onChange={(event) =>
@@ -1704,7 +1951,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                       </div>
                     ) : (
                       <label className="field">
-                        <span>Texto</span>
+                        <FieldTitle icon={Type}>{t('editor.textField')}</FieldTitle>
                         <textarea
                           rows={6}
                           value={activeSlide.text}
@@ -1719,7 +1966,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   </>
                 )}
                 <label className="field">
-                  <span>{t('editor.alignment')}</span>
+                  <FieldTitle icon={AlignCenter}>{t('editor.alignment')}</FieldTitle>
                   <div className="align-row">
                     {(['left', 'center', 'right'] as const).map((align) => (
                       <button
@@ -1751,7 +1998,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                 {activeSlide.kind !== 'timer' && (
                   <>
                     <label className="field compact">
-                      <span>{t('editor.fontFamily')}</span>
+                      <FieldTitle icon={CaseSensitive}>{t('editor.fontFamily')}</FieldTitle>
                       <select
                         value={activeSlide.fontFamily ?? SLIDE_TEXT_DEFAULTS.fontFamily}
                         onChange={(event) => {
@@ -1766,7 +2013,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     </label>
                     <div className="field-grid">
                       <label className="field compact">
-                        <span>{t('editor.fontSize')}</span>
+                        <FieldTitle icon={ALargeSmall}>{t('editor.fontSize')}</FieldTitle>
                         <input
                           type="number"
                           min={16}
@@ -1780,7 +2027,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                         />
                       </label>
                       <label className="field compact">
-                        <span>{t('editor.fontWeight')}</span>
+                        <FieldTitle icon={Bold}>{t('editor.fontWeight')}</FieldTitle>
                         <input
                           type="number"
                           min={100}
@@ -1798,7 +2045,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   </>
                 )}
                 <div className="inspector-label">
-                  <span>{t('editor.background')}</span>
+                  <FieldTitle icon={Palette}>{t('editor.background')}</FieldTitle>
                   <span className="muted-note">{activeSlide.background.preset}</span>
                 </div>
                 <div className="preset-grid">
@@ -1819,8 +2066,38 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     </button>
                   ))}
                 </div>
+                <div className="inspector-label">
+                  <FieldTitle icon={Clapperboard}>{t('editor.transition')}</FieldTitle>
+                  <span className="muted-note">
+                    {activeSlide.transition ? `${(activeSlide.transition.durationMs / 1000).toFixed(1)} s` : t('editor.transitionDefault')}
+                  </span>
+                </div>
+                {(() => {
+                  const current = activeSlide.transition ?? service.transition ?? DEFAULT_TRANSITION
+                  const icons = { fade: Blend, cut: Scissors, slide: MoveRight, zoom: ZoomIn }
+                  return (
+                    <div className="transition-picker" role="radiogroup" aria-label={t('editor.transition')}>
+                      {TRANSITION_TYPES.map((type) => {
+                        const Icon = icons[type]
+                        return (
+                          <button
+                            key={type}
+                            type="button"
+                            role="radio"
+                            aria-checked={current.type === type}
+                            className={`transition-option ${current.type === type ? 'is-active' : ''}`}
+                            onClick={() => setTransitionChoice({ type, durationMs: current.durationMs || DEFAULT_TRANSITION.durationMs })}
+                          >
+                            <Icon size={18} />
+                            <span>{t(`culto.transitionName.${type}`)}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )
+                })()}
                 <label className="field">
-                  <span>{t('editor.notes')}</span>
+                  <FieldTitle icon={StickyNote}>{t('editor.notes')}</FieldTitle>
                   <textarea
                     rows={4}
                     value={activeSlide.notes ?? ''}
@@ -1856,6 +2133,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
               </div>
             )}
           </div>
+          </>
+          )}
           {isLive && <LiveControlBar />}
         </aside>
       </div>
@@ -1886,10 +2165,28 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
         />
       )}
 
+      <TemplatePickerDialog
+        open={templatePickerOpen}
+        onClose={() => setTemplatePickerOpen(false)}
+        onPick={(template) => {
+          const sectionId =
+            service.sections.find((section) => activeItem && section.itemIds.includes(activeItem.id))?.id ??
+            activeSection?.id ??
+            service.sections[0]?.id ??
+            ''
+          const item = createTemplateItem(template, template.name)
+          addItem(service.id, sectionId, item)
+          if (activeItem) moveItemNextTo(service.id, item.id, activeItem.id, 'after')
+          push(t('templates.added'), 'success')
+        }}
+      />
+
       <LogoPlacementDialog
         open={logoPlacementOpen}
+        logoUrl={branding.logoUrl}
         onClose={() => setLogoPlacementOpen(false)}
         onSelect={addLogoToSlide}
+        onUpload={uploadLogo}
       />
 
       <ConfirmDialog
@@ -1928,6 +2225,54 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
         onConfirm={confirmEndLive}
       />
 
+      {transitionChoice && service && activeItem && activeSlide && (
+        <Modal
+          title={t('editor.transitionApplyTitle', { name: t(`culto.transitionName.${transitionChoice.type}`) })}
+          onClose={() => setTransitionChoice(null)}
+        >
+          <p className="modal-copy">{t('editor.transitionApplyCopy')}</p>
+          {transitionChoice.type !== 'cut' && (
+            <label className="field">
+              <span>{t('culto.transitionDuration')}</span>
+              <select
+                value={transitionChoice.durationMs}
+                onChange={(event) => setTransitionChoice({ ...transitionChoice, durationMs: Number(event.target.value) })}
+              >
+                {[200, 400, 600, 900, 1200, 2000].map((ms) => (
+                  <option key={ms} value={ms}>
+                    {(ms / 1000).toFixed(1)} s
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <div className="modal-actions">
+            <button
+              className="btn btn-secondary"
+              onClick={() => {
+                updateSlide(service.id, activeItem.id, activeSlide.id, { transition: transitionChoice })
+                setTransitionChoice(null)
+              }}
+            >
+              {t('editor.transitionThisSlide')}
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                for (const item of service.items) {
+                  for (const slide of item.slides) {
+                    updateSlide(service.id, item.id, slide.id, { transition: transitionChoice })
+                  }
+                }
+                setTransitionChoice(null)
+                push(t('editor.transitionAppliedAll', { count: allSlides.length }), 'success')
+              }}
+            >
+              {t('editor.transitionAllSlides', { count: allSlides.length })}
+            </button>
+          </div>
+        </Modal>
+      )}
       {fontApplyAll && (
         <Modal title={t('editor.fontApplyAll')} onClose={() => setFontApplyAll(null)}>
           <p className="modal-copy">{t('editor.fontApplyAllCopy')}</p>
@@ -1954,6 +2299,16 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
         </Modal>
       )}
     </div>
+  )
+}
+
+/** A field title with a small icon, so each inspector section is quick to find. */
+function FieldTitle({ icon: Icon, children }: { icon: LucideIcon; children: React.ReactNode }) {
+  return (
+    <span className="field-title">
+      <Icon size={13} aria-hidden="true" />
+      <span>{children}</span>
+    </span>
   )
 }
 

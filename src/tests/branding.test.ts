@@ -234,3 +234,17 @@ describe('branding persistence, reset and church isolation', () => {
     expect(saved.theme.primary).toBe(DEFAULT_THEME.primary)
   })
 })
+
+describe('Cathedral INTL defaults', () => {
+  it('moves the old placeholder identity to the new name, title and logo', () => {
+    const migrated = normalizeBranding({ name: 'Grace Community Church', appTitle: 'Church Presenter', logoUrl: null })
+    expect(migrated.name).toBe('Campus Algarve')
+    expect(migrated.appTitle).toBe('CATHEDRAL INTL')
+    expect(migrated.logoUrl).toBe(DEFAULT_BRANDING.logoUrl)
+  })
+
+  it('keeps a church that changed its name, and a logo it removed', () => {
+    const kept = normalizeBranding({ name: 'Sede Lisboa', appTitle: 'Sede', logoUrl: null })
+    expect(kept).toMatchObject({ name: 'Sede Lisboa', appTitle: 'Sede', logoUrl: null })
+  })
+})

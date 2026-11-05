@@ -175,3 +175,14 @@ export async function processLogoFile(file: File): Promise<LogoResult> {
     return { ok: false, reason: check.kind === 'svg' ? 'svg-invalid' : 'corrupt' }
   }
 }
+
+/** Translation keys for each logo upload error. */
+export const LOGO_ERROR_KEYS: Record<LogoError, string> = {
+  empty: 'branding.logoError.empty',
+  'too-large': 'branding.logoError.tooLarge',
+  'unsupported-type': 'branding.logoError.type',
+  mismatch: 'branding.logoError.mismatch',
+  corrupt: 'branding.logoError.corrupt',
+  'svg-invalid': 'branding.logoError.svg',
+  'read-failed': 'branding.logoError.read',
+}

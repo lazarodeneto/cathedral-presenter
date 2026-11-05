@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { TriangleAlert } from 'lucide-react'
-import type { Service, ServiceStatus, TransitionType } from '../../types'
+import type { Service, ServiceStatus, SlideTransition, TransitionType } from '../../types'
 import { useLocale, useT } from '../../i18n/useT'
 import { useAppStore } from '../../store/useAppStore'
 import { useToasts } from '../../store/useToasts'
@@ -32,7 +32,7 @@ import { ConfirmDialog, Modal } from '../Modal'
 import { DateField } from '../DateField'
 
 
-function emptyForm(date?: string, locale = 'en'): CultoForm {
+function emptyForm(date?: string, locale = 'en', transition: SlideTransition = DEFAULT_TRANSITION): CultoForm {
   const d = date || nextSundayISO(new Date()) || localToday()
   return {
     title: isValidDate(d) ? formatServiceTitleDate(d, locale as Parameters<typeof formatServiceTitleDate>[1]) : '',
@@ -47,7 +47,7 @@ function emptyForm(date?: string, locale = 'en'): CultoForm {
     guests: '',
     description: '',
     notes: '',
-    transition: DEFAULT_TRANSITION,
+    transition,
   }
 }
 
@@ -77,7 +77,14 @@ export function CultoFormDialog({
   const latest = useAppStore((state) => (service ? state.services.find((entry) => entry.id === service.id) : undefined))
   const push = useToasts((state) => state.push)
   const editing = Boolean(service)
-  const [form, setForm] = useState<CultoForm>(() => (service ? formFromService(service) : emptyForm(defaultDate, locale)))
+  // The Settings default transition seeds services that have not chosen their own.
+  const defaultType = useAppStore((state) => state.settings.transition)
+  const defaultSeconds = useAppStore((state) => state.settings.transitionDuration)
+  const fallbackTransition = useMemo<SlideTransition>(
+    () => ({ type: defaultType, durationMs: Math.round(Math.min(3, Math.max(0, defaultSeconds)) * 1000) }),
+    [defaultType, defaultSeconds],
+  )
+  const [form, setForm] = useState<CultoForm>(() => (service ? formFromService(service, fallbackTransition) : emptyForm(defaultDate, locale, fallbackTransition)))
   const [initial, setInitial] = useState<CultoForm>(form)
   const [version, setVersion] = useState(service?.version ?? 0)
   const [touched, setTouched] = useState<Partial<Record<CultoField, boolean>>>({})
@@ -89,11 +96,13 @@ export function CultoFormDialog({
   const titleManuallyEdited = useRef(editing)
   const serviceRef = useRef(service)
   serviceRef.current = service
+  const fallbackRef = useRef(fallbackTransition)
+  fallbackRef.current = fallbackTransition
 
   useEffect(() => {
     if (!open) return
     const target = serviceRef.current
-    const start = target ? formFromService(target) : emptyForm(defaultDate, locale)
+    const start = target ? formFromService(target, fallbackRef.current) : emptyForm(defaultDate, locale, fallbackRef.current)
     setForm(start)
     setInitial(start)
     setVersion(target?.version ?? 0)
@@ -204,7 +213,7 @@ export function CultoFormDialog({
                 className="text-link"
                 onClick={() => {
                   if (!latest) return
-                  const fresh = formFromService(latest)
+                  const fresh = formFromService(latest, fallbackTransition)
                   setForm(fresh)
                   setInitial(fresh)
                   setVersion(latest.version)

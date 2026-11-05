@@ -1,4 +1,4 @@
-/* Church Presenter — local-first worship presentation workspace */
+/* CATHEDRAL INTL — local-first worship presentation workspace */
 
 :root {
   color-scheme: dark;
@@ -2844,6 +2844,37 @@ dialog.modal::backdrop {
   font-size: clamp(7px, 2.3cqw, 36px);
   line-height: 1.3;
   white-space: pre-wrap;
+}
+
+.canvas-grid {
+  position: absolute;
+  z-index: 29;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+}
+
+.snap-guide {
+  position: absolute;
+  z-index: 31;
+  pointer-events: none;
+  background: rgb(var(--violet-rgb) / 0.9);
+}
+
+.snap-guide.is-vertical {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  transform: translateX(-0.5px);
+}
+
+.snap-guide.is-horizontal {
+  left: 0;
+  right: 0;
+  height: 1px;
+  transform: translateY(-0.5px);
 }
 
 .safe-area {
@@ -6792,7 +6823,37 @@ dialog.modal::backdrop {
 }
 
 .slide-thumb-wrap {
+  position: relative;
   flex: 0 0 auto;
+  cursor: grab;
+}
+
+.slide-thumb-wrap:active {
+  cursor: grabbing;
+}
+
+.slide-thumb-wrap.is-dragging {
+  opacity: 0.4;
+}
+
+.slide-thumb-wrap.drop-before::before,
+.slide-thumb-wrap.drop-after::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--amber);
+  pointer-events: none;
+}
+
+.slide-thumb-wrap.drop-before::before {
+  left: -5px;
+}
+
+.slide-thumb-wrap.drop-after::after {
+  right: -5px;
 }
 
 .slide-thumb:hover {
@@ -9427,13 +9488,6 @@ dialog.modal::backdrop {
   background: #000;
 }
 
-.output-black span {
-  color: rgb(var(--wash-rgb) / 0.2);
-  font-size: var(--text-meta);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-
 .output-frozen-hint {
   position: absolute;
   z-index: 30;
@@ -10179,7 +10233,7 @@ dialog.modal::backdrop {
     padding: 0;
   }
 
-  .nav-item span:not(.nav-badge),
+  .nav-item span:not(.nav-badge):not(.nav-app-icon),
   .nav-item .nav-badge,
   .sidebar-label,
   .sidebar-service,
@@ -11234,7 +11288,7 @@ dialog.modal::backdrop {
     font-size: 9px;
   }
 
-  .editor-tool span {
+  .editor-tool span:not(.christian-cross-icon) {
     display: none;
   }
 
@@ -11505,7 +11559,7 @@ body.reduced-motion .media-shimmer {
     padding: 0;
   }
 
-  .nav-item span:not(.nav-badge),
+  .nav-item span:not(.nav-badge):not(.nav-app-icon),
   .nav-item .nav-badge,
   .sidebar-label,
   .sidebar-service,
@@ -11538,7 +11592,7 @@ body.reduced-motion .media-shimmer {
     padding: 0;
   }
 
-  .is-editing .nav-item span:not(.nav-badge),
+  .is-editing .nav-item span:not(.nav-badge):not(.nav-app-icon),
   .is-editing .nav-item .nav-badge,
   .is-editing .sidebar-label,
   .is-editing .sidebar-service,
@@ -14705,17 +14759,6 @@ body:not(.output-mode) .live-control.is-alert-on::after {
   font-weight: 650;
 }
 
-.output-status-action kbd {
-  margin-left: 4px;
-  padding: 1px 6px;
-  border-radius: var(--rounded-xs);
-  color: inherit;
-  background: rgb(0 0 0 / 0.12);
-  font-family: inherit;
-  font-size: var(--text-micro);
-  font-weight: 600;
-  opacity: 0.75;
-}
 
 body:not(.output-mode) .output-status-action.is-end {
   border: 1px solid rgb(var(--danger-rgb) / 0.55);
@@ -14991,4 +15034,3107 @@ body:not(.output-mode) .bible-screen .bible-selector-grid select {
   body:not(.output-mode) .bible-screen .bible-selector-grid {
     grid-template-columns: minmax(105px, 1.1fr) 88px minmax(180px, 1fr) minmax(125px, 1.2fr) minmax(125px, 1.2fr);
   }
+}
+
+/* ── Top bar, refined ─────────────────────────────────────────────
+   Title reads as the page heading; the right cluster is quiet status,
+   then the two controls (language, settings) after a hairline. Neutral
+   check for "saved": green stays reserved for LIVE. */
+body:not(.output-mode) .topbar-breadcrumb strong {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+body:not(.output-mode) .topbar-actions {
+  gap: 6px;
+}
+
+body:not(.output-mode) .topbar-status {
+  gap: 6px;
+  padding: 0 6px;
+  color: var(--muted);
+  background: none;
+  cursor: default;
+}
+
+body:not(.output-mode) .topbar-status svg {
+  color: var(--text-2);
+}
+
+body:not(.output-mode) .topbar-clock {
+  padding: 0 6px;
+  color: var(--muted);
+  background: none;
+}
+
+.topbar-divider {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--line-strong);
+}
+
+/* Wrapper only; the trigger carries the pill. Neutralises the older .topbar-language rules. */
+body:not(.output-mode) .topbar-language {
+  position: relative;
+  display: flex;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+body:not(.output-mode) .topbar-language:hover {
+  border: 0;
+  background: none;
+}
+
+.topbar-language-trigger {
+  display: flex;
+  height: 30px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 8px 0 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--rounded-pill);
+  color: var(--muted);
+  background: rgb(var(--wash-rgb) / 0.03);
+  transition: border-color 0.15s var(--ease-out), background 0.15s var(--ease-out), color 0.15s var(--ease-out);
+}
+
+.topbar-language-trigger:hover,
+.topbar-language-trigger.is-open {
+  border-color: var(--line-strong);
+  color: var(--text);
+  background: rgb(var(--wash-rgb) / 0.07);
+}
+
+.topbar-language-trigger:focus-visible {
+  outline: none;
+  border-color: var(--amber);
+  box-shadow: var(--focus-ring);
+}
+
+.locale-flag {
+  flex: 0 0 auto;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+}
+
+.topbar-language-code {
+  color: var(--text-2);
+  font-size: var(--text-meta);
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.topbar-language-trigger:hover .topbar-language-code,
+.topbar-language-trigger.is-open .topbar-language-code {
+  color: var(--text);
+}
+
+.topbar-language-chevron {
+  opacity: 0.7;
+  transition: transform 0.18s var(--ease-out);
+}
+
+.topbar-language-trigger.is-open .topbar-language-chevron {
+  transform: rotate(180deg);
+}
+
+.topbar-language-menu {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  margin: 0;
+  padding: 5px;
+  list-style: none;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--rounded-md);
+  background: var(--surface-solid);
+  box-shadow: 0 18px 40px rgb(0 0 0 / 0.45), 0 2px 6px rgb(0 0 0 / 0.3);
+  outline: none;
+  transform-origin: top right;
+  animation: topbar-menu-in 0.16s var(--ease-out);
+}
+
+@keyframes topbar-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+.topbar-language-option {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) 14px;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 0 10px 0 8px;
+  border-radius: var(--rounded-sm);
+  color: var(--text-2);
+  font-size: var(--text-ui);
+  cursor: pointer;
+}
+
+.topbar-language-option.is-active {
+  color: var(--text);
+  background: rgb(var(--wash-rgb) / 0.07);
+}
+
+.topbar-language-menu:focus-visible .topbar-language-option.is-active {
+  box-shadow: inset 0 0 0 1px rgb(var(--amber-rgb) / 0.5);
+}
+
+.topbar-language-option[aria-selected='true'] {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Region code after the name ("Português BR"), quieter than the name itself. */
+.topbar-language-region {
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.topbar-language-check {
+  color: var(--violet-text);
+  opacity: 0;
+}
+
+.topbar-language-option[aria-selected='true'] .topbar-language-check {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topbar-language-menu {
+    animation: none;
+  }
+}
+
+body:not(.output-mode) .avatar {
+  width: 30px;
+  height: 30px;
+  background: none;
+  box-shadow: 0 0 0 1px var(--line-strong);
+  transition: box-shadow 0.15s var(--ease-out), transform 0.15s var(--ease-out);
+}
+
+body:not(.output-mode) .avatar:hover {
+  background: none;
+  box-shadow: 0 0 0 2px rgb(var(--wash-rgb) / 0.28);
+}
+
+body:not(.output-mode) .avatar:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--amber), var(--focus-ring);
+}
+
+body:not(.output-mode) .avatar:active {
+  transform: scale(0.96);
+}
+
+@media (max-width: 1023px) {
+  .topbar-divider {
+    display: none;
+  }
+}
+
+/* The compact pill fits small windows, so language stays reachable there too. */
+@media (max-width: 820px) {
+  body:not(.output-mode) .topbar-language {
+    display: flex;
+  }
+}
+
+/* The language menu drops below the top bar, so the bar stacks above page content. */
+body:not(.output-mode) .topbar {
+  position: relative;
+  z-index: 40;
+}
+
+/* ── Responsive fixes (container-based) ──────────────────────────────
+   Components respond to the width they actually get, not the window:
+   the sidebar, inspector and split panes change that independently. */
+
+/* Services: filters reflow by panel width instead of overflowing it. */
+.services-filters {
+  container-type: inline-size;
+}
+
+@container (max-width: 760px) {
+  .services-filter-primary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .services-filter-primary .services-search-group {
+    grid-column: 1 / -1;
+  }
+
+  .services-filter-secondary {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .services-filter-secondary .services-date-range {
+    grid-column: 1 / -1;
+  }
+}
+
+@container (max-width: 460px) {
+  .services-filter-primary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .services-filter-secondary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .services-filter-secondary .services-filter-icon {
+    display: none;
+  }
+}
+
+/* Services: a card stacks its actions under the details when it gets narrow. */
+.services-list {
+  container-type: inline-size;
+}
+
+@container (max-width: 820px) {
+  .service-card {
+    flex-direction: column;
+  }
+
+  .service-card-main {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  .service-card-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 2px 4px;
+    padding: 6px 10px;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+
+  .service-card-actions .btn {
+    font-size: var(--text-meta);
+    padding: 5px 8px;
+  }
+}
+
+@container (max-width: 420px) {
+  .service-card-main {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .service-card-main .status-chip {
+    align-self: flex-start;
+  }
+
+  /* Icon-only actions keep one row on phones; names stay in aria-label and title. */
+  .service-card-actions {
+    justify-content: space-between;
+  }
+
+  .service-card-actions .btn {
+    min-width: 40px;
+    min-height: 40px;
+    justify-content: center;
+    padding: 0;
+    font-size: 0;
+    gap: 0;
+  }
+}
+
+/* Services view tabs: one scrollable row instead of wrapping under the underline. */
+@media (max-width: 900px) {
+  .services-views {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .services-views::-webkit-scrollbar {
+    display: none;
+  }
+
+  .services-view {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+
+/* Home: setup and backup panels stack like the pulse row above them. */
+@media (max-width: 1120px) {
+  .home-lower {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Touch: rundown actions are always visible, so they take their own space in
+   the row (the name truncates) instead of floating over the item name. */
+@media (pointer: coarse) {
+  body:not(.output-mode) .rundown-actions {
+    position: static;
+    flex: 0 0 auto;
+    padding-left: 0;
+    background: none;
+    pointer-events: auto;
+    transform: none;
+  }
+}
+
+/* Narrow editor: the rundown is the slide-in drawer opened by the rundown
+   toggle (see .mobile-rundown-toggle). A later one-column rule set it back to
+   static while the drawer's translateX(-100%) stayed, pushing it off-screen. */
+@media (max-width: 820px) {
+  body:not(.output-mode):not(.live-mode) .workspace .rundown {
+    position: fixed;
+    z-index: 100;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(300px, 84vw);
+    max-height: none;
+    margin: 0;
+    border-top: 0;
+    border-radius: 0 var(--rounded-md) var(--rounded-md) 0;
+    background: var(--surface-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: 12px 0 40px rgb(0 0 0 / 0.5);
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 0.22s var(--ease-out), visibility 0s linear 0.22s;
+  }
+
+  body:not(.output-mode):not(.live-mode) .workspace .rundown.is-drawer-open {
+    transform: translateX(0);
+    visibility: visible;
+    transition: transform 0.22s var(--ease-out);
+  }
+}
+
+/* Stacked Bible/Songs libraries: panels grow with their content. With flex: 1
+   and a basis of 0 in an auto-height column, the passage preview collapsed to
+   0px and its verses spilled over the options below it. */
+@media (max-width: 980px) {
+  .passage-preview,
+  .bible-result-list {
+    flex: 0 0 auto;
+  }
+}
+
+/* Stacked layouts: one column that may shrink below its content's natural
+   width (1fr alone keeps the min-content width and pushed panels past 320px). */
+@media (max-width: 1120px) {
+  .home-grid,
+  .home-bottom,
+  .settings-grid,
+  .output-card-grid,
+  .security-grid,
+  .preflight {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 980px) {
+  .settings-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Calendar: navigation and tools wrap instead of running past the edge. */
+@media (max-width: 620px) {
+  .calendar-nav,
+  .calendar-tools {
+    flex-wrap: wrap;
+  }
+}
+
+/* Editor stage head: actions scroll in their own row on phones. */
+@media (max-width: 620px) {
+  .stage-actions {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .stage-actions::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Collapsed sidebar (icon rail): each icon tile gets its own row with room
+   around it, instead of 3px between 32px rows. */
+@media (max-width: 1180px) {
+  body:not(.output-mode) .sidebar .main-nav {
+    gap: 8px;
+  }
+
+  body:not(.output-mode) .sidebar .nav-item {
+    min-height: 40px;
+  }
+}
+
+@media (min-width: 1181px) and (max-width: 1360px) {
+  body:not(.output-mode) .is-editing .sidebar .main-nav {
+    gap: 8px;
+  }
+
+  body:not(.output-mode) .is-editing .sidebar .nav-item {
+    min-height: 40px;
+  }
+}
+
+/* Phones: the glass slider shrinks with its row instead of pushing the value off-screen. */
+@media (max-width: 480px) {
+  .glass-opacity-row {
+    flex-wrap: wrap;
+  }
+
+  .glass-opacity-control {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  .glass-opacity-control input[type="range"] {
+    width: auto;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+}
+
+/* Logo dialog: the current logo (or an empty mark) with upload/replace beside it. */
+.logo-source {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 12px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--rounded-md);
+  background: rgb(var(--wash-rgb) / 0.03);
+}
+
+.logo-source.has-logo {
+  border-style: solid;
+  border-color: var(--line);
+}
+
+.logo-source img,
+.logo-source .christian-cross-icon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  object-fit: contain;
+  border-radius: var(--rounded-sm);
+}
+
+.logo-source img.is-circle {
+  border-radius: 50%;
+}
+
+.logo-source .christian-cross-icon {
+  opacity: 0.4;
+}
+
+.logo-corner-option:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.logo-all-slides {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  color: var(--text-2);
+  font-size: var(--text-ui);
+  cursor: pointer;
+}
+
+.logo-all-slides input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--violet);
+}
+
+/* Top bar avatar: the mark fills the round button (no inner circle inside a
+   ring), the arch is dropped at this size and the initials sit centred. */
+body:not(.output-mode) .avatar {
+  overflow: hidden;
+  padding: 0;
+}
+
+body:not(.output-mode) .avatar .brand-mark {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.brand-mark-sm .brand-mark-arch {
+  display: none;
+}
+
+.brand-mark-sm .brand-mark-initials {
+  margin-top: 0;
+  font-size: 11px;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.avatar .brand-mark.has-logo {
+  background: var(--surface-solid-raised);
+}
+
+.avatar .brand-mark img {
+  object-fit: contain;
+  padding: 3px;
+}
+
+/* ── Home: recent services as slide cards ───────────────────────────
+   Each recent service is a card led by a full-width 16:9 preview of its
+   first slide, with title and meta under it. The grid fills whatever width
+   the panel gets: three across on a wide home, one per row on a phone. */
+.recent-list {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 12px;
+}
+
+body:not(.output-mode) .recent-row {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 8px 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--rounded-lg);
+  background: rgb(var(--wash-rgb) / 0.025);
+  transition: border-color 0.16s var(--ease-out), background 0.16s var(--ease-out), transform 0.16s var(--ease-out);
+}
+
+body:not(.output-mode) .recent-row:hover {
+  border-color: var(--line-strong);
+  background: rgb(var(--wash-rgb) / 0.05);
+  transform: translateY(-1px);
+}
+
+body:not(.output-mode) .recent-row:focus-visible {
+  outline: none;
+  border-color: var(--amber);
+  box-shadow: var(--focus-ring);
+}
+
+body:not(.output-mode) .recent-thumb {
+  width: 100%;
+  flex: 0 0 auto;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--rounded-sm);
+}
+
+.recent-thumb .slide-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.recent-row > span:nth-child(2) {
+  padding: 0 4px;
+  gap: 3px;
+}
+
+.recent-row strong {
+  font-size: var(--text-body);
+}
+
+.recent-row span span {
+  font-size: var(--text-meta);
+}
+
+/* The whole card is the link; the trailing chevron only made sense in a list row. */
+.recent-row > svg {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:not(.output-mode) .recent-row:hover {
+    transform: none;
+  }
+}
+
+/* ── Home: setup checklist and backup ───────────────────────────────
+   Both panels lay out by their own width. Header row: icon, title, and the
+   count or action on the right; copy below; steps as a full-width list. */
+.home-lower {
+  container-type: inline-size;
+}
+
+body:not(.output-mode) .setup-panel {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  grid-template-areas:
+    'icon copy dismiss';
+  align-items: start;
+  gap: 14px;
+}
+
+body:not(.output-mode) .setup-panel .setup-icon {
+  grid-area: icon;
+}
+
+body:not(.output-mode) .setup-panel .setup-copy {
+  grid-area: copy;
+  flex: none;
+  min-width: 0;
+}
+
+body:not(.output-mode) .setup-panel > .btn {
+  grid-area: dismiss;
+  margin: 0;
+}
+
+.setup-title {
+  justify-content: space-between;
+  min-height: 38px;
+}
+
+.setup-title h3 {
+  line-height: 1.25;
+}
+
+.setup-title > span {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.setup-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 6px;
+}
+
+.setup-step {
+  justify-content: flex-start;
+  min-height: 36px;
+  padding: 7px 10px;
+  border-radius: var(--rounded-sm);
+  font-size: var(--text-meta);
+  line-height: 1.3;
+  text-align: left;
+}
+
+.setup-step svg {
+  flex: 0 0 auto;
+}
+
+body:not(.output-mode) .backup-panel {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px 14px;
+}
+
+/* The export action sits under the copy, aligned with the text column. */
+body:not(.output-mode) .backup-actions {
+  grid-column: 2;
+  align-self: start;
+}
+
+body:not(.output-mode) .backup-panel > div:nth-child(2) {
+  min-width: 0;
+}
+
+.backup-panel h3 {
+  line-height: 1.25;
+}
+
+.backup-actions .btn {
+  white-space: nowrap;
+}
+
+/* Narrow panels: the action moves under the text, full width, so the title
+   and copy keep the whole row instead of wrapping one word per line. */
+@container (max-width: 560px) {
+  body:not(.output-mode) .setup-panel {
+    grid-template-columns: 38px minmax(0, 1fr);
+    grid-template-areas:
+      'icon copy'
+      'dismiss dismiss';
+  }
+
+  body:not(.output-mode) .setup-panel > .btn {
+    justify-self: end;
+  }
+
+  .setup-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body:not(.output-mode) .backup-actions {
+    grid-column: 1 / -1;
+  }
+
+  body:not(.output-mode) .backup-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Calendar toolbar: tools wrap to a second row before they run past the panel. */
+.calendar-toolbar {
+  flex-wrap: wrap;
+}
+
+.calendar-tools {
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+/* ── Editor head, toolbar and rail on phones ────────────────────────
+   Row 1: rundown toggle + breadcrumb. Row 2: slide counter, then the
+   actions. The counter never wraps; "Element" goes icon-only below 480px. */
+.stage-actions .muted-note {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+@media (max-width: 620px) {
+  body:not(.output-mode) .editor-stage-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 6px 8px;
+  }
+
+  body:not(.output-mode) .editor-stage-head .stage-breadcrumb {
+    grid-column: 2;
+  }
+
+  body:not(.output-mode) .editor-stage-head .stage-actions {
+    grid-column: 1 / -1;
+    width: 100%;
+    gap: 4px;
+  }
+
+  body:not(.output-mode) .stage-actions .muted-note {
+    margin-right: auto;
+  }
+
+  body:not(.output-mode) .stage-actions .icon-btn {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+  }
+
+  /* Tools: an even grid, six across, instead of two ragged wrapped groups. */
+  body:not(.output-mode) .editor-toolbar {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 2px;
+    padding: 4px;
+  }
+
+  body:not(.output-mode) .editor-toolbar .editor-tool-group {
+    display: contents;
+  }
+
+  body:not(.output-mode) .editor-toolbar .editor-tool-divider {
+    display: none;
+  }
+
+  body:not(.output-mode) .editor-toolbar .editor-tool {
+    width: auto;
+    min-width: 0;
+  }
+
+  /* Rail: element actions, grid/snap and delete slide share one centred row. */
+  body:not(.output-mode) .canvas-rail-column {
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  body:not(.output-mode) .canvas-rail-column .slide-delete-btn {
+    width: 40px;
+    height: auto;
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  body:not(.output-mode) .stage-actions .popover-wrap .btn {
+    gap: 2px;
+    padding: 0 8px;
+  }
+}
+
+/* Very narrow: the rail may wrap, but as whole groups. */
+@media (max-width: 359px) {
+  body:not(.output-mode) .canvas-rail-column {
+    flex-wrap: wrap;
+  }
+}
+
+/* ── Calendar on phones and narrow panes ────────────────────────────
+   Nav: [‹] month year [›] [Today] on one row, arrows icon-only, the title
+   never wraps. Grid: days are quiet tiles with an event dot; the per-day "+"
+   goes (tap selects the day, the day panel below creates). */
+@media (max-width: 620px) {
+  body:not(.output-mode) .calendar-nav {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+  }
+
+  body:not(.output-mode) .calendar-nav h2 {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 17px;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  body:not(.output-mode) .calendar-month-nav {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  body:not(.output-mode) .calendar-month-label {
+    display: none;
+  }
+
+  body:not(.output-mode) .calendar-today-nav {
+    height: 40px;
+  }
+
+  body:not(.output-mode) .calendar-tools {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    width: 100%;
+  }
+
+  body:not(.output-mode) .calendar-cell {
+    display: flex;
+    min-height: 0;
+    aspect-ratio: 1 / 1.05;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px;
+    padding: 6px 2px;
+  }
+
+  body:not(.output-mode) .calendar-add-service {
+    display: none;
+  }
+
+  body:not(.output-mode) .calendar-events {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 3px;
+    pointer-events: none;
+  }
+
+  /* An event is its coloured dot; the title is in the day panel below. */
+  body:not(.output-mode) .calendar-event {
+    width: 7px;
+    height: 7px;
+    padding: 0;
+    border-radius: 50%;
+    background: var(--event-color);
+    font-size: 0;
+  }
+
+  body:not(.output-mode) .calendar-event > span {
+    display: none;
+  }
+
+  body:not(.output-mode) .calendar-more {
+    font-size: 9px;
+    line-height: 7px;
+  }
+
+  body:not(.output-mode) .calendar-cell.is-selected {
+    background: rgb(var(--violet-rgb) / 0.12);
+    box-shadow: inset 0 0 0 1px rgb(var(--violet-rgb) / 0.55);
+  }
+}
+
+/* Phones: Today goes icon-only (the label stays its accessible name) so the month fits. */
+@media (max-width: 480px) {
+  body:not(.output-mode) .calendar-today-nav {
+    width: 40px;
+    padding: 0;
+    justify-content: center;
+    font-size: 0;
+    gap: 0;
+  }
+}
+
+/* ── Bible search on phones: one decision per row ───────────────────
+   Book and chapter share a row; the verse range and each translation get a
+   full row so long names ("WEB · World English Bible") stay readable. */
+@media (max-width: 620px) {
+  body:not(.output-mode) .bible-selector-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px 10px;
+    padding: 14px 14px 0;
+  }
+
+  body:not(.output-mode) .bible-selector-grid > :nth-child(n + 3) {
+    grid-column: 1 / -1;
+  }
+
+  body:not(.output-mode) .bible-selector {
+    gap: 6px;
+    letter-spacing: 0.05em;
+  }
+
+  body:not(.output-mode) .bible-selector select {
+    height: 40px;
+    padding: 0 10px;
+    font-size: var(--text-ui);
+    text-align: left;
+    text-align-last: left;
+  }
+
+  body:not(.output-mode) .bible-source-row {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 14px 14px 14px;
+  }
+
+  body:not(.output-mode) .bible-source-row .source-note {
+    flex: 1 1 100%;
+    line-height: 1.45;
+  }
+}
+
+@media (max-width: 620px) {
+  body:not(.output-mode) .bible-screen .bible-selector select {
+    padding: 0 30px 0 12px;
+    text-align: left;
+    text-align-last: left;
+  }
+}
+
+.calendar-side {
+  scroll-margin-top: 12px;
+}
+
+/* Expanded sidebar: same rhythm as the icon rail, 8px between 40px rows. */
+body:not(.output-mode) .sidebar .main-nav {
+  gap: 8px;
+}
+
+body:not(.output-mode) .sidebar .nav-item {
+  min-height: 40px;
+}
+
+/* ── Present: the one action that puts the service on the audience screen ──
+   Solid green (the colour of being live) with dark ink for contrast, the play
+   glyph in its own round chip, a soft lift on hover and a press on click.
+   The shortcut lives in the tooltip, not in the label. */
+body:not(.output-mode) .output-status-action.is-go {
+  position: relative;
+  min-height: 46px;
+  gap: 10px;
+  padding: 0 18px 0 8px;
+  border: 1px solid rgb(var(--green-rgb) / 0.9);
+  border-radius: var(--rounded-pill);
+  color: #08200f;
+  background: linear-gradient(180deg, #7fd8a0 0%, var(--green) 55%, #4fb676 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.4),
+    0 8px 22px rgb(var(--green-rgb) / 0.24),
+    0 1px 2px rgb(0 0 0 / 0.3);
+  font-size: var(--text-body);
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  transition: transform 0.16s var(--ease-out), box-shadow 0.16s var(--ease-out), filter 0.16s var(--ease-out);
+}
+
+body:not(.output-mode) .output-status-action.is-go:hover:not(:disabled) {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    0 12px 28px rgb(var(--green-rgb) / 0.32),
+    0 1px 2px rgb(0 0 0 / 0.3);
+}
+
+body:not(.output-mode) .output-status-action.is-go:active:not(:disabled) {
+  transform: translateY(0) scale(0.985);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.18), 0 4px 12px rgb(var(--green-rgb) / 0.2);
+}
+
+body:not(.output-mode) .output-status-action.is-go:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--surface-solid),
+    0 0 0 4px rgb(var(--green-rgb) / 0.85),
+    0 8px 22px rgb(var(--green-rgb) / 0.24);
+}
+
+.output-status-go-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  place-items: center;
+  margin-right: auto;
+  border-radius: 50%;
+  color: var(--green-text);
+  background: #0b2a16;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+
+.output-status-go-icon svg {
+  margin-left: 2px;
+}
+
+/* Label centred in the button while the chip sits at the start. */
+.output-status-action.is-go > span:last-child {
+  margin-right: auto;
+  transform: translateX(-15px);
+}
+
+body:not(.output-mode) .output-status-action.is-go:disabled {
+  border-color: var(--line);
+  color: var(--faint);
+  background: rgb(var(--wash-rgb) / 0.05);
+  box-shadow: none;
+  filter: none;
+  cursor: not-allowed;
+}
+
+body:not(.output-mode) .output-status-action.is-go:disabled .output-status-go-icon {
+  color: var(--faint);
+  background: rgb(var(--wash-rgb) / 0.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:not(.output-mode) .output-status-action.is-go,
+  body:not(.output-mode) .output-status-action.is-go:hover:not(:disabled),
+  body:not(.output-mode) .output-status-action.is-go:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* ── Live Previous / Next ────────────────────────────────────────────
+   Previous is yellow, Next stays green. Pressed: a shade darker, sunk 1px,
+   with a soft shadow of its own colour behind it. */
+.live-control-bar .live-control-nav:not(.live-control-primary) {
+  color: #2b1d00;
+  background: linear-gradient(180deg, #fcd66b 0%, rgb(var(--tone-amber-rgb)) 45%, #e39a2c 100%);
+  text-shadow: none;
+  box-shadow: 0 1px 0 0 rgb(255 255 255 / 0.35) inset, 0 -1px 0 0 rgb(0 0 0 / 0.18) inset, 0 2px 4px rgb(0 0 0 / 0.25);
+}
+
+.live-control-bar .live-control-nav:not(.live-control-primary):hover {
+  background: linear-gradient(180deg, #fbd05a 0%, #f2aa45 45%, #d98f22 100%);
+}
+
+.live-control-bar .live-control-nav {
+  transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+
+.live-control-bar .live-control-nav:not(.live-control-primary):active {
+  background: linear-gradient(180deg, #e9b544 0%, #d9922a 45%, #bd7815 100%);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.28), 0 6px 18px rgb(var(--tone-amber-rgb) / 0.45);
+  transform: translateY(1px);
+}
+
+.live-control-bar .live-control-primary:active {
+  background: linear-gradient(180deg, #15803d 0%, #166534 45%, #14532d 100%);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.3), 0 6px 18px rgb(34 197 94 / 0.45);
+  transform: translateY(1px);
+}
+
+.live-control-bar .live-control-nav:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-control-bar .live-control-nav:active {
+    transform: none;
+  }
+}
+
+/* Logos are round marks (the default Cathedral INTL logo is a circle with a
+   transparent outside): show them as circles with no tile behind them. */
+.brand-mark.has-logo {
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.brand-mark.has-logo img {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar .brand-mark.has-logo img {
+  padding: 0;
+}
+
+body:not(.output-mode) .avatar:has(.brand-mark.has-logo) {
+  background: #000;
+}
+
+/* Next on hover: a darker green. Must outrank the generic
+   .live-control-primary:hover:not(:disabled) rule, which painted it white. */
+.live-control-bar .live-control-primary:hover:not(:disabled) {
+  color: #fff;
+  background: linear-gradient(180deg, #22c55e 0%, #16a34a 45%, #15803d 100%);
+  box-shadow: 0 1px 0 0 rgb(255 255 255 / 0.14) inset, 0 -1px 0 0 rgb(0 0 0 / 0.25) inset, 0 4px 12px rgb(34 197 94 / 0.3);
+}
+
+.live-control-bar .live-control-primary:active:not(:disabled) {
+  background: linear-gradient(180deg, #15803d 0%, #166534 45%, #14532d 100%);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.3), 0 6px 18px rgb(34 197 94 / 0.45);
+  transform: translateY(1px);
+}
+
+/* Previous: same lift treatment on hover. */
+.live-control-bar .live-control-nav:not(.live-control-primary):hover:not(:disabled) {
+  color: #2b1d00;
+  box-shadow: 0 1px 0 0 rgb(255 255 255 / 0.3) inset, 0 -1px 0 0 rgb(0 0 0 / 0.2) inset, 0 4px 12px rgb(var(--tone-amber-rgb) / 0.3);
+}
+
+/* Scrollbars: a thumb you can see and grab — 6px at rest, 8px on hover or
+   drag, with a faint track so the scroll area reads as one. */
+::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+::-webkit-scrollbar-track {
+  border: 4px solid transparent;
+  border-radius: var(--rounded-pill);
+  background: rgb(var(--text-rgb) / 0.04);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb {
+  min-height: 40px;
+  border: 4px solid transparent;
+  background: rgb(var(--text-rgb) / 0.28);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  border-width: 3px;
+  background: rgb(var(--text-rgb) / 0.42);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:active {
+  border-width: 3px;
+  background: rgb(var(--text-rgb) / 0.55);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+
+/* ── Audience transitions ───────────────────────────────────────────
+   Two stacked layers while a transition plays: the outgoing slide below,
+   the incoming one animating in over it. Duration comes from the slide or
+   the service (--transition-ms). */
+.transition-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+.transition-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.transition-layer.is-incoming {
+  z-index: 1;
+  animation-duration: var(--transition-ms, 600ms);
+  animation-fill-mode: both;
+}
+
+.transition-stage.is-fade .transition-layer.is-incoming {
+  animation-name: slide-in-fade;
+  animation-timing-function: ease-in-out;
+}
+
+.transition-stage.is-slide .transition-layer.is-incoming {
+  animation-name: slide-in-push;
+  animation-timing-function: cubic-bezier(0.22, 0.8, 0.3, 1);
+}
+
+.transition-stage.is-slide .transition-layer.is-outgoing {
+  animation: slide-out-push var(--transition-ms, 600ms) cubic-bezier(0.22, 0.8, 0.3, 1) both;
+}
+
+.transition-stage.is-zoom .transition-layer.is-incoming {
+  animation-name: slide-in-zoom;
+  animation-timing-function: cubic-bezier(0.22, 0.8, 0.3, 1);
+}
+
+.transition-stage.is-zoom .transition-layer.is-outgoing {
+  animation: slide-out-zoom var(--transition-ms, 600ms) ease-in both;
+}
+
+@keyframes slide-in-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-push {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slide-out-push {
+  from { transform: translateX(0); }
+  to { transform: translateX(-30%); opacity: 0.4; }
+}
+
+@keyframes slide-in-zoom {
+  from { opacity: 0; transform: scale(0.88); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slide-out-zoom {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .transition-layer.is-incoming,
+  .transition-layer.is-outgoing {
+    animation-name: slide-in-fade !important;
+    animation-duration: 1ms !important;
+  }
+}
+
+/* Inspector: four transition tiles, icon over name; the active one is violet (selection). */
+.transition-picker {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.transition-option {
+  display: flex;
+  min-height: 60px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--rounded-sm);
+  color: var(--muted);
+  background: rgb(var(--wash-rgb) / 0.03);
+  font-size: var(--text-meta);
+  font-weight: 550;
+  transition: border-color 0.15s var(--ease-out), background 0.15s var(--ease-out), color 0.15s var(--ease-out);
+}
+
+.transition-option span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transition-option:hover {
+  border-color: var(--line-strong);
+  color: var(--text);
+  background: rgb(var(--wash-rgb) / 0.06);
+}
+
+.transition-option.is-active {
+  border-color: rgb(var(--violet-rgb) / 0.6);
+  color: var(--violet-text);
+  background: rgb(var(--violet-rgb) / 0.12);
+}
+
+.transition-option:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Settings tabs: the same rhythm as the main sidebar — 40px rows, 6px apart,
+   each icon on a small tinted tile in its tone. */
+body:not(.output-mode) .settings-nav {
+  gap: 6px;
+  padding: 10px;
+}
+
+body:not(.output-mode) .settings-nav-item {
+  min-height: 40px;
+  gap: 11px;
+  padding: 0 10px 0 6px;
+  font-weight: 550;
+}
+
+body:not(.output-mode) .settings-nav-item[data-tone] svg {
+  box-sizing: content-box;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  padding: 6px;
+  border: 1px solid rgb(var(--tone-rgb) / 0.3);
+  border-radius: 8px;
+  background: linear-gradient(160deg, rgb(var(--tone-rgb) / 0.24), rgb(var(--tone-rgb) / 0.06));
+}
+
+body:not(.output-mode) .settings-nav-item:hover {
+  background: rgb(var(--wash-rgb) / 0.05);
+}
+
+body:not(.output-mode) .settings-version {
+  margin-top: 8px;
+  padding: 12px 8px 4px;
+}
+
+/* Settings nav column wide enough for its longest label on one line. */
+@media (min-width: 981px) {
+  body:not(.output-mode) .settings-layout {
+    grid-template-columns: 224px minmax(0, 1fr);
+  }
+}
+
+body:not(.output-mode) .settings-nav-item {
+  white-space: nowrap;
+}
+
+/* Templates: the action sits under the copy so names and descriptions keep
+   the card's full width (they were squeezed to a word per line beside it). */
+.template-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 16px;
+}
+
+.template-card {
+  display: flex;
+  flex-direction: column;
+}
+
+body:not(.output-mode) .template-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+}
+
+.template-body h3 {
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.template-body p {
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+body:not(.output-mode) .template-body > .btn {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+/* ── Colour backgrounds ──────────────────────────────────────────────
+   Modern gradient fields for slides. Each keeps a dark (or, for sky and
+   blush, light) centre so projected text stays readable from the back. */
+.bg-ocean {
+  background:
+    radial-gradient(70% 90% at 85% 0%, rgba(56, 189, 248, 0.42), transparent 60%),
+    radial-gradient(80% 100% at 0% 100%, rgba(30, 64, 175, 0.55), transparent 62%),
+    linear-gradient(150deg, #0b2a4a, #06121f 70%);
+}
+
+.bg-emerald {
+  background:
+    radial-gradient(70% 90% at 80% 5%, rgba(52, 211, 153, 0.38), transparent 60%),
+    radial-gradient(80% 100% at 5% 100%, rgba(6, 95, 70, 0.6), transparent 62%),
+    linear-gradient(150deg, #06291f, #03120e 72%);
+}
+
+.bg-sunset {
+  background:
+    radial-gradient(90% 70% at 50% 110%, rgba(251, 146, 60, 0.7), transparent 60%),
+    radial-gradient(80% 80% at 90% 10%, rgba(236, 72, 153, 0.45), transparent 60%),
+    linear-gradient(180deg, #2a0f3d, #4a1338 55%, #6b1d2e);
+}
+
+.bg-nebula {
+  background:
+    radial-gradient(45% 55% at 25% 30%, rgba(168, 85, 247, 0.5), transparent 70%),
+    radial-gradient(40% 50% at 75% 65%, rgba(59, 130, 246, 0.45), transparent 70%),
+    radial-gradient(35% 40% at 65% 20%, rgba(236, 72, 153, 0.35), transparent 70%),
+    linear-gradient(160deg, #0f0a24, #05040d);
+}
+
+/* Night sky: a soft horizon glow under a faint field of stars. */
+.bg-midnight {
+  background:
+    radial-gradient(1px 1px at 12% 18%, rgba(255, 255, 255, 0.8), transparent 60%),
+    radial-gradient(1px 1px at 28% 62%, rgba(255, 255, 255, 0.6), transparent 60%),
+    radial-gradient(1.5px 1.5px at 44% 26%, rgba(255, 255, 255, 0.75), transparent 60%),
+    radial-gradient(1px 1px at 63% 12%, rgba(255, 255, 255, 0.65), transparent 60%),
+    radial-gradient(1.5px 1.5px at 78% 40%, rgba(255, 255, 255, 0.7), transparent 60%),
+    radial-gradient(1px 1px at 88% 22%, rgba(255, 255, 255, 0.55), transparent 60%),
+    radial-gradient(1px 1px at 55% 48%, rgba(255, 255, 255, 0.45), transparent 60%),
+    radial-gradient(120% 60% at 50% 115%, rgba(59, 130, 246, 0.4), transparent 60%),
+    linear-gradient(180deg, #030712, #0b1530 75%, #111f45);
+}
+
+.bg-crimson {
+  background:
+    radial-gradient(75% 90% at 80% 0%, rgba(248, 113, 113, 0.35), transparent 60%),
+    radial-gradient(80% 100% at 0% 100%, rgba(127, 29, 29, 0.7), transparent 62%),
+    linear-gradient(150deg, #3b0a12, #14040a 72%);
+}
+
+/* Vivid mesh: four colour pools blended over deep indigo. */
+.bg-mesh {
+  background:
+    radial-gradient(60% 70% at 0% 0%, rgba(34, 211, 238, 0.55), transparent 60%),
+    radial-gradient(60% 70% at 100% 0%, rgba(168, 85, 247, 0.55), transparent 60%),
+    radial-gradient(60% 70% at 100% 100%, rgba(244, 63, 94, 0.5), transparent 60%),
+    radial-gradient(60% 70% at 0% 100%, rgba(250, 204, 21, 0.35), transparent 60%),
+    linear-gradient(135deg, #1e1b4b, #0f0a24);
+}
+
+/* Stage spotlight: a soft beam from above onto black. */
+.bg-spotlight {
+  background:
+    radial-gradient(38% 70% at 50% -10%, rgba(255, 255, 255, 0.34), transparent 70%),
+    conic-gradient(from 180deg at 50% -20%, transparent 160deg, rgba(255, 255, 255, 0.08) 175deg, rgba(255, 255, 255, 0.12) 180deg, rgba(255, 255, 255, 0.08) 185deg, transparent 200deg),
+    linear-gradient(180deg, #121212, #000);
+}
+
+/* Lagoon: teal with soft diagonal light bands. */
+.bg-lagoon {
+  background:
+    repeating-linear-gradient(120deg, rgba(255, 255, 255, 0.035) 0 18%, transparent 18% 36%),
+    radial-gradient(80% 100% at 85% 10%, rgba(45, 212, 191, 0.45), transparent 60%),
+    linear-gradient(150deg, #064e4b, #031b1c 72%);
+}
+
+/* Royal: deep blue with a warm gold glow. */
+.bg-royal {
+  background:
+    radial-gradient(60% 80% at 80% 15%, rgba(250, 204, 21, 0.3), transparent 60%),
+    radial-gradient(80% 100% at 0% 100%, rgba(37, 99, 235, 0.55), transparent 62%),
+    linear-gradient(150deg, #172554, #070b1f 72%);
+}
+
+.bg-sky {
+  color: #0f172a;
+  background:
+    radial-gradient(70% 90% at 85% 0%, rgba(125, 211, 252, 0.75), transparent 60%),
+    radial-gradient(80% 100% at 0% 100%, rgba(191, 219, 254, 0.9), transparent 62%),
+    linear-gradient(160deg, #f0f9ff, #dbeafe);
+}
+
+.bg-blush {
+  color: #3b1020;
+  background:
+    radial-gradient(70% 90% at 85% 0%, rgba(253, 186, 116, 0.6), transparent 60%),
+    radial-gradient(80% 100% at 0% 100%, rgba(251, 207, 232, 0.9), transparent 62%),
+    linear-gradient(160deg, #fff7ed, #fce7f3);
+}
+
+/* ── Motion backgrounds ──────────────────────────────────────────────
+   Looping, slow and soft: colour fields that drift behind the text (a
+   stand-in for motion video). The moving layer is ::before so the base
+   gradient stays put. Thumbnails stay still; reduced motion stops all. */
+.bg-flow,
+.bg-ember,
+.bg-tide,
+.bg-stars,
+.bg-rays,
+.bg-breathe {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.bg-flow::before,
+.bg-ember::before,
+.bg-tide::before,
+.bg-stars::before,
+.bg-rays::before,
+.bg-breathe::before {
+  position: absolute;
+  z-index: 0;
+  inset: -25%;
+  content: '';
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.bg-flow {
+  background: linear-gradient(160deg, #140c33, #07051a);
+}
+
+.bg-flow::before {
+  background:
+    radial-gradient(35% 40% at 30% 35%, rgba(168, 85, 247, 0.65), transparent 70%),
+    radial-gradient(35% 40% at 70% 60%, rgba(59, 130, 246, 0.6), transparent 70%),
+    radial-gradient(30% 35% at 55% 25%, rgba(236, 72, 153, 0.45), transparent 70%);
+  animation: motion-drift 18s ease-in-out infinite alternate;
+}
+
+.bg-ember {
+  background: linear-gradient(180deg, #1c0a05, #0b0403);
+}
+
+.bg-ember::before {
+  background:
+    radial-gradient(40% 45% at 35% 70%, rgba(249, 115, 22, 0.6), transparent 70%),
+    radial-gradient(35% 40% at 70% 80%, rgba(220, 38, 38, 0.5), transparent 70%),
+    radial-gradient(30% 30% at 55% 40%, rgba(250, 204, 21, 0.3), transparent 70%);
+  animation: motion-drift 14s ease-in-out infinite alternate-reverse;
+}
+
+.bg-tide {
+  background: linear-gradient(170deg, #052e2b, #021312);
+}
+
+.bg-tide::before {
+  background:
+    repeating-linear-gradient(170deg, rgba(45, 212, 191, 0.16) 0 6%, transparent 6% 14%),
+    radial-gradient(60% 50% at 50% 80%, rgba(20, 184, 166, 0.45), transparent 70%);
+  animation: motion-tide 12s linear infinite;
+}
+
+.bg-stars {
+  background:
+    radial-gradient(120% 60% at 50% 120%, rgba(99, 102, 241, 0.45), transparent 60%),
+    linear-gradient(180deg, #02030a, #0b1230);
+}
+
+.bg-stars::before {
+  inset: 0;
+  background:
+    radial-gradient(1.5px 1.5px at 10% 20%, #fff, transparent 60%),
+    radial-gradient(1px 1px at 22% 70%, #fff, transparent 60%),
+    radial-gradient(2px 2px at 35% 35%, #fff, transparent 60%),
+    radial-gradient(1px 1px at 48% 12%, #fff, transparent 60%),
+    radial-gradient(1.5px 1.5px at 60% 55%, #fff, transparent 60%),
+    radial-gradient(1px 1px at 72% 28%, #fff, transparent 60%),
+    radial-gradient(2px 2px at 84% 62%, #fff, transparent 60%),
+    radial-gradient(1px 1px at 92% 18%, #fff, transparent 60%),
+    radial-gradient(1.5px 1.5px at 15% 50%, #fff, transparent 60%),
+    radial-gradient(1px 1px at 66% 82%, #fff, transparent 60%);
+  animation: motion-twinkle 4s ease-in-out infinite alternate;
+}
+
+.bg-rays {
+  background: radial-gradient(80% 80% at 50% 0%, #3b2a0b, #0c0904 70%);
+}
+
+.bg-rays::before {
+  inset: -60%;
+  background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(250, 204, 21, 0.12) 0deg 6deg, transparent 6deg 18deg);
+  mask-image: radial-gradient(circle at 50% 50%, #000 0%, transparent 60%);
+  animation: motion-spin 60s linear infinite;
+}
+
+.bg-breathe {
+  background: linear-gradient(170deg, #0a1633, #040814);
+}
+
+.bg-breathe::before {
+  inset: 0;
+  background: radial-gradient(45% 60% at 50% 50%, rgba(96, 165, 250, 0.55), transparent 70%);
+  animation: motion-breathe 6s ease-in-out infinite;
+}
+
+@keyframes motion-drift {
+  0% { transform: translate(-6%, -4%) rotate(0deg) scale(1); }
+  50% { transform: translate(5%, 3%) rotate(8deg) scale(1.08); }
+  100% { transform: translate(-3%, 6%) rotate(-6deg) scale(1.02); }
+}
+
+@keyframes motion-tide {
+  from { transform: translateY(0); }
+  to { transform: translateY(14%); }
+}
+
+@keyframes motion-twinkle {
+  from { opacity: 0.45; }
+  to { opacity: 1; }
+}
+
+@keyframes motion-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes motion-breathe {
+  0%, 100% { opacity: 0.55; transform: scale(0.92); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+/* Decorative elements with motion (templates set settings.motion). */
+.slide-element.motion-pulse > * { animation: motion-breathe 5s ease-in-out infinite; }
+.slide-element.motion-float { animation: motion-float 7s ease-in-out infinite; }
+.slide-element.motion-spin > * { animation: motion-spin 40s linear infinite; }
+.slide-element.motion-drift > * { animation: motion-drift 16s ease-in-out infinite alternate; }
+
+@keyframes motion-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -2.5%; }
+}
+
+/* Still in the slide strip and other small thumbnails, and for reduced motion. */
+.is-thumbnail::before,
+.is-thumbnail .has-motion,
+.is-thumbnail .has-motion > *,
+.preset-swatch::before {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-flow::before,
+  .bg-ember::before,
+  .bg-tide::before,
+  .bg-stars::before,
+  .bg-rays::before,
+  .bg-breathe::before,
+  .has-motion,
+  .has-motion > * {
+    animation: none !important;
+  }
+}
+
+/* Empty template video slot, editor only. */
+.slide-video-slot {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  border: 2px dashed rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(0, 0, 0, 0.18);
+  font-size: clamp(9px, 2.2cqw, 22px);
+  text-align: center;
+}
+
+.slide-video-slot strong {
+  font-weight: 650;
+}
+
+.slide-video-slot span {
+  opacity: 0.75;
+  font-size: 0.8em;
+}
+
+.slide-element.motion-sway { animation: motion-sway 9s ease-in-out infinite; }
+
+@keyframes motion-sway {
+  0%, 100% { translate: -1.2% 0; }
+  50% { translate: 1.2% -1%; }
+}
+
+.is-thumbnail .slide-element.motion-sway,
+.is-thumbnail .slide-element.motion-float {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-element.motion-sway,
+  .slide-element.motion-float {
+    animation: none !important;
+  }
+}
+
+/* ── Template picker (editor) ───────────────────────────────────────
+   A wide gallery: category tabs, then cards with a live preview and name. */
+.modal.template-picker-dialog {
+  width: min(1080px, calc(100vw - 48px));
+}
+
+.template-picker-tabs {
+  margin-bottom: 14px;
+}
+
+.template-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr));
+  gap: 12px;
+  max-height: min(64dvh, 640px);
+  overflow: auto;
+  padding: 2px 4px 4px 2px;
+}
+
+.template-picker-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--rounded-md);
+  background: rgb(var(--wash-rgb) / 0.03);
+  text-align: left;
+  transition: border-color 0.15s var(--ease-out), background 0.15s var(--ease-out), transform 0.15s var(--ease-out);
+}
+
+.template-picker-card:hover {
+  border-color: var(--line-strong);
+  background: rgb(var(--wash-rgb) / 0.06);
+  transform: translateY(-1px);
+}
+
+.template-picker-card:focus-visible {
+  outline: none;
+  border-color: var(--amber);
+  box-shadow: var(--focus-ring);
+}
+
+.template-picker-preview {
+  display: block;
+  overflow: hidden;
+  margin-bottom: 4px;
+  border-radius: var(--rounded-sm);
+  aspect-ratio: 16 / 9;
+}
+
+.template-picker-preview .slide-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.template-picker-name {
+  overflow: hidden;
+  padding: 0 4px;
+  color: var(--text);
+  font-size: var(--text-ui);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.template-picker-category {
+  padding: 0 4px;
+  color: var(--faint);
+  font-size: var(--text-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .template-picker-card:hover {
+    transform: none;
+  }
+}
+
+/* ── Live: inspector folded to speaker notes ─────────────────────────
+   The slide on screen, then its notes in large, readable type. Opening
+   the full inspector is one click away (and folds again next session). */
+.inspector-head .text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--text-meta);
+}
+
+.inspector-head .inspector-fold {
+  margin-left: auto;
+  margin-right: 8px;
+}
+
+.inspector-scroll.live-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.live-notes-slide {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--text-ui);
+  font-weight: 600;
+}
+
+/* Green only marks what is on the audience screen. */
+.live-notes-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px rgb(var(--green-rgb) / 0.6);
+}
+
+.live-notes-text {
+  width: 100%;
+  min-height: 180px;
+  flex: 1;
+  resize: none;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--rounded-md);
+  color: var(--text);
+  background: rgb(var(--ink-rgb) / 0.35);
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.live-notes-text:focus {
+  outline: none;
+  border-color: var(--line-strong);
+  box-shadow: var(--focus-ring);
+}
+
+.live-notes-text::placeholder {
+  color: var(--faint);
+  font-size: var(--text-ui);
+}
+
+.live-notes-hint {
+  margin: 0;
+  color: var(--faint);
+  font-size: var(--text-micro);
+}
+
+/* Slide strip: the slide on the audience screen gets the same 3px green frame
+   and glow as the live preview, plus a LIVE tag so it is never colour alone. */
+body:not(.output-mode) .slide-thumb.is-live,
+body:not(.output-mode) .slide-thumb.is-active.is-live {
+  padding: 1px;
+  border: 3px solid rgb(var(--green-rgb));
+  box-shadow: 0 0 14px 2px rgb(var(--green-rgb) / 0.32);
+}
+
+.slide-thumb-canvas {
+  position: relative;
+}
+
+.slide-thumb-live {
+  position: absolute;
+  z-index: 5;
+  top: 5px;
+  left: 5px;
+  padding: 1px 6px;
+  border-radius: var(--rounded-pill);
+  color: #062312;
+  background: rgb(var(--green-rgb));
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+/* Inspector field titles: a small muted icon before each title. */
+.field-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.field-title > svg {
+  flex: 0 0 auto;
+  color: var(--faint);
+}
+
+.field:focus-within .field-title > svg {
+  color: var(--text-2);
+}
+
+/* Field rows lay their first span out with space-between (for a value on the
+   right); a title keeps its icon and text together on the left. */
+body:not(.output-mode) .field > .field-title,
+body:not(.output-mode) .inspector-label > .field-title {
+  display: inline-flex;
+  justify-content: flex-start;
+  gap: 7px;
+}
+
+/* ── Rundown (Sequência do culto) ────────────────────────────────────
+   One left edge for everything: section chevrons, item icons and slide
+   numbers line up. Items carry their content type's tone; the selected
+   item is violet (selection), the live slide green with a dot. */
+body:not(.output-mode) .rundown .rundown-identity h1 {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body:not(.output-mode) .rundown .save-state {
+  display: inline-grid;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: var(--muted);
+  background: rgb(var(--wash-rgb) / 0.05);
+}
+
+body:not(.output-mode) .rundown .rundown-section + .rundown-section {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+
+body:not(.output-mode) .rundown .section-collapse {
+  gap: 8px;
+  padding-left: 8px;
+  letter-spacing: 0.08em;
+}
+
+body:not(.output-mode) .rundown .section-collapse > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body:not(.output-mode) .rundown .rundown-count {
+  display: inline-grid;
+  min-width: 20px;
+  height: 18px;
+  margin-left: auto;
+  padding: 0 6px;
+  place-items: center;
+  border-radius: var(--rounded-pill);
+  color: var(--muted);
+  background: rgb(var(--wash-rgb) / 0.07);
+  font-size: var(--text-micro);
+  font-weight: 650;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+body:not(.output-mode) .rundown .rundown-item {
+  gap: 10px;
+  min-height: 48px;
+  padding: 6px 6px 6px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--rounded-md);
+  transition: background 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
+}
+
+body:not(.output-mode) .rundown .rundown-item:hover {
+  background: rgb(var(--wash-rgb) / 0.045);
+}
+
+body:not(.output-mode) .rundown .rundown-item-wrap.is-selected .rundown-item {
+  border-color: rgb(var(--violet-rgb) / 0.35);
+  background: rgb(var(--violet-rgb) / 0.1);
+}
+
+body:not(.output-mode) .rundown .rundown-type.tone-chip {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border-radius: 9px;
+}
+
+body:not(.output-mode) .rundown .rundown-copy strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+body:not(.output-mode) .rundown .rundown-copy > span {
+  color: var(--faint);
+  font-size: var(--text-micro);
+}
+
+/* Slides sit under the item title: 8px item padding + 30px icon + 10px gap. */
+body:not(.output-mode) .rundown .rundown-slides {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 4px 6px 8px 48px;
+  padding-left: 10px;
+  border-left: 1px solid var(--line);
+}
+
+body:not(.output-mode) .rundown .rundown-slide {
+  display: flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px 0 6px;
+  border: 1px solid transparent;
+  border-radius: var(--rounded-sm);
+  color: var(--muted);
+  font-size: var(--text-meta);
+  text-align: left;
+}
+
+body:not(.output-mode) .rundown .rundown-slide > span:first-child {
+  display: inline-grid;
+  min-width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 6px;
+  color: var(--faint);
+  background: rgb(var(--wash-rgb) / 0.06);
+  font-size: var(--text-micro);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+body:not(.output-mode) .rundown .rundown-slide > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body:not(.output-mode) .rundown .rundown-slide:hover {
+  color: var(--text);
+  background: rgb(var(--wash-rgb) / 0.05);
+}
+
+body:not(.output-mode) .rundown .rundown-slide.is-active {
+  border-color: rgb(var(--violet-rgb) / 0.35);
+  color: var(--text);
+  background: rgb(var(--violet-rgb) / 0.12);
+}
+
+body:not(.output-mode) .rundown .rundown-slide.is-active > span:first-child {
+  color: var(--violet-text);
+  background: rgb(var(--violet-rgb) / 0.2);
+}
+
+/* On the audience screen now: green ring and a dot after the name. */
+body:not(.output-mode) .rundown .rundown-slide.is-live {
+  border-color: rgb(var(--green-rgb) / 0.7);
+  box-shadow: 0 0 10px rgb(var(--green-rgb) / 0.18);
+}
+
+body:not(.output-mode) .rundown .rundown-slide.is-live::after {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px rgb(var(--green-rgb) / 0.7);
+  content: '';
+}
+
+body:not(.output-mode) .rundown .rundown-slide.is-live > span:first-child {
+  color: #062312;
+  background: var(--green);
+}
+
+body:not(.output-mode) .rundown .rundown-add-section {
+  display: flex;
+  width: calc(100% - 12px);
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 12px 6px 6px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--rounded-md);
+  color: var(--muted);
+  background: none;
+  font-size: var(--text-meta);
+  font-weight: 550;
+  transition: border-color 0.15s var(--ease-out), color 0.15s var(--ease-out), background 0.15s var(--ease-out);
+}
+
+body:not(.output-mode) .rundown .rundown-add-section:hover {
+  border-color: rgb(var(--violet-rgb) / 0.5);
+  color: var(--text);
+  background: rgb(var(--violet-rgb) / 0.06);
+}
+
+/* Identity: back, then the service title with its status underneath, then the
+   saved tick — the title keeps the full width instead of "C.". */
+body:not(.output-mode) .rundown .rundown-identity {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'back title save'
+    'back status save';
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 3px;
+}
+
+body:not(.output-mode) .rundown .rundown-identity > .icon-btn {
+  grid-area: back;
+}
+
+body:not(.output-mode) .rundown .rundown-identity h1 {
+  grid-area: title;
+  font-size: var(--text-body);
+  line-height: 1.25;
+}
+
+body:not(.output-mode) .rundown .rundown-identity .status-chip {
+  grid-area: status;
+  justify-self: start;
+}
+
+body:not(.output-mode) .rundown .rundown-identity .save-state {
+  grid-area: save;
+}
+
+body:not(.output-mode) .rundown .save-state svg {
+  color: var(--muted);
+}
+
+body:not(.output-mode) .rundown .section-collapse {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Section actions float over the end of the header on hover (mouse), so the
+   item count can sit at the right edge; on touch they stay in the row. */
+@media (pointer: fine) {
+  body:not(.output-mode) .rundown .rundown-section-head {
+    position: relative;
+  }
+
+  body:not(.output-mode) .rundown .section-actions {
+    position: absolute;
+    top: 50%;
+    right: 2px;
+    padding-left: 14px;
+    border-radius: var(--rounded-xs);
+    background: linear-gradient(90deg, transparent, rgb(var(--glass-tint-rgb)) 14px);
+    transform: translateY(-50%);
+  }
+
+  body:not(.output-mode) .rundown .rundown-section-head:hover .rundown-count,
+  body:not(.output-mode) .rundown .rundown-section-head:focus-within .rundown-count {
+    visibility: hidden;
+  }
+}
+
+body:not(.output-mode) .rundown .rundown-count {
+  margin-right: 4px;
+}
+
+/* ── Top bar, vibrant ────────────────────────────────────────────────
+   The current screen's tone washes in from the left behind its icon and
+   title, and a thin tone-to-violet-to-rose line runs along the bottom. */
+body:not(.output-mode) .topbar {
+  position: relative;
+  background:
+    radial-gradient(60% 160% at 0% 50%, rgb(var(--tone-rgb, var(--wash-rgb)) / 0.22), transparent 70%),
+    radial-gradient(40% 140% at 100% 0%, rgb(var(--violet-rgb) / 0.12), transparent 70%),
+    rgb(var(--chrome-rgb) / calc(var(--glass-opacity) * 0.72));
+  transition: background 0.35s var(--ease-out);
+}
+
+body:not(.output-mode) .topbar::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(90deg, rgb(var(--tone-rgb, var(--wash-rgb)) / 0.9), rgb(var(--violet-rgb) / 0.7) 45%, rgb(var(--tone-rose-rgb) / 0.55) 80%, transparent);
+  content: '';
+  pointer-events: none;
+}
+
+body:not(.output-mode) .topbar-breadcrumb {
+  gap: 10px;
+}
+
+.topbar-screen-icon.tone-chip {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border-radius: 9px;
+  box-shadow: inset 0 1px 0 rgb(var(--wash-rgb) / 0.14), 0 4px 14px rgb(var(--tone-rgb, var(--wash-rgb)) / 0.28);
+}
+
+.topbar-title-stack {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+body:not(.output-mode) .topbar-title-stack strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar-title-stack small {
+  color: var(--muted);
+  font-size: var(--text-micro);
+  font-weight: 550;
+  text-transform: capitalize;
+}
+
+/* Search: a brighter field that lights in the screen's tone. */
+body:not(.output-mode) .command-trigger {
+  border-color: rgb(var(--wash-rgb) / 0.14);
+  color: var(--text-2);
+  background: rgb(var(--wash-rgb) / 0.06);
+  box-shadow: inset 0 1px 0 rgb(var(--wash-rgb) / 0.06);
+}
+
+body:not(.output-mode) .command-trigger:hover,
+body:not(.output-mode) .command-trigger:focus-visible {
+  border-color: rgb(var(--tone-rgb, var(--violet-rgb)) / 0.6);
+  color: var(--text);
+  background: rgb(var(--tone-rgb, var(--violet-rgb)) / 0.1);
+  box-shadow: 0 0 0 3px rgb(var(--tone-rgb, var(--violet-rgb)) / 0.14);
+}
+
+body:not(.output-mode) .topbar .command-trigger svg {
+  color: rgb(var(--tone-rgb, var(--wash-rgb)));
+}
+
+body:not(.output-mode) .command-trigger kbd {
+  border-color: rgb(var(--wash-rgb) / 0.16);
+  color: var(--muted);
+  background: rgb(var(--wash-rgb) / 0.06);
+}
+
+/* Clock: a readable pill with tabular figures. */
+body:not(.output-mode) .topbar-clock {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--rounded-pill);
+  color: var(--text-2);
+  background: rgb(var(--wash-rgb) / 0.06);
+  font-weight: 600;
+}
+
+body:not(.output-mode) .topbar-clock svg {
+  color: rgb(var(--tone-rgb, var(--wash-rgb)));
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  body:not(.output-mode) .topbar {
+    background: rgb(var(--chrome-rgb));
+  }
+}
+
+/* The old breadcrumb rule fades separator spans to 45%; the icon and the
+   title stack are content, not separators. */
+body:not(.output-mode) .topbar-breadcrumb > .topbar-screen-icon,
+body:not(.output-mode) .topbar-breadcrumb > .topbar-title-stack {
+  opacity: 1;
+  color: inherit;
+}
+
+body:not(.output-mode) .topbar-breadcrumb > .topbar-screen-icon {
+  color: rgb(var(--tone-rgb, var(--wash-rgb)));
+}
+
+body:not(.output-mode) .topbar {
+  background:
+    radial-gradient(55% 220% at 0% 50%, rgb(var(--tone-rgb, var(--wash-rgb)) / 0.34), transparent 72%),
+    radial-gradient(45% 200% at 100% 50%, rgb(var(--violet-rgb) / 0.2), transparent 70%),
+    linear-gradient(90deg, rgb(var(--tone-rgb, var(--wash-rgb)) / 0.08), rgb(var(--tone-rose-rgb) / 0.06)),
+    rgb(var(--chrome-rgb) / calc(var(--glass-opacity) * 0.72));
+}
+
+body:not(.output-mode) .topbar::after {
+  height: 2px;
+  bottom: -1px;
+  opacity: 0.85;
+}
+
+.topbar-title-stack small {
+  text-transform: none;
+}
+
+/* ── Bible reference pill on slides ─────────────────────────────────
+   Readable from the back of the room: larger type, full opacity, a warm
+   filled pill with a bright edge. The secondary translation stays quieter. */
+.slide-canvas .scripture-block .translation-tag {
+  gap: 0.5em;
+  padding: 0.42em 1.05em;
+  border: 1.5px solid rgb(var(--tone-amber-rgb) / 0.75);
+  color: #fff6e6;
+  background: linear-gradient(180deg, rgb(var(--tone-amber-rgb) / 0.34), rgb(var(--tone-amber-rgb) / 0.18));
+  box-shadow: 0 0.25em 1.2em rgb(0 0 0 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.18);
+  font-size: clamp(6px, 1.12cqw, 22px);
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  opacity: 1;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.slide-canvas .scripture-secondary .translation-tag {
+  border-color: rgb(255 255 255 / 0.35);
+  color: rgb(255 255 255 / 0.85);
+  background: rgb(255 255 255 / 0.08);
+  font-size: clamp(5px, 0.92cqw, 18px);
+}
+
+.slide-canvas.tone-light .scripture-block .translation-tag {
+  border-color: rgb(180 110 20 / 0.7);
+  color: #4a2a00;
+  background: rgb(var(--tone-amber-rgb) / 0.25);
+  box-shadow: none;
+}
+
+/* Top bar wash on its own layer, faded in from the left edge so there is no
+   hard block against the sidebar card; content sits above it. */
+body:not(.output-mode) .topbar {
+  background: rgb(var(--chrome-rgb) / calc(var(--glass-opacity) * 0.72));
+}
+
+body:not(.output-mode) .topbar::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background:
+    radial-gradient(38% 240% at 14% 50%, rgb(var(--tone-rgb, var(--wash-rgb)) / 0.3), transparent 72%),
+    radial-gradient(40% 220% at 96% 50%, rgb(var(--violet-rgb) / 0.16), transparent 70%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 120px, #000 calc(100% - 60px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 120px, #000 calc(100% - 60px), transparent 100%);
+  content: '';
+  pointer-events: none;
+}
+
+body:not(.output-mode) .topbar > * {
+  position: relative;
+  z-index: 1;
+}
+
+body:not(.output-mode) .topbar::after {
+  background: linear-gradient(90deg, transparent, rgb(var(--tone-rgb, var(--wash-rgb)) / 0.85) 12%, rgb(var(--violet-rgb) / 0.7) 50%, rgb(var(--tone-rose-rgb) / 0.5) 85%, transparent);
+}
+
+/* ── Top bar on large desktops ──────────────────────────────────────
+   More room: a taller bar, larger controls and wider gaps from 1440px,
+   and a little more again from 1800px. */
+@media (min-width: 1440px) {
+  :root {
+    --topbar-h: 64px;
+  }
+
+  body:not(.output-mode) .topbar {
+    gap: 24px;
+    padding: 0 22px 0 24px;
+  }
+
+  body:not(.output-mode) .topbar-breadcrumb {
+    gap: 12px;
+  }
+
+  body:not(.output-mode) .topbar-breadcrumb strong {
+    font-size: 16px;
+  }
+
+  .topbar-title-stack small {
+    font-size: var(--text-meta);
+  }
+
+  .topbar-screen-icon.tone-chip {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+    border-radius: 10px;
+  }
+
+  body:not(.output-mode) .command-trigger {
+    width: 380px;
+    flex-basis: 380px;
+    height: 38px;
+    min-height: 38px;
+    gap: 10px;
+    padding: 0 10px 0 14px;
+    font-size: var(--text-body);
+  }
+
+  body:not(.output-mode) .command-trigger kbd {
+    padding: 3px 7px;
+    font-size: var(--text-meta);
+  }
+
+  body:not(.output-mode) .topbar-actions {
+    gap: 12px;
+  }
+
+  body:not(.output-mode) .topbar-status,
+  body:not(.output-mode) .topbar-clock {
+    height: 34px;
+    min-height: 34px;
+    font-size: var(--text-ui);
+  }
+
+  body:not(.output-mode) .topbar-clock {
+    padding: 0 14px;
+  }
+
+  .topbar-divider {
+    height: 22px;
+    margin: 0 2px;
+  }
+
+  .topbar-language-trigger {
+    height: 36px;
+    gap: 8px;
+    padding: 0 12px 0 8px;
+  }
+
+  .topbar-language-code {
+    font-size: var(--text-ui);
+  }
+
+  body:not(.output-mode) .avatar {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+@media (min-width: 1800px) {
+  :root {
+    --topbar-h: 68px;
+  }
+
+  body:not(.output-mode) .command-trigger {
+    width: 460px;
+    flex-basis: 460px;
+    height: 40px;
+    min-height: 40px;
+  }
+
+  body:not(.output-mode) .topbar-actions {
+    gap: 14px;
+  }
+
+  body:not(.output-mode) .avatar {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* ── Full-width top band ────────────────────────────────────────────
+   The top bar's background runs across the whole window, behind the
+   floating sidebar card, so there is no corner where the bar stops at the
+   menu. The bar itself is transparent and only carries its controls. */
+body:not(.output-mode) .app-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+body:not(.output-mode) .app-shell::before {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: var(--topbar-h);
+  background:
+    linear-gradient(90deg, rgb(var(--tone-blue-rgb) / 0.8), rgb(var(--violet-rgb) / 0.7) 45%, rgb(var(--tone-rose-rgb) / 0.5) 85%, transparent) bottom / 100% 2px no-repeat,
+    radial-gradient(30% 260% at calc(var(--sidebar-w) + 10%) 50%, rgb(var(--violet-rgb) / 0.26), transparent 72%),
+    radial-gradient(35% 240% at 96% 50%, rgb(var(--tone-rose-rgb) / 0.12), transparent 70%),
+    rgb(var(--chrome-rgb) / calc(var(--glass-opacity) * 0.78));
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  content: '';
+  pointer-events: none;
+}
+
+body:not(.output-mode) .app-shell > .sidebar {
+  position: relative;
+  z-index: 2;
+}
+
+body:not(.output-mode) .app-shell > .app-main {
+  position: relative;
+  z-index: 1;
+}
+
+body:not(.output-mode) .topbar,
+body.window-inactive:not(.output-mode) .topbar {
+  border-bottom-color: transparent;
+  background: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* The screen's tone still glows behind its own icon and title. */
+body:not(.output-mode) .topbar::before {
+  background: radial-gradient(28% 240% at 6% 50%, rgb(var(--tone-rgb, var(--wash-rgb)) / 0.3), transparent 72%);
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+body:not(.output-mode) .topbar::after {
+  display: none;
+}
+
+body.window-inactive:not(.output-mode) .app-shell::before {
+  background:
+    linear-gradient(90deg, rgb(var(--wash-rgb) / 0.12), rgb(var(--wash-rgb) / 0.06)) bottom / 100% 1px no-repeat,
+    rgb(var(--chrome-rgb) / calc(var(--glass-opacity) * 0.7));
+}
+
+/* The screen tone glows in the band itself, centred near the menu's edge so
+   it continues behind the sidebar card instead of starting at the bar. */
+[data-band-tone='blue'] { --band-rgb: var(--tone-blue-rgb); }
+[data-band-tone='indigo'] { --band-rgb: var(--tone-indigo-rgb); }
+[data-band-tone='orange'] { --band-rgb: var(--tone-orange-rgb); }
+[data-band-tone='amber'] { --band-rgb: var(--tone-amber-rgb); }
+[data-band-tone='rose'] { --band-rgb: var(--tone-rose-rgb); }
+[data-band-tone='cyan'] { --band-rgb: var(--tone-cyan-rgb); }
+[data-band-tone='violet'] { --band-rgb: var(--tone-violet-rgb); }
+[data-band-tone='wash'] { --band-rgb: var(--wash-rgb); }
+
+body:not(.output-mode) .app-shell::before {
+  background:
+    linear-gradient(90deg, rgb(var(--band-rgb, var(--wash-rgb)) / 0.85), rgb(var(--violet-rgb) / 0.7) 45%, rgb(var(--tone-rose-rgb) / 0.5) 85%, transparent) bottom / 100% 2px no-repeat,
+    radial-gradient(34% 300% at var(--sidebar-w) 50%, rgb(var(--band-rgb, var(--wash-rgb)) / 0.32), transparent 72%),
+    radial-gradient(35% 240% at 96% 50%, rgb(var(--tone-rose-rgb) / 0.12), transparent 70%),
+    rgb(var(--chrome-rgb) / calc(var(--glass-opacity) * 0.78));
+}
+
+body:not(.output-mode) .topbar::before {
+  display: none;
+}
+
+/* Top bar right cluster: more air between status, clock, language and avatar. */
+body:not(.output-mode) .topbar-actions {
+  gap: 10px;
+}
+
+.topbar-divider {
+  margin: 0 4px;
+}
+
+@media (min-width: 1200px) {
+  body:not(.output-mode) .topbar-actions {
+    gap: 16px;
+  }
+
+  .topbar-divider {
+    margin: 0 6px;
+  }
+
+  body:not(.output-mode) .topbar-clock {
+    height: 36px;
+    min-height: 36px;
+    padding: 0 14px;
+    gap: 8px;
+  }
+
+  .topbar-language-trigger {
+    height: 38px;
+    padding: 0 12px 0 8px;
+  }
+
+  body:not(.output-mode) .avatar {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (min-width: 1440px) {
+  body:not(.output-mode) .topbar-actions {
+    gap: 20px;
+  }
+
+  .topbar-divider {
+    margin: 0 8px;
+  }
+
+  body:not(.output-mode) .topbar-clock {
+    height: 38px;
+    min-height: 38px;
+    padding: 0 16px;
+  }
+
+  .topbar-language-trigger {
+    height: 40px;
+  }
+
+  body:not(.output-mode) .avatar {
+    width: 42px;
+    height: 42px;
+  }
+}
+
+@media (min-width: 1800px) {
+  body:not(.output-mode) .topbar-actions {
+    gap: 24px;
+  }
+
+  body:not(.output-mode) .avatar {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* ── Rundown header card ────────────────────────────────────────────
+   The service's identity sits in its own tinted card (Services tone),
+   separated from the rundown below: back button, title, then status and
+   date/time on one line, with the saved tick on the right. */
+body:not(.output-mode) .rundown .rundown-identity {
+  grid-template-areas:
+    'back title save'
+    'back meta save';
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 6px;
+  margin: 10px 10px 6px;
+  padding: 12px 12px 12px 10px;
+  border: 1px solid rgb(var(--tone-indigo-rgb) / 0.28);
+  border-radius: var(--rounded-lg);
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgb(var(--tone-indigo-rgb) / 0.22), transparent 60%),
+    linear-gradient(160deg, rgb(var(--wash-rgb) / 0.05), rgb(var(--wash-rgb) / 0.015));
+  box-shadow: inset 0 1px 0 rgb(var(--wash-rgb) / 0.08), 0 8px 22px rgb(0 0 0 / 0.22);
+}
+
+body:not(.output-mode) .rundown .rundown-back {
+  grid-area: back;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--text-2);
+  background: rgb(var(--wash-rgb) / 0.05);
+}
+
+body:not(.output-mode) .rundown .rundown-back:hover {
+  border-color: var(--line-strong);
+  color: var(--text);
+  background: rgb(var(--wash-rgb) / 0.1);
+}
+
+body:not(.output-mode) .rundown .rundown-identity h1 {
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.rundown-identity-meta {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  grid-area: meta;
+}
+
+body:not(.output-mode) .rundown .rundown-identity .status-chip {
+  grid-area: auto;
+}
+
+.rundown-identity-when {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-micro);
+  font-weight: 550;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rundown-identity-when svg {
+  flex: 0 0 auto;
+  color: rgb(var(--tone-indigo-rgb));
+}
+
+body:not(.output-mode) .rundown .rundown-identity .save-state {
+  align-self: start;
+  width: 30px;
+  height: 30px;
+  flex-basis: 30px;
+  border: 1px solid var(--line);
+}
+
+/* Breathing room and a hairline between the card and the rundown heading. */
+body:not(.output-mode) .rundown .rundown-head {
+  margin-top: 4px;
+  border-top: 0;
+}
+
+/* Narrow rundown: buttons on top, the title and its details get full width. */
+body:not(.output-mode) .rundown {
+  container-type: inline-size;
+  container-name: rundown;
+}
+
+@container rundown (max-width: 260px) {
+  body:not(.output-mode) .rundown .rundown-identity {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'back . save'
+      'title title title'
+      'meta meta meta';
+    row-gap: 8px;
+  }
+
+  body:not(.output-mode) .rundown .rundown-identity h1 {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  body:not(.output-mode) .rundown .rundown-identity .save-state {
+    align-self: center;
+  }
+}
+
+/* Status, then date and time on their own line: never side by side and wrapping. */
+.rundown-identity-meta {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.rundown-identity-when {
+  max-width: 100%;
+}
+
+/* No saved tick in the rundown card (the top bar already says "Saved locally"). */
+body:not(.output-mode) .rundown .rundown-identity {
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    'back title'
+    'back meta';
+}
+
+@container rundown (max-width: 260px) {
+  body:not(.output-mode) .rundown .rundown-identity {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'back'
+      'title'
+      'meta';
+  }
+
+  body:not(.output-mode) .rundown .rundown-back {
+    justify-self: start;
+  }
+}
+
+@container rundown (max-width: 260px) {
+  body:not(.output-mode) .rundown .rundown-identity {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'back title'
+      'meta meta';
+    row-gap: 10px;
+  }
+}
+
+/* Rundown header, centred: the back button sits in the top-left corner; the
+   title, status and date are centred and a size larger. */
+body:not(.output-mode) .rundown .rundown-identity,
+body:not(.output-mode) .rundown .rundown-identity:is(*) {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 14px 16px;
+  text-align: center;
+}
+
+@container rundown (max-width: 260px) {
+  body:not(.output-mode) .rundown .rundown-identity {
+    display: flex;
+    padding-top: 16px;
+  }
+}
+
+body:not(.output-mode) .rundown .rundown-back {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 32px;
+  height: 32px;
+}
+
+body:not(.output-mode) .rundown .rundown-identity h1 {
+  max-width: 100%;
+  padding: 0 34px;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  text-wrap: balance;
+}
+
+body:not(.output-mode) .rundown .rundown-identity-meta {
+  align-items: center;
+  gap: 7px;
+}
+
+body:not(.output-mode) .rundown .rundown-identity .status-chip {
+  padding: 3px 12px;
+  font-size: var(--text-meta);
+}
+
+body:not(.output-mode) .rundown .rundown-identity-when {
+  gap: 6px;
+  font-size: var(--text-meta);
+}
+
+body:not(.output-mode) .rundown .rundown-identity-when svg {
+  width: 14px;
+  height: 14px;
+}
+
+body:not(.output-mode) .rundown .rundown-identity h1 {
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+@container rundown (max-width: 260px) {
+  body:not(.output-mode) .rundown .rundown-identity {
+    padding-top: 50px;
+  }
+
+  body:not(.output-mode) .rundown .rundown-identity h1 {
+    padding: 0 4px;
+  }
+}
+
+/* Back button shares the title's row: no empty band above the title. */
+body:not(.output-mode) .rundown .rundown-identity {
+  padding: 12px 12px 14px;
+}
+
+body:not(.output-mode) .rundown .rundown-back {
+  top: 12px;
+  left: 10px;
+}
+
+body:not(.output-mode) .rundown .rundown-identity h1 {
+  display: -webkit-box;
+  min-height: 32px;
+  padding: 5px 38px 0;
+}
+
+@container rundown (max-width: 260px) {
+  body:not(.output-mode) .rundown .rundown-identity {
+    padding-top: 12px;
+  }
+
+  body:not(.output-mode) .rundown .rundown-identity h1 {
+    padding: 5px 36px 0;
+  }
+}
+
+/* Rundown selection matches the sidebar's selected item: a light glass pill
+   with an inset highlight and hairline, a soft drop shadow and a bright
+   2px bar on the left. The live slide keeps its green frame. */
+body:not(.output-mode) .rundown .rundown-item-wrap.is-selected .rundown-item,
+body:not(.output-mode) .rundown .rundown-slide.is-active:not(.is-live) {
+  position: relative;
+  border-color: transparent;
+  color: var(--text);
+  background: linear-gradient(180deg, rgb(var(--wash-rgb) / 0.2), rgb(var(--wash-rgb) / 0.1));
+  box-shadow:
+    inset 0 1px 0 rgb(var(--wash-rgb) / 0.28),
+    inset 0 0 0 1px rgb(var(--wash-rgb) / 0.16),
+    0 6px 18px rgb(0 0 0 / 0.25);
+}
+
+body:not(.output-mode) .rundown .rundown-item-wrap.is-selected .rundown-item {
+  border-radius: 12px;
+}
+
+body:not(.output-mode) .rundown .rundown-item-wrap.is-selected .rundown-item::before,
+body:not(.output-mode) .rundown .rundown-slide.is-active:not(.is-live)::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 2px;
+  height: 19px;
+  border-radius: 0 2px 2px 0;
+  background: #fff;
+  box-shadow: 0 0 8px rgb(255 255 255 / 0.5);
+  content: '';
+  transform: translateY(-50%);
+}
+
+body:not(.output-mode) .rundown .rundown-slide.is-active:not(.is-live)::before {
+  height: 14px;
+}
+
+body:not(.output-mode) .rundown .rundown-slide.is-active:not(.is-live) > span:first-child {
+  color: var(--text);
+  background: rgb(var(--wash-rgb) / 0.18);
+}
+
+/* Bible reference on slides, restyled: neutral frosted glass (no amber),
+   the translation as a small solid white tag, then the reference in clear
+   white type. Reads at a distance without competing with the verse. */
+.slide-canvas .scripture-block .translation-tag {
+  gap: 0.6em;
+  padding: 0.3em 0.95em 0.3em 0.32em;
+  border: 1px solid rgb(255 255 255 / 0.24);
+  color: #fff;
+  background: rgb(255 255 255 / 0.1);
+  box-shadow: 0 0.3em 1.4em rgb(0 0 0 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.14);
+  font-size: clamp(6px, 1.05cqw, 21px);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  backdrop-filter: blur(10px) saturate(1.2);
+}
+
+.translation-tag-code {
+  padding: 0.18em 0.55em;
+  border-radius: var(--rounded-pill);
+  color: #111;
+  background: #fff;
+  font-size: 0.78em;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-shadow: none;
+}
+
+.translation-tag-ref {
+  font-weight: 650;
+}
+
+.slide-canvas .scripture-secondary .translation-tag {
+  border-color: rgb(255 255 255 / 0.16);
+  background: rgb(255 255 255 / 0.06);
+  font-size: clamp(5px, 0.88cqw, 17px);
+}
+
+.slide-canvas .scripture-secondary .translation-tag-code {
+  color: #fff;
+  background: rgb(255 255 255 / 0.22);
+}
+
+.slide-canvas.tone-light .scripture-block .translation-tag {
+  border-color: rgb(0 0 0 / 0.16);
+  color: #111;
+  background: rgb(255 255 255 / 0.55);
+  box-shadow: 0 0.2em 0.8em rgb(0 0 0 / 0.1);
+}
+
+.slide-canvas.tone-light .translation-tag-code {
+  color: #fff;
+  background: #111;
+}
+
+.slide-canvas .scripture-block .translation-tag {
+  margin-bottom: 0.35em;
+  font-size: clamp(7px, 1.5cqw, 30px);
+}
+
+.slide-canvas .scripture-secondary .translation-tag {
+  font-size: clamp(6px, 1.2cqw, 24px);
+}
+
+/* Slides under an item: a small indent with the guide line, so verse names
+   get the width instead of sitting far to the right under the title. */
+body:not(.output-mode) .rundown .rundown-slides {
+  margin: 4px 4px 8px 18px;
+  padding-left: 8px;
+}
+
+/* Rundown slide rows: the reference (chapter and verses) bold and bright,
+   the translations after it small and muted. */
+body:not(.output-mode) .rundown .rundown-slide > .rundown-slide-label {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 6px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.rundown-slide-label strong {
+  flex: 0 0 auto;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--text);
+  font-size: var(--text-ui);
+  font-weight: 650;
+  letter-spacing: -0.005em;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
+.rundown-slide-label small {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--faint);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+}
+
+body:not(.output-mode) .rundown .rundown-slide {
+  min-height: 34px;
+}
+
+body:not(.output-mode) .rundown .rundown-slide.is-active .rundown-slide-label small,
+body:not(.output-mode) .rundown .rundown-slide.is-live .rundown-slide-label small {
+  color: var(--muted);
+}
+
+/* Verse numbers in rundown verse rows: underlined in the selection accent. */
+.reference-verses {
+  text-decoration: underline;
+  text-decoration-color: rgb(var(--violet-rgb) / 0.85);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.rundown-slide.is-live .reference-verses {
+  text-decoration-color: rgb(var(--green-rgb) / 0.9);
 }

@@ -19,22 +19,13 @@ import {
   type BrandingError,
   type BrandingField,
 } from '../../utils/branding'
-import { LOGO_ACCEPT, processLogoFile, type LogoError, type ProcessedLogo } from '../../utils/logo'
+import { LOGO_ACCEPT, LOGO_ERROR_KEYS, processLogoFile, type LogoError, type ProcessedLogo } from '../../utils/logo'
 import { makeSlide } from '../../utils/slides'
 import { BrandMark } from '../BrandMark'
 import { ColorField } from '../ColorField'
 import { ConfirmDialog } from '../Modal'
 import { SlideRenderer } from '../SlideRenderer'
 
-const LOGO_ERROR_KEYS: Record<LogoError, string> = {
-  empty: 'branding.logoError.empty',
-  'too-large': 'branding.logoError.tooLarge',
-  'unsupported-type': 'branding.logoError.type',
-  mismatch: 'branding.logoError.mismatch',
-  corrupt: 'branding.logoError.corrupt',
-  'svg-invalid': 'branding.logoError.svg',
-  'read-failed': 'branding.logoError.read',
-}
 
 function errorText(t: (key: string, vars?: Record<string, string | number>) => string, field: BrandingField, error: BrandingError) {
   if (error === 'too-long') return t('branding.error.tooLong', { max: field === 'name' ? MAX_CHURCH_NAME : MAX_APP_TITLE })

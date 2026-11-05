@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { ChevronRight, LayoutTemplate, Plus } from 'lucide-react'
-import { SLIDE_TEMPLATES } from '../data/templates'
+import { useLocalizedTemplates } from '../hooks/useLocalizedTemplates'
 import { createTemplateItem } from '../utils/slides'
 import { useAppStore } from '../store/useAppStore'
 import { useToasts } from '../store/useToasts'
@@ -24,26 +24,12 @@ export function TemplatesScreen() {
       '',
   )
 
-  const categories = useMemo(
-    () => ['All', ...Array.from(new Set(SLIDE_TEMPLATES.map((template) => template.category)))],
-    [],
-  )
-  const templates = SLIDE_TEMPLATES.filter(
-    (template) => category === 'All' || template.category === category,
-  )
-  const previews = useMemo(
-    () =>
-      new Map(
-        SLIDE_TEMPLATES.map((template) => [
-          template.id,
-          createTemplateItem(template, template.name).slides[0],
-        ]),
-      ),
-    [],
-  )
+  const { templates: allTemplates, byId: localized, previews, categories: templateCategories, categoryLabel } = useLocalizedTemplates()
+  const categories = ['All', ...templateCategories]
+  const templates = allTemplates.filter((template) => category === 'All' || template.category === category)
 
   const add = (templateId: string) => {
-    const template = SLIDE_TEMPLATES.find((entry) => entry.id === templateId)
+    const template = localized.get(templateId)
     if (!template) return
     if (!activeService) {
       push(t('toast.noActiveService'), 'error')
@@ -95,7 +81,7 @@ export function TemplatesScreen() {
             className={`category-tab ${category === entry ? 'is-active' : ''}`}
             onClick={() => setCategory(entry)}
           >
-            {entry === 'All' ? t('common.all') : entry}
+            {entry === 'All' ? t('common.all') : categoryLabel(entry)}
           </button>
         ))}
       </div>
@@ -108,7 +94,7 @@ export function TemplatesScreen() {
             </div>
             <div className="template-body">
               <div>
-                <span className="eyebrow">{template.category}</span>
+                <span className="eyebrow">{categoryLabel(template.category)}</span>
                 <h3>{template.name}</h3>
                 <p>{template.description}</p>
               </div>

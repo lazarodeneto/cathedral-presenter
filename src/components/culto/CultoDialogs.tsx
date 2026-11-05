@@ -159,8 +159,8 @@ export function DeleteCultoDialog({ service, onClose }: { service: Service | nul
                 type="button"
                 className="icon-btn icon-btn-xs"
                 onClick={() => void copyConfirmationText()}
-                aria-label="Copiar texto de confirmação"
-                title="Copiar texto de confirmação"
+                aria-label={t('culto.copyConfirmText')}
+                title={t('culto.copyConfirmText')}
               >
                 <Copy size={14} />
               </button>
