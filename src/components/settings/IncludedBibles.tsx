@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CheckCircle2, Download, LoaderCircle } from 'lucide-react'
+import { CheckCircle2, Copyright, Download, LoaderCircle, LockOpen, TriangleAlert } from 'lucide-react'
 import { BIBLE_CATALOG, BIBLE_CATALOG_SOURCE, catalogBibleId, type CatalogBible } from '../../data/bibleCatalog'
 import {
   BibleDownloadFailure,
@@ -65,6 +65,10 @@ export function IncludedBibles() {
             damarals/biblias
           </a>
         </p>
+        <p className="included-bibles-notice" role="note">
+          <TriangleAlert size={15} aria-hidden="true" />
+          <span>{t('settings.includedNotice')}</span>
+        </p>
       </div>
       <ul className="bible-admin-list" aria-label={t('settings.includedTitle')}>
         {BIBLE_CATALOG.map((bible) => {
@@ -78,9 +82,15 @@ export function IncludedBibles() {
               <span className="bible-translation-abbr">{bible.code}</span>
               <span className="bible-admin-copy">
                 <strong>{bible.name}</strong>
-                <small>
-                  {details}
-                  {bible.publicDomain ? `${details ? ' · ' : ''}${t('settings.includedPublicDomain')}` : ''}
+                <small className="included-bible-meta">
+                  <span
+                    className={`included-bible-rights ${bible.publicDomain ? 'is-public' : 'is-copyright'}`}
+                    title={t(bible.publicDomain ? 'settings.includedPublicDomain' : 'settings.includedCopyright')}
+                  >
+                    {bible.publicDomain ? <LockOpen size={11} aria-hidden="true" /> : <Copyright size={11} aria-hidden="true" />}
+                    {t(bible.publicDomain ? 'settings.includedPublicDomain' : 'settings.includedCopyright')}
+                  </span>
+                  {details ? <span>{details}</span> : null}
                 </small>
               </span>
               {added ? (
