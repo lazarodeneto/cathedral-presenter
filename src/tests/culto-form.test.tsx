@@ -39,10 +39,10 @@ describe('CultoFormDialog — create mode', () => {
 
   it('updates title when date changes and user has not manually edited it', () => {
     render(<CultoFormDialog open onClose={() => {}} defaultDate="2026-11-01" />)
-    const dateInput = screen.getByDisplayValue('2026-11-01')
+    const dateInput = screen.getByDisplayValue('01/11/2026')
     const titleBefore = screen.getByRole<HTMLInputElement>('textbox', { name: /service name|nome do culto/i }).value
 
-    fireEvent.change(dateInput, { target: { value: '2026-12-25' } })
+    fireEvent.change(dateInput, { target: { value: '25/12/2026' } })
 
     const titleAfter = screen.getByRole<HTMLInputElement>('textbox', { name: /service name|nome do culto/i }).value
     expect(titleAfter).not.toBe(titleBefore)
@@ -52,17 +52,17 @@ describe('CultoFormDialog — create mode', () => {
   it('preserves manually-edited title when date changes', () => {
     render(<CultoFormDialog open onClose={() => {}} defaultDate="2026-11-01" />)
     const titleInput = screen.getByRole<HTMLInputElement>('textbox', { name: /service name|nome do culto/i })
-    const dateInput = screen.getByDisplayValue('2026-11-01')
+    const dateInput = screen.getByDisplayValue('01/11/2026')
 
     fireEvent.change(titleInput, { target: { value: 'My Custom Title' } })
-    fireEvent.change(dateInput, { target: { value: '2026-12-25' } })
+    fireEvent.change(dateInput, { target: { value: '25/12/2026' } })
 
     expect(screen.getByDisplayValue('My Custom Title')).toBeInTheDocument()
   })
 
   it('date field appears before title field in the DOM', () => {
     render(<CultoFormDialog open onClose={() => {}} defaultDate="2026-11-01" />)
-    const dateInput = screen.getByDisplayValue('2026-11-01')
+    const dateInput = screen.getByDisplayValue('01/11/2026')
     const titleInput = screen.getByRole<HTMLInputElement>('textbox', { name: /service name|nome do culto/i })
     const position = dateInput.compareDocumentPosition(titleInput)
     // DOCUMENT_POSITION_FOLLOWING = 4
@@ -128,8 +128,8 @@ describe('CultoFormDialog — edit mode', () => {
     const service = makeService({ title: 'Existing Title', date: '2026-11-01' })
     render(<CultoFormDialog open onClose={() => {}} service={service} />)
 
-    const dateInput = screen.getByDisplayValue('2026-11-01')
-    fireEvent.change(dateInput, { target: { value: '2026-12-25' } })
+    const dateInput = screen.getByDisplayValue('01/11/2026')
+    fireEvent.change(dateInput, { target: { value: '25/12/2026' } })
 
     expect(screen.getByDisplayValue('Existing Title')).toBeInTheDocument()
   })

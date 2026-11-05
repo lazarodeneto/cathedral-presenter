@@ -1330,6 +1330,13 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                 {t('editor.canvasHint')} · {t('editor.keyboardHint')}
               </span>
             </div>
+            <div className="workspace-bible-actions">
+              <button type="button" className="btn btn-secondary workspace-bible-mode"
+                onClick={() => navigate(`/biblemode/${encodeURIComponent(service.id)}`)}>
+                <BookOpenText size={16} aria-hidden="true" />
+                {t('nav.biblemode')}
+              </button>
+            </div>
 
             <div className="slide-strip">
               <div className="slide-strip-head">

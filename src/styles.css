@@ -1,5 +1,35 @@
 /* CATHEDRAL INTL — local-first worship presentation workspace */
 
+.glass-calendar { position: fixed; inset: auto; margin: 0; width: 304px; max-width: calc(100vw - 16px); padding: 14px; border: 1px solid rgb(var(--wash-rgb) / 0.2); border-radius: var(--rounded-lg); color: var(--text); background: rgb(28 28 34 / 0.92); backdrop-filter: blur(28px) saturate(140%); -webkit-backdrop-filter: blur(28px) saturate(140%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 16px 48px rgb(0 0 0 / 0.5); }
+.glass-calendar-header { display: flex; align-items: center; gap: 4px; margin-bottom: 12px; }
+.glass-calendar-header strong { flex: 1; font-size: var(--text-body); }
+.glass-calendar button { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; border-radius: var(--rounded-xs); font-size: var(--text-ui); }
+.glass-calendar-header button { width: 36px; }
+.glass-calendar button:hover:not(:disabled) { background: rgb(var(--wash-rgb) / 0.1); }
+.glass-calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+.glass-calendar-grid > span { padding: 6px 0; color: var(--muted); font-size: var(--text-micro); text-align: center; }
+.glass-calendar-grid button { font-variant-numeric: tabular-nums; }
+.glass-calendar-grid button.is-outside { color: var(--faint); }
+.glass-calendar-grid button[aria-current="date"] { box-shadow: inset 0 0 0 1px var(--violet); }
+.glass-calendar-grid button[aria-pressed="true"] { background: var(--violet); color: var(--amber-ink); font-weight: 700; }
+.glass-calendar button:disabled { opacity: 0.35; }
+.glass-calendar-footer { display: flex; justify-content: flex-end; margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--line); }
+.glass-calendar-footer button { padding-inline: 12px; color: var(--violet-text); }
+body.reduced-transparency .glass-calendar { background: var(--surface-solid-raised); backdrop-filter: none; }
+
+
+.sort-select { position: relative; min-width: 0; }
+.sort-select-label { display: block; margin-bottom: 6px; color: var(--muted); font-size: var(--text-ui); }
+.sort-select-trigger { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; min-height: 40px; padding: 8px 12px; border: 1px solid var(--line-strong); border-radius: var(--rounded-sm); background: var(--surface-well); color: var(--text); font-size: var(--text-ui); text-align: start; }
+.sort-select-trigger[aria-expanded="true"] { border-color: var(--violet); }
+.sort-select-trigger span { min-width: 0; overflow-wrap: anywhere; }
+.sort-select-trigger svg { flex-shrink: 0; color: var(--muted); }
+.sort-select-menu { position: absolute; z-index: 30; top: calc(100% + 6px); inset-inline: 0; min-width: 220px; max-width: calc(100vw - 32px); padding: 5px; border: 1px solid var(--line-strong); border-radius: var(--rounded-md); background: var(--surface-solid-raised); box-shadow: 0 12px 32px rgb(0 0 0 / 0.4); }
+.sort-select-menu button { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 44px; padding: 10px; border-radius: var(--rounded-xs); color: var(--text-2); font-size: var(--text-ui); line-height: 1.4; text-align: start; }
+.sort-select-menu button:hover, .sort-select-menu button:focus-visible { background: rgb(var(--wash-rgb) / 0.08); color: var(--text); }
+.sort-select-menu button[aria-checked="true"] { background: rgb(var(--violet-rgb) / 0.14); color: var(--violet-text); }
+.sort-select-menu svg { flex-shrink: 0; }
+
 :root {
   color-scheme: dark;
   /* Colour channels: the single source for each hue. Tints use rgb(var(--x-rgb) / alpha),
@@ -302,6 +332,8 @@ iframe {
   font-weight: 500;
   letter-spacing: -0.035em;
   line-height: 1.08;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 
 .screen-heading h1 em {
@@ -3681,7 +3713,7 @@ dialog.modal::backdrop {
   font-size: var(--text-micro);
   font-weight: 600;
   letter-spacing: 0.1em;
-  text-align: center;
+  text-align: left;
   text-transform: uppercase;
 }
 
@@ -6725,6 +6757,24 @@ dialog.modal::backdrop {
   gap: 8px;
 }
 
+.workspace-bible-actions {
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  padding: 10px 0 12px;
+}
+
+.workspace-bible-actions .workspace-bible-mode {
+  color: var(--danger-text);
+  background: rgb(var(--danger-rgb) / 0.13);
+  border-color: rgb(var(--danger-rgb) / 0.35);
+}
+
+.workspace-bible-actions .workspace-bible-mode:hover {
+  color: var(--text);
+  background: rgb(var(--danger-rgb) / 0.25);
+}
+
 .canvas-stage-row .canvas-frame {
   margin: 0;
 }
@@ -6779,7 +6829,7 @@ dialog.modal::backdrop {
   max-width: 100%;
   overflow: hidden;
   color: var(--muted);
-  font-size: 9.5px;
+  font-size: var(--text-micro);
   font-weight: 650;
   letter-spacing: 0.02em;
   line-height: 1;
@@ -8287,7 +8337,7 @@ dialog.modal::backdrop {
 }
 
 .inspector-present-left .workspace-aspect-picker button:hover {
-  background: rgb(var(--wash-rgb) / 0.11);
+  background: rgb(var(--wash-rgb) / 0.19);
   border-color: rgb(var(--gold-rgb, var(--amber-rgb)) / 0.5);
 }
 
@@ -8792,7 +8842,7 @@ dialog.modal::backdrop {
   border-radius: var(--rounded-xs);
   background: rgba(0, 0, 0, 0.7);
   color: var(--violet-text);
-  font-size: 10px;
+  font-size: var(--text-micro);
 }
 
 .output-panel-message {
@@ -8862,7 +8912,7 @@ dialog.modal::backdrop {
   flex-shrink: 0;
   text-align: center;
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--text-micro);
 }
 
 .output-rundown-row strong {
@@ -11710,7 +11760,7 @@ dialog.modal::backdrop {
   .editor-tool {
     min-width: 40px;
     height: 36px;
-    font-size: 9px;
+    font-size: var(--text-micro);
   }
 
   .editor-tool span:not(.christian-cross-icon) {
@@ -12372,6 +12422,9 @@ body.reduced-motion .media-shimmer {
 }
 
 .services-filters {
+  position: relative;
+  z-index: 2;
+  overflow: visible;
   display: flex;
   width: 100%;
   flex-direction: column;
@@ -12454,7 +12507,7 @@ body.reduced-motion .media-shimmer {
   border-radius: 50%;
   color: var(--amber-ink);
   background: var(--amber);
-  font-size: 10px;
+  font-size: var(--text-micro);
   font-weight: 700;
 }
 
@@ -12514,9 +12567,10 @@ body.reduced-motion .media-shimmer {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 42px;
-  min-height: 48px;
-  background: var(--surface-2);
+  width: 50px;
+  min-height: 54px;
+  background: rgb(var(--wash-rgb) / 0.055);
+  border: 1px solid var(--line);
   border-radius: var(--rounded-sm);
   font-size: 11px;
   text-transform: uppercase;
@@ -12549,8 +12603,8 @@ body.reduced-motion .media-shimmer {
 }
 
 .service-card-copy strong {
-  font-size: var(--text-body);
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 650;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -12577,6 +12631,16 @@ body.reduced-motion .media-shimmer {
   flex-shrink: 0;
   border-left: 1px solid var(--line);
   background: rgb(var(--wash-rgb) / 0.02);
+}
+
+.service-card-actions .service-card-present:not(:disabled) {
+  background: rgb(var(--wash-rgb) / 0.09);
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+}
+
+.service-card-actions .service-card-present:not(:disabled):hover {
+  background: rgb(var(--wash-rgb) / 0.16);
 }
 
 .services-empty {
@@ -12706,7 +12770,7 @@ body.reduced-motion .media-shimmer {
 }
 
 .item-origin .badge {
-  font-size: 10px;
+  font-size: var(--text-micro);
 }
 
 @media (max-width: 600px) {
@@ -12780,7 +12844,7 @@ body.reduced-motion .media-shimmer {
   min-width: 18px;
   padding: 0 5px;
   height: 18px;
-  font-size: 10px;
+  font-size: var(--text-micro);
   font-weight: 600;
   border-radius: 9px;
   background: var(--surface-2);
@@ -16831,8 +16895,8 @@ body:not(.output-mode) .backup-panel > div:nth-child(2) {
   }
 
   body:not(.output-mode) .calendar-more {
-    font-size: 9px;
-    line-height: 7px;
+    font-size: var(--text-micro);
+    line-height: 1.2;
   }
 
   body:not(.output-mode) .calendar-cell.is-selected {
@@ -17817,7 +17881,7 @@ body:not(.output-mode) .slide-thumb.is-active.is-live {
   border-radius: var(--rounded-pill);
   color: #062312;
   background: rgb(var(--green-rgb));
-  font-size: 9px;
+  font-size: var(--text-micro);
   font-weight: 800;
   letter-spacing: 0.08em;
   line-height: 1.5;
@@ -19338,9 +19402,28 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
 
 .bm-controls {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-wrap: nowrap;
+  align-items: end;
   gap: 8px;
+}
+
+.bm-bar { position: relative; z-index: 5; }
+.bm-translation-select { width: min(240px, 100%); min-width: 0; }
+.bm-controls > .btn { min-height: 40px; }
+.bm-controls .btn-ghost { color: var(--text-2); }
+.bm-controls .btn-ghost:hover { color: var(--text); }
+.bm-bar .bm-back-service { gap: 8px; min-height: 40px; padding-inline: 14px; color: var(--danger-text); background: rgb(var(--danger-rgb) / 0.13); border-color: rgb(var(--danger-rgb) / 0.38); }
+.bm-bar .bm-back-service:hover { color: var(--text); background: rgb(var(--danger-rgb) / 0.25); border-color: rgb(var(--danger-rgb) / 0.6); }
+.bm-title { flex-wrap: wrap; }
+.bm-language-mode { display: flex; align-items: stretch; min-height: 40px; padding: 3px; border: 1px solid var(--line-strong); border-radius: var(--rounded-sm); background: rgb(var(--ink-rgb) / 0.35); }
+.bm-language-mode button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 42px; padding: 6px 10px; border-radius: var(--rounded-xs); color: var(--text-2); font-size: var(--text-ui); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.bm-language-mode button strong { font-size: 15px; font-weight: 750; }
+.bm-language-mode button:hover { color: var(--text); background: rgb(var(--wash-rgb) / 0.08); }
+.bm-language-mode button.is-on { color: var(--text); background: rgb(var(--violet-rgb) / 0.25); box-shadow: inset 0 0 0 1px rgb(var(--violet-rgb) / 0.5); }
+.bm-translation-select .sort-select-menu { max-height: min(50vh, 360px); overflow-y: auto; }
+
+@media (max-width: 760px) {
+  .bm-controls { flex-wrap: wrap; }
 }
 
 .bm-select select {
@@ -19426,7 +19509,7 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
   max-width: 100%;
   overflow: hidden;
   color: rgb(var(--text-rgb) / 0.72);
-  font-size: 10px;
+  font-size: var(--text-micro);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -19457,9 +19540,9 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
   display: grid;
   min-height: 42px;
   place-items: center;
-  border: 1px solid rgb(var(--tone-indigo-rgb) / 0.35);
+  border: 1px solid rgb(var(--wash-rgb) / 0.24);
   border-radius: var(--rounded-sm);
-  background: rgb(var(--tone-indigo-rgb) / 0.16);
+  background: rgb(var(--wash-rgb) / 0.11);
   color: var(--text);
   font-size: 16px;
   font-weight: 600;
@@ -19467,13 +19550,29 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
 }
 
 .bm-verse-grid .bm-number {
-  border-color: rgb(var(--tone-violet-rgb) / 0.32);
-  background: rgb(var(--tone-violet-rgb) / 0.13);
+  border-color: rgb(var(--wash-rgb) / 0.18);
+  background: rgb(var(--ink-rgb) / 0.35);
+}
+
+.bm-verse-heading {
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-strong);
+}
+
+.bm-verse-grid .bm-number:hover {
+  border-color: rgb(var(--wash-rgb) / 0.35);
+  background: rgb(var(--wash-rgb) / 0.12);
+}
+
+.bm-verse-grid .bm-number.is-active {
+  border-color: rgb(var(--violet-rgb));
+  background: rgb(var(--violet-rgb) / 0.3);
 }
 
 .bm-number:hover {
   border-color: rgb(var(--wash-rgb) / 0.35);
-  background: rgb(var(--tone-indigo-rgb) / 0.28);
+  background: rgb(var(--wash-rgb) / 0.17);
 }
 
 .bm-number.is-active {
@@ -19483,10 +19582,11 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
 }
 
 /* Live green means on the audience screen now, and nothing else. */
+.bm-book.is-on-screen,
 .bm-number.is-on-screen,
 .bm-verse.is-on-screen {
-  border-color: var(--green);
-  box-shadow: 0 0 0 2px rgb(var(--green-rgb) / 0.35);
+  border: 3px solid var(--green);
+  box-shadow: 0 0 0 1px rgb(var(--green-rgb) / 0.4);
 }
 
 .bm-reading {
@@ -19550,18 +19650,36 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
 }
 
 .bm-preview-actions {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
 
+.bm-preview-actions:has(.bm-clear-verse) { display: flex; flex-wrap: nowrap; }
+.bm-preview-actions:has(.bm-clear-verse) .bm-reference { min-width: 0; }
+.bm-clear-verse {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid rgb(var(--tone-amber-rgb) / 0.55);
+  border-radius: var(--rounded-sm);
+  color: rgb(var(--tone-amber-rgb));
+  background: rgb(var(--tone-amber-rgb) / 0.13);
+}
+.bm-clear-verse:hover:not(:disabled) {
+  color: var(--text);
+  background: rgb(var(--tone-amber-rgb) / 0.24);
+}
+
 .bm-reference {
+  flex: 1 1 auto;
   min-width: 0;
-  overflow: hidden;
   font-size: var(--text-body);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-align: center;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
 }
 
 .bm-hint {
@@ -19648,22 +19766,39 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
 .bm-verse.is-active.is-on-screen,
 .bm-number.is-active.is-on-screen {
   border-color: var(--green);
-  box-shadow: 0 0 0 2px rgb(var(--green-rgb) / 0.35);
+  box-shadow: 0 0 0 1px rgb(var(--green-rgb) / 0.4);
 }
 
-/* Bible Mode: the live controls under the preview (Black, Freeze, Alert; Previous / Next step verses). */
+/* Bible Mode: live controls remain below the scrollable verse list. */
 body:not(.output-mode) .live-control-actions.is-three {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .bm-live-controls {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  flex: 0 0 auto;
+  margin-top: auto;
   overflow: hidden;
-  border: 1px solid var(--line);
+  border: 2px solid rgb(var(--wash-rgb) / 0.24);
   border-radius: var(--rounded-md);
-  background: rgb(var(--ink-rgb) / 0.25);
+  background: var(--surface-solid);
+  box-shadow: 0 -6px 20px rgb(0 0 0 / 0.24), inset 0 1px 0 rgb(var(--wash-rgb) / 0.08);
 }
 
 .bm-live-controls .live-control-actions {
   margin-top: 0;
   border-top: 0;
+}
+
+body:not(.output-mode) .bm-live-controls .live-control-back {
+  color: var(--danger-text);
+  background: rgb(var(--danger-rgb) / 0.13);
+  box-shadow: inset 0 0 0 1px rgb(var(--danger-rgb) / 0.35);
+}
+
+body:not(.output-mode) .bm-live-controls .live-control-back:hover {
+  color: var(--text);
+  background: rgb(var(--danger-rgb) / 0.25);
 }
