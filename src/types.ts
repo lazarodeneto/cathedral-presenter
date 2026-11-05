@@ -333,6 +333,7 @@ export interface MediaAsset {
   source: string
   status: MediaStatus
   addedAt: string
+  tags?: string[]
   localOnly?: boolean
   provider: MediaAssetProvider
 }
@@ -570,6 +571,8 @@ export interface LiveSession {
   history: string[]
   startedAt: string
   blank: boolean
+  /** The output is black while waiting for content after changing presenter modes. */
+  modeTransitionPending?: boolean
   frozen: boolean
   frozenSlideId: string | null
   message: string | null

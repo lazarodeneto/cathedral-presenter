@@ -27,6 +27,8 @@ import { navigate } from '../hooks/useHashRoute'
 import { createBibleItem, createBibleSlides } from '../utils/slides'
 import { isLikelyOverflow } from '../utils/slides'
 import { SCREEN_META, ScreenIcon } from '../components/ScreenIcon'
+import { LocaleFlag } from '../components/LocaleFlag'
+import { LOCALES } from '../types'
 
 const BROWSE = [
   { bookId: 'psalms', chapter: 23 },
@@ -356,33 +358,6 @@ export function BibleScreen() {
     })
   }
 
-  const search = (event: React.FormEvent) => {
-    event.preventDefault()
-    setLoading(true)
-    provider
-      .search(query, translationId)
-      .then((result) => {
-        setResults(result.passages)
-        setMessage(result.messageKey ? t(result.messageKey) : (result.message ?? null))
-        const first = result.passages[0]
-        if (first) {
-          setSelection({
-            bookId: first.bookId,
-            chapter: first.startChapter,
-            start: first.startVerse,
-            end: first.endVerse,
-          })
-        }
-        setSelectedId(first?.id ?? null)
-        setLoading(false)
-      })
-      .catch(() => {
-        setResults([])
-        setMessage(t('error.apiUnavailable'))
-        setLoading(false)
-      })
-  }
-
   const addToService = async () => {
     if (!selected || !activeService) {
       push(t('toast.noActiveService'), 'error')
@@ -430,7 +405,7 @@ export function BibleScreen() {
       </div>
 
       <div className="bible-search panel">
-        <form className="bible-search-form" onSubmit={search}>
+        <div className="bible-search-form">
           <Search size={19} />
           <input
             value={query}
@@ -438,10 +413,7 @@ export function BibleScreen() {
             placeholder={t('bible.searchPlaceholder')}
             aria-label={t('bible.searchPlaceholder')}
           />
-          <button className="btn btn-primary" type="submit">
-            {t('bible.search')}
-          </button>
-        </form>
+        </div>
         <div className="bible-selector-grid">
           <label className="bible-selector">
             <span>{t('bible.book')}</span>
@@ -509,6 +481,8 @@ export function BibleScreen() {
           </div>
           <label className="bible-selector">
             <span className="bible-selector-label bible-selector-label-primary">{t('bible.primary')}</span>
+            <span className="bible-select-with-flag">
+            {LOCALES.includes(primaryTranslation.language) && <LocaleFlag locale={primaryTranslation.language} size={18} />}
             <select
               value={translationId}
               onChange={(event) => {
@@ -519,13 +493,16 @@ export function BibleScreen() {
             >
               {translations.map((translation) => (
                 <option key={translation.id} value={translation.id}>
-                  {translation.abbreviation} · {translation.name} ({languageName(translation.language, locale)})
+                  {translation.abbreviation} · {translation.name}
                 </option>
               ))}
             </select>
+            </span>
           </label>
           <label className="bible-selector">
             <span className="bible-selector-label bible-selector-label-secondary">{t('bible.secondary')}</span>
+            <span className="bible-select-with-flag">
+            {LOCALES.includes(secondaryTranslation.language) && <LocaleFlag locale={secondaryTranslation.language} size={18} />}
             <select
               value={secondaryId}
               onChange={(event) => {
@@ -536,10 +513,11 @@ export function BibleScreen() {
             >
               {translations.map((translation) => (
                 <option key={translation.id} value={translation.id}>
-                  {translation.abbreviation} · {translation.name} ({languageName(translation.language, locale)})
+                  {translation.abbreviation} · {translation.name}
                 </option>
               ))}
             </select>
+            </span>
           </label>
         </div>
         <div className="bible-source-row">
@@ -550,11 +528,7 @@ export function BibleScreen() {
           {offlineFallback && (
             <span className="inline-warning">{t('bible.offlineFallback')}</span>
           )}
-          <span className="bible-provider-state">
-            {primaryTranslation.availability === 'bundled'
-              ? t('status.offlineReady')
-              : t('status.onlineOnly')}
-          </span>
+          {primaryTranslation.availability !== 'bundled' && <span className="bible-provider-state">{t('status.onlineOnly')}</span>}
         </div>
       </div>
 
@@ -572,15 +546,11 @@ export function BibleScreen() {
                     updateSettings({ defaultTranslationId: translation.id })
                   }}
                   aria-pressed={translation.id === translationId}
+                  aria-label={`${translation.abbreviation} · ${translation.name} · ${languageName(translation.language, locale)}`}
+                  title={`${translation.name} · ${languageName(translation.language, locale)}`}
                 >
+                  {LOCALES.includes(translation.language) && <LocaleFlag locale={translation.language} size={20} />}
                   <span className="bible-translation-abbr">{translation.abbreviation}</span>
-                  <span className="bible-translation-copy">
-                    <strong>{translation.name}</strong>
-                    <small>
-                      {languageName(translation.language, locale)}
-                      {translation.availability !== 'bundled' && ` · ${t('status.onlineOnly')}`}
-                    </small>
-                  </span>
                   {translation.id === translationId && <Check size={14} />}
                 </button>
               ))}
@@ -754,6 +724,8 @@ export function BibleScreen() {
                   <div className="bible-language-pair">
                     <label className="bible-language-field bible-language-primary">
                       <span>{t('bible.primary')}</span>
+                      <span className="bible-select-with-flag">
+                      {LOCALES.includes(primaryTranslation.language) && <LocaleFlag locale={primaryTranslation.language} size={18} />}
                       <select
                         value={translationId}
                         onChange={(event) => {
@@ -764,13 +736,16 @@ export function BibleScreen() {
                       >
                         {translations.map((translation) => (
                           <option key={translation.id} value={translation.id}>
-                            {translation.abbreviation} · {translation.name} ({languageName(translation.language, locale)})
+                            {translation.abbreviation} · {translation.name}
                           </option>
                         ))}
                       </select>
+                      </span>
                     </label>
                     <label className="bible-language-field bible-language-secondary">
                       <span>{t('bible.secondary')}</span>
+                      <span className="bible-select-with-flag">
+                      {LOCALES.includes(secondaryTranslation.language) && <LocaleFlag locale={secondaryTranslation.language} size={18} />}
                       <select
                         value={secondaryId}
                         onChange={(event) => {
@@ -781,10 +756,11 @@ export function BibleScreen() {
                       >
                         {translations.map((translation) => (
                           <option key={translation.id} value={translation.id}>
-                            {translation.abbreviation} · {translation.name} ({languageName(translation.language, locale)})
+                            {translation.abbreviation} · {translation.name}
                           </option>
                         ))}
                       </select>
+                      </span>
                     </label>
                   </div>
                 )}

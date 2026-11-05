@@ -14,6 +14,7 @@ export function LanguageFilterSelect({
   allLabel,
   label,
   onChange,
+  includeAll = true,
 }: {
   value: Locale | ''
   /** Languages to offer, e.g. the ones present in the library. */
@@ -21,8 +22,9 @@ export function LanguageFilterSelect({
   allLabel: string
   label: string
   onChange: (value: Locale | '') => void
+  includeAll?: boolean
 }) {
-  const options: (Locale | '')[] = ['', ...LOCALE_OPTIONS.map((option) => option.value).filter((code) => languages.includes(code))]
+  const options: (Locale | '')[] = [...(includeAll ? ['' as const] : []), ...LOCALE_OPTIONS.map((option) => option.value).filter((code) => languages.includes(code))]
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(0)
   const rootRef = useRef<HTMLDivElement>(null)

@@ -399,7 +399,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   })
   /** While this service is live, a double click puts that slide on the audience screen. */
   const sendSlideLive = (slideId: string) => {
-    if (!isLive || live?.currentSlideId === slideId) return
+    if (!isLive || (live?.currentSlideId === slideId && !live.blank && !live.scripture)) return
     if (jumpLive(slideId)) push(t('live.sentLive'), 'success')
   }
   const isLiveRef = useRef(isLive)
@@ -969,7 +969,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                               {item.slides.map((slide, index) => (
                                 <div key={slide.id} className="rundown-slide-row">
                                 <button
-                                  className={`rundown-slide ${slide.id === activeSlide?.id ? 'is-active' : ''} ${live?.currentSlideId === slide.id ? 'is-live' : ''} ${
+                                  className={`rundown-slide ${slide.id === activeSlide?.id ? 'is-active' : ''} ${live?.currentSlideId === slide.id && !live.blank && !live.scripture ? 'is-live' : ''} ${
                                     rundownDrag?.kind === 'slide' && rundownDrag.id === slide.id ? 'is-dragging' : ''
                                   } ${dropClass(slide.id)}`}
                                   draggable
@@ -1005,7 +1005,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                                     event.stopPropagation()
                                     endRundownDrag()
                                   }}
-                                  aria-label={live?.currentSlideId === slide.id ? `${t('status.live')}: ${slideLabel(slide, slide.text.slice(0, 42)) || t('editor.blankSlide')}` : undefined}
+                                  aria-label={live?.currentSlideId === slide.id && !live.blank && !live.scripture ? `${t('status.live')}: ${slideLabel(slide, slide.text.slice(0, 42)) || t('editor.blankSlide')}` : undefined}
                                   onClick={() => { selectSlide(item.id, slide.id); setMobileRundown(false) }}
                                   onDoubleClick={() => sendSlideLive(slide.id)}
                                   title={isLive ? t('live.doubleClickHint') : undefined}
@@ -1364,7 +1364,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                 <div className="slide-thumbs" ref={thumbsRef} onScroll={updateThumbScroll}>
                 {allSlides.map((entry, index) => {
                   const isActive = entry.slide.id === activeSlide?.id && entry.item.id === activeItem?.id
-                  const isLiveSlide = live?.currentSlideId === entry.slide.id
+                  const isLiveSlide = live?.currentSlideId === entry.slide.id && !live.blank && !live.scripture
                   const prevItem = index > 0 ? allSlides[index - 1].item.id : null
                   const showDivider = prevItem !== null && prevItem !== entry.item.id
                   return (
@@ -1553,19 +1553,16 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
           />
           {isLive && liveCurrentSlide && (
             <div className="inspector-output-preview">
-              <SlideRenderer
+              {live?.blank ? <div className="inspector-output-black" /> : <SlideRenderer
                 slide={
-                  live?.blank
-                    ? { ...liveCurrentSlide.slide, elements: [] }
-                    : // A verse projected from Bible Mode is what the audience sees.
-                      live?.scripture ?? liveCurrentSlide.slide
+                  live?.scripture ?? liveCurrentSlide.slide
                 }
                 branding={branding}
                 aspectRatio={slideAspectRatio}
                 compact
                 message={live?.message ?? undefined}
                 messageVisible={Boolean(live?.messageVisible && live.message && !live.blank)}
-              />
+              />}
               {live?.frozen && !live.blank && (
                 <span className="inspector-output-frozen"><Snowflake size={11} /></span>
               )}

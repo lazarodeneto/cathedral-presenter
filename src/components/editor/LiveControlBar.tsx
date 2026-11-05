@@ -108,6 +108,7 @@ export function LiveControlBar({
       <div className={`live-control-actions ${showJump || onBackToService ? '' : 'is-three'}`}>
         <button
           className={`live-control ${live.blank ? 'is-active' : ''}`}
+          disabled={live.modeTransitionPending}
           onClick={() => {
             toggleBlank()
             push(live.blank ? t('toast.unblanked') : t('toast.blanked'), 'info')
@@ -119,6 +120,7 @@ export function LiveControlBar({
         </button>
         <button
           className={`live-control ${live.frozen ? 'is-active' : ''}`}
+          disabled={live.modeTransitionPending}
           onClick={() => {
             toggleFreeze()
             push(live.frozen ? t('toast.unfrozen') : t('toast.frozen'), 'info')
@@ -146,9 +148,9 @@ export function LiveControlBar({
           </button>
         )}
         {onBackToService && (
-          <button type="button" className="live-control live-control-back" onClick={onBackToService}>
+          <button type="button" className="live-control live-control-back" aria-label={t('biblemode.backToService')} onClick={onBackToService}>
             <ArrowLeft size={17} />
-            <span>{t('biblemode.backToService')}</span>
+            <span>{t('biblemode.service')}</span>
           </button>
         )}
       </div>

@@ -6,6 +6,7 @@ import {
   Download,
   ExternalLink,
   Keyboard,
+  Link2,
   Monitor,
   Projector,
   Radio,
@@ -16,9 +17,10 @@ import {
   Trash2,
   Upload,
   WifiOff,
+  SquarePlay,
 } from 'lucide-react'
-import type { AppSettings, Locale, MonitorRole } from '../types'
-import { LOCALE_OPTIONS, languageName } from '../i18n/dictionary'
+import type { AppSettings, MonitorRole } from '../types'
+import { LOCALE_OPTIONS } from '../i18n/dictionary'
 import { bibleTranslationsWith } from '../providers/bible/customBibles'
 import { useAppStore } from '../store/useAppStore'
 import { useToasts } from '../store/useToasts'
@@ -34,6 +36,7 @@ import { formatNumericDateTime } from '../utils/dates'
 import { outputFormat } from '../utils/outputFormats'
 import { OutputFormatPicker } from '../components/OutputFormatPicker'
 import { SCREEN_META, ScreenIcon, type ScreenTone } from '../components/ScreenIcon'
+import { LanguageFilterSelect } from '../components/LanguageFilterSelect'
 
 type Tab = 'general' | 'bibles' | 'identity' | 'outputs' | 'data' | 'security' | 'shortcuts'
 
@@ -87,6 +90,7 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
   const branding = useAppStore((state) => state.branding)
   const monitors = useAppStore((state) => state.monitors)
   const mediaLibrary = useAppStore((state) => state.mediaLibrary)
+  const mediaTags = useAppStore((state) => state.mediaTags)
   const customBibles = useAppStore((state) => state.customBibles)
   const hiddenBibleIds = useAppStore((state) => state.hiddenBibleIds)
   const archivedBibleIds = useAppStore((state) => state.archivedBibleIds)
@@ -150,6 +154,7 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
       branding,
       monitors,
       media: mediaLibrary,
+      mediaTags,
       bibles: customBibles,
       hiddenBibleIds,
       archivedBibleIds,
@@ -224,7 +229,7 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
             </button>
           ))}
           <div className="settings-version">
-            {t('common.version')} {__APP_VERSION__} · {t('status.offlineReady')}
+            {t('common.version')} {__APP_VERSION__}
           </div>
         </aside>
 
@@ -241,19 +246,17 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
                 </div>
               </div>
               <div className="settings-grid">
-                <label className="field">
+                <div className="field settings-language-field">
                   <span>{t('settings.language')}</span>
-                  <select
+                  <LanguageFilterSelect
                     value={settings.locale}
-                    onChange={(event) => setLocale(event.target.value as Locale)}
-                  >
-                    {LOCALE_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.flag} {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                    languages={LOCALE_OPTIONS.map((option) => option.value)}
+                    allLabel=""
+                    label={t('settings.language')}
+                    includeAll={false}
+                    onChange={(value) => { if (value) setLocale(value) }}
+                  />
+                </div>
                 <label className="field">
                   <span>{t('settings.defaultTranslation')}</span>
                   <select
@@ -262,7 +265,7 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
                   >
                     {bibleTranslations.map((translation) => (
                       <option key={translation.id} value={translation.id}>
-                        {translation.abbreviation} · {translation.name} ({languageName(translation.language, settings.locale)})
+                        {translation.abbreviation} · {translation.name}
                       </option>
                     ))}
                   </select>
@@ -275,7 +278,7 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
                   >
                     {bibleTranslations.map((translation) => (
                       <option key={translation.id} value={translation.id}>
-                        {translation.abbreviation} · {translation.name} ({languageName(translation.language, settings.locale)})
+                        {translation.abbreviation} · {translation.name}
                       </option>
                     ))}
                   </select>
@@ -451,18 +454,18 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
               </div>
               <div className="data-summary">
                 <div>
-                  <span>{t('calendar.serviceCount', { count: services.length })}</span>
                   <strong>{services.length}</strong>
+                  <span>{t('nav.services')}</span>
                 </div>
                 <div>
-                  <span>{t('common.slides')}</span>
                   <strong>
                     {services.reduce((total, service) => total + service.items.reduce((sum, item) => sum + item.slides.length, 0), 0)}
                   </strong>
+                  <span>{t('common.slides')}</span>
                 </div>
                 <div>
-                  <span>{t('media.library')}</span>
                   <strong>{mediaLibrary.length}</strong>
+                  <span>{t('nav.media')}</span>
                 </div>
               </div>
               <div className="data-rows">
@@ -549,27 +552,27 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
               </div>
               <div className="security-grid">
                 <div>
-                  <span className="eyebrow">{t('settings.securityLocalTitle')}</span>
+                  <span className="eyebrow"><Database size={15} aria-hidden="true" />{t('settings.securityLocalTitle')}</span>
                   <p>{t('settings.securityLocalCopy')}</p>
                 </div>
                 <div>
-                  <span className="eyebrow">{t('settings.securitySourcesTitle')}</span>
+                  <span className="eyebrow"><BookOpen size={15} aria-hidden="true" />{t('settings.securitySourcesTitle')}</span>
                   <p>{t('settings.securitySourcesCopy')}</p>
                 </div>
                 <div>
-                  <span className="eyebrow">{t('media.url')}</span>
+                  <span className="eyebrow"><Link2 size={15} aria-hidden="true" />{t('media.url')}</span>
                   <p>{t('media.urlHint')}</p>
                 </div>
                 <div>
-                  <span className="eyebrow">{t('media.youtube')}</span>
+                  <span className="eyebrow"><SquarePlay size={15} aria-hidden="true" />{t('media.youtube')}</span>
                   <p>{t('media.youtubeHint')}</p>
                 </div>
                 <div>
-                  <span className="eyebrow">{t('settings.securityOutputTitle')}</span>
+                  <span className="eyebrow"><Monitor size={15} aria-hidden="true" />{t('settings.securityOutputTitle')}</span>
                   <p>{t('settings.securityOutputCopy')}</p>
                 </div>
                 <div>
-                  <span className="eyebrow">{t('settings.securityBackupsTitle')}</span>
+                  <span className="eyebrow"><Download size={15} aria-hidden="true" />{t('settings.securityBackupsTitle')}</span>
                   <p>{t('settings.securityBackupsCopy')}</p>
                 </div>
               </div>

@@ -9,7 +9,7 @@ describe('sidebar while live', () => {
     useAppStore.setState({ settings: { ...useAppStore.getState().settings, locale: 'en' }, live: null })
   })
 
-  it('shows the next service and status when not live, and hides both while live', () => {
+  it('shows the next service and version when not live, and hides both while live', () => {
     const { container, rerender } = render(<Sidebar current="home" />)
     expect(container.querySelector('.sidebar-service')).not.toBeNull()
     expect(container.querySelector('.sidebar-footer')).not.toBeNull()

@@ -1,5 +1,5 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, CheckCircle2, ChevronRight, Download, LoaderCircle, Mic2, Music4, RefreshCw, Search, TriangleAlert } from 'lucide-react'
+import { AlignLeft, ArrowLeft, CheckCircle2, ChevronRight, Download, LoaderCircle, Mic2, Music4, RefreshCw, Search, TriangleAlert } from 'lucide-react'
 import {
   DirectoryFailure,
   downloadDirectorySong,
@@ -8,6 +8,7 @@ import {
   artistSongCounts,
   searchArtists,
   searchSongs,
+  searchLyrics,
   titleFromSlug,
   type DirectoryEntry,
   type SongDirectory,
@@ -24,7 +25,7 @@ import { Modal } from '../Modal'
 
 const RESULT_LIMIT = 100
 
-type DirectoryMode = 'songs' | 'artists'
+type DirectoryMode = 'songs' | 'artists' | 'lyrics'
 
 /**
  * Search every artist and song on letrasgospel.net (catalogue kept in
@@ -45,7 +46,26 @@ export function SongDirectoryPanel({ onClose }: { onClose: () => void }) {
   const [query, setQuery] = useState('')
   const [mode, setMode] = useState<DirectoryMode>('songs')
   const [artist, setArtist] = useState<string | null>(null)
+  const [lyricResults, setLyricResults] = useState<DirectoryEntry[]>([])
+  const [lyricSearching, setLyricSearching] = useState(false)
+  const [lyricError, setLyricError] = useState(false)
   const deferredQuery = useDeferredValue(query)
+
+  useEffect(() => {
+    const q = deferredQuery.trim()
+    setLyricResults([])
+    setLyricError(false)
+    if (mode !== 'lyrics' || q.length < 2 || !online) { setLyricSearching(false); return }
+    const controller = new AbortController()
+    setLyricSearching(true)
+    const timer = window.setTimeout(() => {
+      void searchLyrics(q.slice(0, 120), controller.signal)
+        .then((results) => { if (!controller.signal.aborted) setLyricResults(results) })
+        .catch(() => { if (!controller.signal.aborted) setLyricError(true) })
+        .finally(() => { if (!controller.signal.aborted) setLyricSearching(false) })
+    }, 300)
+    return () => { window.clearTimeout(timer); controller.abort() }
+  }, [deferredQuery, mode, online])
 
   useEffect(() => {
     let alive = true
@@ -183,7 +203,7 @@ export function SongDirectoryPanel({ onClose }: { onClose: () => void }) {
         </div>
         {!online ? <p className="song-directory-hint">{t('songDirectory.offline')}</p> : null}
 
-        {directory ? (
+        {loaded ? (
           artist && repertoire ? (
             <div className="song-directory-artist">
               <div className="song-directory-artist-head">
@@ -213,7 +233,7 @@ export function SongDirectoryPanel({ onClose }: { onClose: () => void }) {
           ) : (
             <>
               <div className="song-directory-tabs" role="tablist" aria-label={t('songDirectory.title')}>
-                {(['songs', 'artists'] as const).map((entry) => (
+                {(['songs', 'artists', 'lyrics'] as const).map((entry) => (
                   <button
                     key={entry}
                     type="button"
@@ -222,8 +242,8 @@ export function SongDirectoryPanel({ onClose }: { onClose: () => void }) {
                     className={`song-directory-tab ${mode === entry ? 'is-active' : ''}`}
                     onClick={() => setMode(entry)}
                   >
-                    {entry === 'songs' ? <Music4 size={14} /> : <Mic2 size={14} />}
-                    {t(entry === 'songs' ? 'songDirectory.tabSongs' : 'songDirectory.tabArtists')}
+                    {entry === 'songs' ? <Music4 size={14} /> : entry === 'artists' ? <Mic2 size={14} /> : <AlignLeft size={14} />}
+                    {t(entry === 'songs' ? 'songDirectory.tabSongs' : entry === 'artists' ? 'songDirectory.tabArtists' : 'library.scope.lyrics')}
                   </button>
                 ))}
               </div>
@@ -233,8 +253,8 @@ export function SongDirectoryPanel({ onClose }: { onClose: () => void }) {
                   autoFocus
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder={t(mode === 'songs' ? 'songDirectory.searchSongs' : 'songDirectory.searchArtists')}
-                  aria-label={t(mode === 'songs' ? 'songDirectory.searchSongs' : 'songDirectory.searchArtists')}
+                  placeholder={t(mode === 'songs' ? 'songDirectory.searchSongs' : mode === 'artists' ? 'songDirectory.searchArtists' : 'library.searchIn.lyrics')}
+                  aria-label={t(mode === 'songs' ? 'songDirectory.searchSongs' : mode === 'artists' ? 'songDirectory.searchArtists' : 'library.searchIn.lyrics')}
                 />
               </label>
               {mode === 'songs' && artistShortcut ? (
@@ -251,8 +271,14 @@ export function SongDirectoryPanel({ onClose }: { onClose: () => void }) {
               ) : null}
               {!deferredQuery.trim() ? (
                 <p className="song-directory-hint">
-                  {t(mode === 'songs' ? 'songDirectory.hintSongs' : 'songDirectory.hintArtists')}
+                  {t(mode === 'songs' ? 'songDirectory.hintSongs' : mode === 'artists' ? 'songDirectory.hintArtists' : 'library.searchIn.lyrics')}
                 </p>
+              ) : mode === 'lyrics' ? (
+                lyricSearching ? <p className="song-directory-hint" role="status">{t('songDirectory.searchingLyrics')}</p>
+                  : lyricError ? <p className="song-directory-hint" role="alert">{t('songDirectory.failed')}</p>
+                    : deferredQuery.trim().length < 2 ? <p className="song-directory-hint">{t('songDirectory.lyricsMinimum')}</p>
+                      : lyricResults.length === 0 ? <p className="song-directory-hint">{t('songDirectory.noResults', { query: deferredQuery.trim() })}</p>
+                        : <ul className="bible-admin-list song-directory-list" aria-label={t('library.scope.lyrics')}>{lyricResults.map((entry) => renderSong(entry, true))}</ul>
               ) : mode === 'songs' ? (
                 songResults.length === 0 ? (
                   <p className="song-directory-hint">{t('songDirectory.noResults', { query: deferredQuery.trim() })}</p>
