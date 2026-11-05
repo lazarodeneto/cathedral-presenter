@@ -1,11 +1,13 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
 
-export function SortSelect<T extends string>({ value, options, label, onChange }: {
+export function SortSelect<T extends string>({ value, options, label, onChange, selectedLabel, leading }: {
   value: T
   options: { value: T; label: string }[]
   label: string
   onChange: (value: T) => void
+  selectedLabel?: string
+  leading?: ReactNode
 }) {
   const [open, setOpen] = useState(false)
   const root = useRef<HTMLDivElement>(null)
@@ -26,7 +28,7 @@ export function SortSelect<T extends string>({ value, options, label, onChange }
       if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false)
     }}>
       <span id={`${id}-label`} className="sort-select-label">{label}</span>
-      <button ref={trigger} type="button" className="sort-select-trigger"
+      <button ref={trigger} type="button" className="sort-select-trigger" title={options.find((option) => option.value === value)?.label}
         aria-haspopup="menu" aria-expanded={open} aria-controls={open ? id : undefined}
         aria-labelledby={`${id}-label ${id}-value`}
         onClick={() => setOpen(!open)}
@@ -36,7 +38,8 @@ export function SortSelect<T extends string>({ value, options, label, onChange }
             setOpen(true)
           }
         }}>
-        <span id={`${id}-value`}>{options.find((option) => option.value === value)?.label}</span>
+        {leading}
+        <span id={`${id}-value`}>{selectedLabel ?? options.find((option) => option.value === value)?.label}</span>
         <ChevronDown size={16} aria-hidden="true" />
       </button>
       {open && <div id={id} ref={menu} role="menu" aria-labelledby={`${id}-label`} className="sort-select-menu"

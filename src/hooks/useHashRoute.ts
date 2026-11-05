@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useAppStore } from '../store/useAppStore'
 
 export type RouteName =
   | 'home'
@@ -81,6 +82,11 @@ export function useHashRoute(): Route {
       if (!forced && next !== current && navigationGuard && !navigationGuard(next)) {
         window.history.replaceState(null, '', current)
         return
+      }
+      const from = parse(current).name
+      const to = parse(next).name
+      if ((from === 'service' && to === 'biblemode') || (from === 'biblemode' && to === 'service')) {
+        useAppStore.getState().blankForModeTransition()
       }
       current = next
       setRoute(parse(next))

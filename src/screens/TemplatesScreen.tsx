@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight, LayoutTemplate, Plus } from 'lucide-react'
+import { BookOpen, ChevronRight, Church, Grid2X2, LayoutTemplate, Megaphone, MessageSquareText, Music2, Plus, Square, type LucideIcon } from 'lucide-react'
 import { useLocalizedTemplates } from '../hooks/useLocalizedTemplates'
 import { createTemplateItem } from '../utils/slides'
 import { useAppStore } from '../store/useAppStore'
@@ -8,6 +8,11 @@ import { useT } from '../i18n/useT'
 import { navigate } from '../hooks/useHashRoute'
 import { SlideRenderer } from '../components/SlideRenderer'
 import { SCREEN_META, ScreenIcon } from '../components/ScreenIcon'
+
+const categoryIcons: Record<string, LucideIcon> = {
+  All: Grid2X2, Scripture: BookOpen, Worship: Music2, Announcement: Megaphone,
+  Message: MessageSquareText, Service: Church, Blank: Square,
+}
 
 export function TemplatesScreen() {
   const t = useT()
@@ -75,26 +80,33 @@ export function TemplatesScreen() {
       )}
 
       <div className="category-tabs">
-        {categories.map((entry) => (
+        {categories.map((entry) => {
+          const Icon = categoryIcons[entry] ?? LayoutTemplate
+          return (
           <button
             key={entry}
             className={`category-tab ${category === entry ? 'is-active' : ''}`}
+            aria-pressed={category === entry}
             onClick={() => setCategory(entry)}
           >
+            <Icon size={14} aria-hidden="true" />
             {entry === 'All' ? t('common.all') : categoryLabel(entry)}
           </button>
-        ))}
+          )
+        })}
       </div>
 
       <div className="template-grid">
-        {templates.map((template) => (
+        {templates.map((template) => {
+          const Icon = categoryIcons[template.category] ?? LayoutTemplate
+          return (
           <article key={template.id} className="template-card panel">
             <div className="template-preview">
               <SlideRenderer slide={previews.get(template.id) ?? null} branding={branding} compact />
             </div>
             <div className="template-body">
               <div>
-                <span className="eyebrow">{categoryLabel(template.category)}</span>
+                <span className="eyebrow template-category"><Icon size={14} aria-hidden="true" />{categoryLabel(template.category)}</span>
                 <h3>{template.name}</h3>
                 <p>{template.description}</p>
               </div>
@@ -108,7 +120,8 @@ export function TemplatesScreen() {
               </button>
             </div>
           </article>
-        ))}
+          )
+        })}
       </div>
 
       <div className="template-note">

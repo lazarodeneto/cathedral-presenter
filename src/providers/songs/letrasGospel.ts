@@ -148,6 +148,33 @@ export function directoryEntry(directory: SongDirectory, [artist, song]: [number
   }
 }
 
+/** Search the provider's lyric snippets without downloading the catalogue's lyrics. */
+export async function searchLyrics(query: string, signal?: AbortSignal): Promise<DirectoryEntry[]> {
+  const response = await fetch(`${LETRAS_GOSPEL_PROXY}search?q=${encodeURIComponent(query.trim())}`, { signal, credentials: 'same-origin' })
+  if (!response.ok) throw new DirectoryFailure('unavailable')
+  const data: unknown = await response.json()
+  const snippets = (data && typeof data === 'object' && 'snippets' in data && Array.isArray(data.snippets)) ? data.snippets : []
+  const seen = new Set<string>()
+  return snippets.flatMap((item: unknown) => {
+    if (!item || typeof item !== 'object' || !('link' in item) || typeof item.link !== 'string') return []
+    let url: URL
+    try { url = new URL(item.link) } catch { return [] }
+    const path = url.pathname.replace(/^\/+|\/+$/g, '')
+    if (url.origin !== LETRAS_GOSPEL_ORIGIN || url.search || url.hash || !isAllowedLetrasGospelPath(path) || path.split('/').length !== 2 || seen.has(path)) return []
+    seen.add(path)
+    const [artistSlug, songSlug] = path.split('/')
+    const entry = directoryEntry({ updatedAt: '', artists: [artistSlug], songs: [] }, [0, songSlug])
+    if ('lyric_title' in item && typeof item.lyric_title === 'string') {
+      const separator = item.lyric_title.lastIndexOf(' - ')
+      if (separator > 0) {
+        entry.title = sanitizeSingleLine(item.lyric_title.slice(0, separator))
+        entry.artist = sanitizeSingleLine(item.lyric_title.slice(separator + 3))
+      }
+    }
+    return [entry]
+  })
+}
+
 /** Lower-case words without accents, as in the site's slugs. */
 export function searchKey(value: string): string {
   return value

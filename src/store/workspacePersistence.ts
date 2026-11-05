@@ -4,6 +4,7 @@ import type { StateStorage } from 'zustand/middleware'
 import type { Branding, LibrarySong, MediaAsset, Monitor } from '../types'
 import { LOCALES } from '../types'
 import { BIBLE_TRANSLATIONS } from '../data/bible'
+import { normalizeMediaTags } from '../utils/mediaTags'
 
 const bundledIds = new Set(BIBLE_TRANSLATIONS.map((t) => t.id))
 
@@ -101,8 +102,8 @@ function sanitizeMediaLibrary(value: unknown, fallback: MediaAsset[]): MediaAsse
     })
     .map((asset) =>
       isBlobUrl(asset.source) || asset.localOnly
-        ? { ...asset, source: '', status: 'missing' as const }
-        : asset,
+        ? { ...asset, tags: normalizeMediaTags(asset.tags, 30), source: '', status: 'missing' as const }
+        : { ...asset, tags: normalizeMediaTags(asset.tags, 30) },
     )
     .slice(0, 200)
 }
@@ -193,6 +194,7 @@ export function partializeWorkspace(state: AppState) {
         ? { ...asset, source: '', status: 'missing' as const }
         : asset,
     ),
+    mediaTags: state.mediaTags,
     recentPassages: state.recentPassages,
     recentSongs: state.recentSongs,
     librarySongs: state.librarySongs,
@@ -268,6 +270,7 @@ export function mergeWorkspace(persisted: unknown, current: AppState): AppState 
     },
     monitors: sanitizeMonitors(value.monitors, current.monitors),
     mediaLibrary: sanitizeMediaLibrary(value.mediaLibrary, current.mediaLibrary),
+    mediaTags: Array.isArray(value.mediaTags) ? normalizeMediaTags(value.mediaTags) : current.mediaTags,
     recentPassages: sanitizeRecentPassages(value.recentPassages, current.recentPassages, translationIds),
     recentSongs: sanitizeRecentSongs(value.recentSongs, current.recentSongs),
     librarySongs: sanitizeLibrarySongs(value.librarySongs, current.librarySongs),

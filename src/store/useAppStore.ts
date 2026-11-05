@@ -38,6 +38,7 @@ import { validateImageDataUrl } from '../security/media'
 import { translate } from '../i18n/dictionary'
 import type { ParsedBackup } from '../security/backup'
 import { newId } from '../utils/id'
+import { normalizeMediaTags } from '../utils/mediaTags'
 import { DEFAULT_BRANDING, normalizeBranding } from '../utils/branding'
 import { DEFAULT_CHURCH_ID } from '../utils/church'
 import {
@@ -128,6 +129,7 @@ interface AppState {
   settings: AppSettings
   monitors: Monitor[]
   mediaLibrary: MediaAsset[]
+  mediaTags: string[]
   recentPassages: RecentPassage[]
   recentSongs: string[]
   librarySongs: LibrarySong[]
@@ -243,6 +245,7 @@ interface AppState {
   /** Bible Mode: put a verse on the audience screen without adding it to the service. */
   showScriptureLive: (slide: Slide) => boolean
   clearScriptureLive: () => void
+  blankForModeTransition: () => void
   toggleBlank: () => void
   toggleFreeze: () => void
   setAudienceMessage: (message: string) => void
@@ -251,6 +254,8 @@ interface AppState {
   timerCommand: (slideId: string, command: TimerCommand) => void
 
   addMedia: (asset: MediaAsset) => void
+  setMediaTags: (id: string, tags: string[]) => void
+  addMediaTag: (tag: string) => void
   removeMedia: (id: string) => void
   recordRecentPassage: (passage: RecentPassage) => void
   recordRecentSong: (songId: string) => void
@@ -385,6 +390,7 @@ export const useAppStore = create<AppState>()(
         settings: DEFAULT_SETTINGS,
         monitors: DEFAULT_MONITORS,
         mediaLibrary: [],
+        mediaTags: [],
         recentPassages: [
           { reference: 'Psalm 23:1-6', translationId: 'web' },
           { reference: 'John 3:16', translationId: 'web' },
@@ -1310,6 +1316,8 @@ export const useAppStore = create<AppState>()(
             live: {
               ...state.live,
               currentSlideId: next.slide.id,
+              blank: state.live.modeTransitionPending ? false : state.live.blank,
+              modeTransitionPending: false,
               history: [...state.live.history, next.slide.id].slice(-20),
               scripture: null,
             },
@@ -1333,6 +1341,8 @@ export const useAppStore = create<AppState>()(
             live: {
               ...state.live,
               currentSlideId: prev.slide.id,
+              blank: state.live.modeTransitionPending ? false : state.live.blank,
+              modeTransitionPending: false,
               history: [...state.live.history, prev.slide.id].slice(-20),
               scripture: null,
             },
@@ -1354,6 +1364,8 @@ export const useAppStore = create<AppState>()(
             live: {
               ...state.live,
               currentSlideId: slideId,
+              blank: state.live.modeTransitionPending ? false : state.live.blank,
+              modeTransitionPending: false,
               history: [...state.live.history, slideId].slice(-20),
               scripture: null,
             },
@@ -1367,16 +1379,18 @@ export const useAppStore = create<AppState>()(
           const state = get()
           if (!state.live) return false
           // Frozen stays frozen: the audience keeps the frozen picture while the operator moves on.
-          set({ live: { ...state.live, scripture: slide } })
+          set({ live: { ...state.live, scripture: slide, blank: state.live.modeTransitionPending ? false : state.live.blank, modeTransitionPending: false } })
           return true
         },
         clearScriptureLive: () =>
           set((state) => (state.live?.scripture ? { live: { ...state.live, scripture: null } } : {})),
+        blankForModeTransition: () =>
+          set((state) => state.live ? { live: { ...state.live, blank: true, modeTransitionPending: true, frozen: false, frozenSlideId: null, frozenScripture: null, scripture: null } } : {}),
         toggleBlank: () =>
-          set((state) => (state.live ? { live: { ...state.live, blank: !state.live.blank } } : {})),
+          set((state) => (state.live && !state.live.modeTransitionPending ? { live: { ...state.live, blank: !state.live.blank } } : {})),
         toggleFreeze: () =>
           set((state) =>
-            state.live
+            state.live && !state.live.modeTransitionPending
               ? {
                   live: {
                     ...state.live,
@@ -1437,6 +1451,10 @@ export const useAppStore = create<AppState>()(
           set((state) => ({
             mediaLibrary: [asset, ...state.mediaLibrary].slice(0, 200),
           })),
+        setMediaTags: (id, tags) => set((state) => ({
+          mediaLibrary: state.mediaLibrary.map((asset) => asset.id === id ? { ...asset, tags: normalizeMediaTags(tags, 30) } : asset),
+        })),
+        addMediaTag: (tag) => set((state) => ({ mediaTags: normalizeMediaTags([...state.mediaTags, tag]) })),
         removeMedia: (id) => {
           const state = get()
           const asset = state.mediaLibrary.find((entry) => entry.id === id)
@@ -1745,6 +1763,7 @@ export const useAppStore = create<AppState>()(
                 : {}),
               monitors: parsed.monitors ?? state.monitors,
               mediaLibrary: parsed.media ?? state.mediaLibrary,
+              mediaTags: parsed.mediaTags ?? state.mediaTags,
               customBibles: parsed.bibles ?? state.customBibles,
               hiddenBibleIds: parsed.hiddenBibleIds ?? state.hiddenBibleIds,
               archivedBibleIds: parsed.archivedBibleIds ?? state.archivedBibleIds,
@@ -1785,6 +1804,7 @@ export const useAppStore = create<AppState>()(
             settings: { ...DEFAULT_SETTINGS, showSetupChecklist: true },
             monitors: DEFAULT_MONITORS.map((monitor) => ({ ...monitor })),
             mediaLibrary: [],
+            mediaTags: [],
             recentPassages: [],
             recentSongs: [],
             librarySongs: [],

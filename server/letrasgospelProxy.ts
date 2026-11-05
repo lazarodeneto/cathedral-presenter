@@ -41,7 +41,7 @@ async function fetchUpstream(path: string) {
       redirect: 'error',
       credentials: 'omit',
       signal: AbortSignal.timeout(TIMEOUT_MS),
-      headers: { 'user-agent': 'ChurchPresenter/0.1 (song directory)', accept: 'text/html,application/xml' },
+      headers: { 'user-agent': 'ChurchPresenter/0.1 (song directory)', accept: 'text/html,application/xml,application/json', 'x-requested-with': 'XMLHttpRequest' },
     })
     if (!response.ok) throw Object.assign(new Error('upstream'), { status: response.status === 404 ? 404 : 502 })
     const body = Buffer.from(await response.arrayBuffer())
@@ -65,8 +65,14 @@ export const letrasGospelMiddleware: Connect.NextHandleFunction = (req: Incoming
   if (!url.startsWith(LETRAS_GOSPEL_PROXY)) return next()
   if (req.method !== 'GET') return send(res, 405, 'GET only')
   const path = url.slice(LETRAS_GOSPEL_PROXY.length)
-  if (!isAllowedLetrasGospelPath(path)) return send(res, 400, 'Path not allowed')
-  fetchUpstream(path)
+  let upstreamPath = path
+  if (path.startsWith('search?')) {
+    const params = new URLSearchParams(path.slice('search?'.length))
+    const query = params.get('q')?.trim() ?? ''
+    if ([...params.keys()].some((key) => key !== 'q') || params.getAll('q').length !== 1 || query.length < 2 || query.length > 120) return send(res, 400, 'Invalid search')
+    upstreamPath = `musica/musica/ajax_search?q=${encodeURIComponent(query)}`
+  } else if (!isAllowedLetrasGospelPath(path)) return send(res, 400, 'Path not allowed')
+  fetchUpstream(upstreamPath)
     .then((entry) => send(res, 200, entry.body, entry.type))
     .catch((error: { status?: number }) => send(res, error.status ?? 502, 'Upstream unavailable'))
 }

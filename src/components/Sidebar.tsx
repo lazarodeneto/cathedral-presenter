@@ -1,6 +1,6 @@
 import { PanelLeftClose, PanelLeftOpen, Play, RotateCcw, Sparkles } from 'lucide-react'
 import { resetLayoutToDefault } from '../store/layoutReset'
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useT } from '../i18n/useT'
 import { useAppStore } from '../store/useAppStore'
 import { navigate, type RouteName } from '../hooks/useHashRoute'
@@ -37,6 +37,8 @@ function useAutoRail(editing: boolean): boolean {
 }
 
 export function Sidebar({ current }: { current: RouteName }) {
+  const navRef = useRef<HTMLElement>(null)
+  const highlightRef = useRef<HTMLSpanElement>(null)
   const t = useT()
   const branding = useAppStore((state) => state.branding)
   const services = useAppStore((state) => state.services)
@@ -50,6 +52,30 @@ export function Sidebar({ current }: { current: RouteName }) {
   const updateSettings = useAppStore((state) => state.updateSettings)
   const autoRail = useAutoRail(current === 'service')
   const collapsed = collapsedSetting ?? autoRail
+
+  useLayoutEffect(() => {
+    const nav = navRef.current
+    const highlight = highlightRef.current
+    if (!nav || !highlight) return
+    const update = () => {
+      const active = nav.querySelector<HTMLElement>('.nav-item.is-active')
+      if (!active) { nav.classList.remove('has-nav-highlight'); return }
+      const parent = nav.getBoundingClientRect()
+      const target = active.getBoundingClientRect()
+      highlight.style.width = `${target.width}px`
+      highlight.style.height = `${target.height}px`
+      highlight.style.transform = `translate(${target.left - parent.left}px, ${target.top - parent.top}px)`
+      nav.classList.add('has-nav-highlight')
+    }
+    update()
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', update)
+      return () => window.removeEventListener('resize', update)
+    }
+    const observer = new ResizeObserver(update)
+    observer.observe(nav)
+    return () => observer.disconnect()
+  }, [current, collapsed])
 
   const openPresent = () => {
     if (!activeService) {
@@ -81,7 +107,8 @@ export function Sidebar({ current }: { current: RouteName }) {
         {t('sidebar.localSettings')}
       </div>
 
-      <nav className="main-nav" aria-label={branding.appTitle}>
+      <nav ref={navRef} className="main-nav" aria-label={branding.appTitle}>
+        <span ref={highlightRef} className="nav-highlight" aria-hidden="true" />
         {NAV.map(({ name, key }) => {
           const { icon: Icon, tone } = SCREEN_META[name]
           return (
@@ -142,11 +169,7 @@ export function Sidebar({ current }: { current: RouteName }) {
 
       {!isLive && (
         <div className="sidebar-footer">
-          <span className="status-dot status-dot-ready" />
-          <div>
-            <strong>{t('status.offlineReady')}</strong>
-            <span>{t('status.storageLocal')}</span>
-          </div>
+          <strong>{t('common.version')} 0.1.0</strong>
         </div>
       )}
 

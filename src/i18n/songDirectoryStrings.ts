@@ -3,6 +3,8 @@ import type { Locale } from '../types'
 type Strings = Record<string, string>
 
 const en: Strings = {
+  'songDirectory.searchingLyrics': 'Searching lyrics…',
+  'songDirectory.lyricsMinimum': 'Enter at least two characters.',
   'songDirectory.open': 'Online directory',
   'library.newSongHint': 'Type or paste the lyrics',
   'songDirectory.openHint': 'Artists and songs',
@@ -50,6 +52,8 @@ const en: Strings = {
 }
 
 const pt: Strings = {
+  'songDirectory.searchingLyrics': 'A pesquisar letras…',
+  'songDirectory.lyricsMinimum': 'Escreva pelo menos dois caracteres.',
   'songDirectory.open': 'Diretório online',
   'library.newSongHint': 'Escreva ou cole a letra',
   'songDirectory.openHint': 'Cantores e louvores',
@@ -98,6 +102,8 @@ const pt: Strings = {
 
 const ptBR: Strings = {
   ...pt,
+  'songDirectory.searchingLyrics': 'Pesquisando letras…',
+  'songDirectory.lyricsMinimum': 'Digite pelo menos dois caracteres.',
   'songDirectory.subtitle': 'Pesquise todos os cantores e louvores do letrasgospel.net e baixe os que precisar para este dispositivo.',
   'songDirectory.refreshing': 'Atualizando {done}/{total}',
   'songDirectory.empty': 'O catálogo ainda não está neste dispositivo. Atualize para pesquisar todos os cantores e louvores.',
@@ -113,6 +119,8 @@ const ptBR: Strings = {
 }
 
 const es: Strings = {
+  'songDirectory.searchingLyrics': 'Buscando letras…',
+  'songDirectory.lyricsMinimum': 'Escribe al menos dos caracteres.',
   'songDirectory.open': 'Directorio en línea',
   'library.newSongHint': 'Escribe o pega la letra',
   'songDirectory.openHint': 'Artistas y canciones',
@@ -160,6 +168,8 @@ const es: Strings = {
 }
 
 const fr: Strings = {
+  'songDirectory.searchingLyrics': 'Recherche dans les paroles…',
+  'songDirectory.lyricsMinimum': 'Saisissez au moins deux caractères.',
   'songDirectory.open': 'Répertoire en ligne',
   'library.newSongHint': 'Saisissez ou collez les paroles',
   'songDirectory.openHint': 'Artistes et chants',
@@ -207,6 +217,8 @@ const fr: Strings = {
 }
 
 const de: Strings = {
+  'songDirectory.searchingLyrics': 'Liedtexte werden durchsucht…',
+  'songDirectory.lyricsMinimum': 'Mindestens zwei Zeichen eingeben.',
   'songDirectory.open': 'Online-Verzeichnis',
   'library.newSongHint': 'Liedtext eingeben oder einfügen',
   'songDirectory.openHint': 'Interpreten und Lieder',
@@ -254,6 +266,8 @@ const de: Strings = {
 }
 
 const it: Strings = {
+  'songDirectory.searchingLyrics': 'Ricerca nei testi…',
+  'songDirectory.lyricsMinimum': 'Inserisci almeno due caratteri.',
   'songDirectory.open': 'Elenco online',
   'library.newSongHint': 'Scrivi o incolla il testo',
   'songDirectory.openHint': 'Artisti e canti',

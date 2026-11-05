@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowLeft, Eraser, Languages, MonitorPlay, Radio } from 'lucide-react'
+import { ArrowLeft, BookOpen, Eraser, Languages, MonitorPlay, Radio, ScrollText } from 'lucide-react'
 import type { BibleBookCatalogEntry, BibleVerse } from '../types'
+import { LOCALES } from '../types'
 import { useT } from '../i18n/useT'
 import { useAppStore } from '../store/useAppStore'
 import { useToasts } from '../store/useToasts'
 import { navigate } from '../hooks/useHashRoute'
 import { resolveBibleProvider } from '../providers/bible/BibleProviderRegistry'
 import { bibleTranslationsWith } from '../providers/bible/customBibles'
-import { getVersePassage } from '../providers/bible/LocalBibleProvider'
+import { getVersePassage, parseLocalReference } from '../providers/bible/LocalBibleProvider'
 import { BIBLE_BOOKS, bookName } from '../data/bible'
 import { BOOK_GROUPS, GROUP_TONES, OLD_TESTAMENT_COUNT, bookAbbreviation } from '../data/bibleModeBooks'
 import { createBibleSlides } from '../utils/slides'
@@ -17,6 +18,7 @@ import { SlideRenderer } from '../components/SlideRenderer'
 import { SCREEN_META } from '../components/ScreenIcon'
 import { LiveControlBar } from '../components/editor/LiveControlBar'
 import { SortSelect } from '../components/SortSelect'
+import { LocaleFlag } from '../components/LocaleFlag'
 
 interface Pick {
   bookIndex: number
@@ -55,19 +57,26 @@ export function BibleModeScreen() {
     [customBibles, hiddenBibleIds, archivedBibleIds, deletedBibleIds],
   )
   const valid = (id: string) => (translations.some((entry) => entry.id === id) ? id : translations[0]?.id ?? id)
-  const [translationId, setTranslationId] = useState(() => valid(settings.defaultTranslationId))
+  const visibleScripture = !live || live.blank ? null : live.frozen ? live.frozenScripture : live.scripture
+  const liveReference = visibleScripture?.bible?.primary?.reference ?? visibleScripture?.reference
+  const livePassage = liveReference ? parseLocalReference(liveReference) : null
+  const projectedKey = livePassage?.startVerse != null ? keyOf(livePassage.bookId, livePassage.chapter, livePassage.startVerse) : null
+  const [translationId, setTranslationId] = useState(() => valid(visibleScripture?.bible?.primary?.translationId ?? settings.defaultTranslationId))
   const [secondaryId, setSecondaryId] = useState(() => valid(settings.secondaryTranslationId))
   const [bilingual, setBilingual] = useState(false)
   const [catalog, setCatalog] = useState<BibleBookCatalogEntry[]>([])
   const [verses, setVerses] = useState<BibleVerse[]>([])
-  const [pick, setPick] = useState<Pick>({ bookIndex: 42, chapter: null, verse: null })
-  const [projectedKey, setProjectedKey] = useState<string | null>(null)
+  const [pick, setPick] = useState<Pick>(() => {
+    const index = livePassage ? BIBLE_BOOKS.findIndex((entry) => entry.id === livePassage.bookId) : -1
+    return index >= 0 && livePassage ? { bookIndex: index, chapter: livePassage.chapter, verse: livePassage.startVerse } : { bookIndex: 42, chapter: null, verse: null }
+  })
   const verseListRef = useRef<HTMLOListElement>(null)
   const chapterHeadingRef = useRef<HTMLHeadingElement>(null)
   const verseHeadingRef = useRef<HTMLHeadingElement>(null)
-  const [pendingVerseFocus, setPendingVerseFocus] = useState(false)
+  const pendingVerseFocusRef = useRef(false)
 
   const translation = translations.find((entry) => entry.id === translationId)
+  const secondaryTranslation = translations.find((entry) => entry.id === secondaryId)
   const book = BIBLE_BOOKS[pick.bookIndex]
   const chapters = useMemo(() => catalog.find((entry) => entry.id === book?.id)?.chapters ?? [], [catalog, book?.id])
   const aspect = outputFormat(settings.outputFormat).aspect
@@ -97,17 +106,12 @@ export function BibleModeScreen() {
     let alive = true
     void resolveBibleProvider(translationId)
       .getChapter(translationId, book.id, pick.chapter)
-      .then((entries) => { if (alive) { setVerses(entries); setPendingVerseFocus(false); if (pendingVerseFocus && entries.length) requestAnimationFrame(() => { verseHeadingRef.current?.scrollIntoView({ block: 'start', inline: 'nearest' }); verseHeadingRef.current?.focus({ preventScroll: true }) }) } })
+      .then((entries) => { if (alive) { const shouldFocus = pendingVerseFocusRef.current; pendingVerseFocusRef.current = false; setVerses(entries); if (shouldFocus && entries.length) requestAnimationFrame(() => { verseHeadingRef.current?.scrollIntoView({ block: 'start', inline: 'nearest' }); verseHeadingRef.current?.focus({ preventScroll: true }) }) } })
       .catch(() => alive && setVerses([]))
     return () => {
       alive = false
     }
   }, [translationId, book, pick.chapter])
-
-  // Nothing of ours on screen once the operator moves back to the service.
-  useEffect(() => {
-    if (!live?.scripture) setProjectedKey(null)
-  }, [live?.scripture])
 
   const slideFor = useCallback(
     (verse: number) => {
@@ -123,14 +127,14 @@ export function BibleModeScreen() {
 
   const preview = useMemo(() => (pick.verse !== null ? slideFor(pick.verse)?.slide ?? null : null), [pick.verse, slideFor])
 
-  const project = (verse: number) => {
+  const project = (verse: number, explicitlyPresent = false) => {
     const built = slideFor(verse)
     if (!built || !book || pick.chapter === null) return
     setPick((current) => ({ ...current, verse }))
-    // Not live: the verse is only previewed; "Present verse" starts the service with it.
-    if (!useAppStore.getState().live) return
+    // After clearing, selection stays in preview until explicitly presented.
+    const currentLive = useAppStore.getState().live
+    if (!currentLive || (!currentLive.scripture && !explicitlyPresent)) return
     if (showScriptureLive(built.slide)) {
-      setProjectedKey(keyOf(book.id, pick.chapter, verse))
       recordRecentPassage({ reference: built.primary.reference, translationId })
     }
   }
@@ -145,7 +149,7 @@ export function BibleModeScreen() {
       push(t('biblemode.noService'), 'error')
       return
     }
-    project(verse)
+    project(verse, true)
   }
 
   const chooseBook = (index: number) => {
@@ -157,7 +161,7 @@ export function BibleModeScreen() {
     }
     // A one-chapter book (Obadiah, Jude…) goes straight to its verses.
     setVerses([])
-    setPendingVerseFocus(Boolean(entry && entry.chapters.length === 1))
+    pendingVerseFocusRef.current = Boolean(entry && entry.chapters.length === 1)
     setPick({ bookIndex: index, chapter: entry && entry.chapters.length === 1 ? entry.chapters[0].number : null, verse: null })
     if (!entry || entry.chapters.length !== 1) requestAnimationFrame(() => { chapterHeadingRef.current?.scrollIntoView({ block: 'start', inline: 'nearest' }); chapterHeadingRef.current?.focus({ preventScroll: true }) })
   }
@@ -167,7 +171,7 @@ export function BibleModeScreen() {
     const onKey = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return
       const target = event.target as HTMLElement | null
-      if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return
+      if (target?.closest('button, input, select, textarea, a[href], [contenteditable]:not([contenteditable="false"]), [role="button"], [role="menu"], [role="listbox"], [role="dialog"]')) return
       if (verses.length === 0) return
       const numbers = verses.map((verse) => verse.verse)
       const at = pick.verse === null ? -1 : numbers.indexOf(pick.verse)
@@ -194,7 +198,7 @@ export function BibleModeScreen() {
     const list = verseListRef.current
     if (!list) return
     const item = pick.verse === null ? null : list.querySelector<HTMLElement>(`[data-verse="${pick.verse}"]`)
-    const isLiveVerse = Boolean(item && live?.scripture && book && pick.chapter !== null && pick.verse !== null && projectedKey === keyOf(book.id, pick.chapter, pick.verse))
+    const isLiveVerse = Boolean(item && visibleScripture && book && pick.chapter !== null && pick.verse !== null && projectedKey === keyOf(book.id, pick.chapter, pick.verse))
     if (!item || !isLiveVerse) {
       list.style.paddingTop = ''
       list.style.paddingBottom = ''
@@ -214,7 +218,7 @@ export function BibleModeScreen() {
     observer.observe(list)
     observer.observe(item)
     return () => observer.disconnect()
-  }, [pick.verse, pick.chapter, book, projectedKey, live?.scripture, verses])
+  }, [pick.verse, pick.chapter, book, projectedKey, visibleScripture, verses])
 
   // Previous / Next in the live controls step through the verses of the chapter.
   const verseNumbers = verses.map((verse) => verse.verse)
@@ -228,8 +232,12 @@ export function BibleModeScreen() {
   const bookLabel = book ? bookName(book.id, locale) : ''
   const reference =
     pick.chapter !== null ? `${bookLabel} ${pick.chapter}${pick.verse !== null ? `:${pick.verse}` : ''}` : bookLabel
+  const shownPassage = visibleScripture && livePassage ? livePassage : null
+  const shownBook = shownPassage ? bookName(shownPassage.bookId, locale) : bookLabel
+  const shownChapter = shownPassage ? shownPassage.chapter : pick.chapter
+  const shownVerse = shownPassage ? shownPassage.startVerse : pick.verse
   const onScreen = (verse: number) => Boolean(book && pick.chapter !== null && projectedKey === keyOf(book.id, pick.chapter, verse))
-  const [liveBook, liveChapter] = (live?.scripture && projectedKey ? projectedKey : '').split(':')
+  const [liveBook, liveChapter] = (projectedKey ?? '').split(':')
 
   const bookTile = (index: number) => {
     const entry = BIBLE_BOOKS[index]
@@ -239,7 +247,7 @@ export function BibleModeScreen() {
       <button
         key={entry.id}
         type="button"
-        className={`bm-book ${pick.bookIndex === index ? 'is-active' : ''} ${entry.id === liveBook ? 'is-on-screen' : ''}`}
+        className={`bm-book ${/^\d/.test(entry.id) ? 'is-numbered' : ''} ${pick.bookIndex === index ? 'is-active' : ''} ${entry.id === liveBook ? 'is-on-screen' : ''}`}
         data-tone={GROUP_TONES[BOOK_GROUPS[index]]}
         disabled={!has}
         onClick={() => chooseBook(index)}
@@ -257,11 +265,7 @@ export function BibleModeScreen() {
     <div className="screen bible-mode-screen" data-tone={SCREEN_META.bible.tone}>
       <header className="bm-bar">
         <div className="bm-title">
-          <h1>{t('nav.biblemode')}</h1>
-          <span className={`bm-live ${live ? 'is-live' : ''}`}>
-            <span className="live-dot" aria-hidden="true" />
-            {live ? t('status.live') : t('biblemode.offAir')}
-          </span>
+          <h1 className="sr-only">{t('nav.biblemode')}</h1>
           {returnService && !live && (
             <button type="button" className="btn btn-secondary btn-sm bm-back-service" onClick={() => navigate(`/service/${returnService.id}`)}>
               <ArrowLeft size={14} />
@@ -270,7 +274,7 @@ export function BibleModeScreen() {
           )}
         </div>
         <div className="bm-controls">
-          <div className="bm-translation-select"><SortSelect value={translationId} label={t('biblemode.translation')} onChange={setTranslationId}
+          <div className="bm-translation-select"><SortSelect value={translationId} label={t('biblemode.translation')} onChange={setTranslationId} selectedLabel={bilingual ? translation?.abbreviation : undefined} leading={translation && LOCALES.includes(translation.language) ? <LocaleFlag locale={translation.language} size={16} /> : undefined}
             options={translations.map((entry) => ({ value: entry.id, label: `${entry.abbreviation} · ${entry.name}` }))} /></div>
           <div className="bm-language-mode" role="group" aria-label={t('biblemode.translation')}>
             <button type="button" className={!bilingual ? 'is-on' : ''} aria-label={t('biblemode.oneLanguage')} title={t('biblemode.oneLanguage')} aria-pressed={!bilingual} onClick={() => setBilingual(false)}>
@@ -281,7 +285,7 @@ export function BibleModeScreen() {
             </button>
           </div>
           {bilingual && (
-            <div className="bm-translation-select"><SortSelect value={secondaryId} label={t('biblemode.secondary')} onChange={setSecondaryId}
+            <div className="bm-translation-select"><SortSelect value={secondaryId} label={t('biblemode.secondary')} onChange={setSecondaryId} selectedLabel={secondaryTranslation?.abbreviation} leading={secondaryTranslation && LOCALES.includes(secondaryTranslation.language) ? <LocaleFlag locale={secondaryTranslation.language} size={16} /> : undefined}
               options={translations.map((entry) => ({ value: entry.id, label: `${entry.abbreviation} · ${entry.name}` }))} /></div>
           )}
         </div>
@@ -289,10 +293,10 @@ export function BibleModeScreen() {
 
       <div className="bm-layout">
         <section className="bm-panel bm-books" aria-label={t('biblemode.books')}>
-          <h2>{t('biblemode.oldTestament')}</h2>
-          <div className="bm-book-grid">{BIBLE_BOOKS.slice(0, OLD_TESTAMENT_COUNT).map((_, index) => bookTile(index))}</div>
-          <h2>{t('biblemode.newTestament')}</h2>
-          <div className="bm-book-grid">
+          <h2><ScrollText size={15} aria-hidden="true" />{t('biblemode.oldTestament')}</h2>
+          <div className="bm-book-grid bm-old-testament">{BIBLE_BOOKS.slice(0, OLD_TESTAMENT_COUNT).map((_, index) => bookTile(index))}</div>
+          <h2><BookOpen size={15} aria-hidden="true" />{t('biblemode.newTestament')}</h2>
+          <div className="bm-book-grid bm-new-testament">
             {BIBLE_BOOKS.slice(OLD_TESTAMENT_COUNT).map((_, index) => bookTile(index + OLD_TESTAMENT_COUNT))}
           </div>
         </section>
@@ -318,7 +322,7 @@ export function BibleModeScreen() {
                       verseHeadingRef.current?.focus({ preventScroll: true })
                     } else {
                       setVerses([])
-                      setPendingVerseFocus(true)
+                      pendingVerseFocusRef.current = true
                       setPick((current) => ({ ...current, chapter: entry.number, verse: null }))
                     }
                   }}
@@ -354,13 +358,20 @@ export function BibleModeScreen() {
 
         <section className="bm-panel bm-reading" aria-label={reference}>
           <div className="bm-preview">
-            <div className={`bm-preview-frame ${projectedKey && pick.verse !== null && onScreen(pick.verse) ? 'is-on-screen' : ''}`}>
-              {preview ? (
-                <SlideRenderer slide={preview} branding={branding} aspectRatio={aspect} compact />
+            <div className={`bm-preview-frame ${visibleScripture ? 'is-on-screen' : ''}`}>
+              {visibleScripture || preview ? (
+                <SlideRenderer
+                  slide={visibleScripture ?? preview}
+                  branding={branding}
+                  aspectRatio={aspect}
+                  compact
+                  message={live?.message}
+                  messageVisible={Boolean(visibleScripture && live?.messageVisible && live.message)}
+                />
               ) : (
-                <div className="bm-preview-empty">{t(pick.chapter === null ? 'biblemode.pickChapter' : 'biblemode.pickVerse')}</div>
+                <div className="bm-preview-empty" aria-label={t(pick.chapter === null ? 'biblemode.pickChapter' : 'biblemode.pickVerse')} />
               )}
-              {pick.verse !== null && onScreen(pick.verse) && (
+              {visibleScripture && (
                 <span className="bm-on-screen">
                   <Radio size={12} />
                   {t('biblemode.onScreen')}
@@ -369,17 +380,17 @@ export function BibleModeScreen() {
             </div>
             <div className="bm-preview-actions">
               <strong className="bm-reference">
-                {pick.chapter !== null
-                  ? `${bookLabel} · ${t('biblemode.chapter')} ${pick.chapter}${pick.verse !== null ? ` · ${t('biblemode.verse')} ${pick.verse}` : ''}`
-                  : reference || t('biblemode.pickBook')}
+                {shownBook ? shownBook.toLocaleUpperCase(locale) : t('biblemode.pickBook')}
+                {shownChapter !== null && <> <span className="bm-reference-chapter">{shownChapter}</span></>}
+                {shownVerse !== null && <> {t('biblemode.verseShort')} <span className="bm-reference-verse">{shownVerse}</span></>}
               </strong>
-              {live && (
-                <button type="button" className="btn btn-ghost btn-sm bm-clear-verse" disabled={!live.scripture} onClick={clearScriptureLive}>
+              {live?.scripture && (
+                <button type="button" className="btn btn-ghost btn-sm bm-clear-verse" onClick={clearScriptureLive}>
                   <Eraser size={14} aria-hidden="true" />
                   {t('biblemode.clear')}
                 </button>
               )}
-              {!live && (
+              {(!live || !live.scripture) && (
                 <button type="button" className="btn btn-present btn-sm" disabled={pick.verse === null || !startService} onClick={() => goLiveWithVerse()}>
                   <MonitorPlay size={14} />
                   {t('biblemode.presentVerse')}

@@ -34,6 +34,7 @@ import { DEFAULT_CHURCH_ID } from '../utils/church'
 import { normalizeOverrides } from '../shortcuts/bindings'
 import { clampMessageBox, normalizeMessageStyle } from '../utils/messageBox'
 import { sanitizeCustomBibleTranslations } from '../providers/bible/customBibles'
+import { normalizeMediaTags } from '../utils/mediaTags'
 
 const SECRET_KEY = /(token|secret|password|passwd|oauth|authorization|credential|api[_-]?key|private[_-]?key)/i
 const ID_PATTERN = /^[A-Za-z0-9_-]{1,140}$/
@@ -67,6 +68,7 @@ export interface BackupData {
   branding: Branding
   monitors: Monitor[]
   media: Omit<MediaAsset, 'source'>[]
+  mediaTags?: string[]
   bibles: CustomBibleTranslation[]
   hiddenBibleIds?: string[]
   archivedBibleIds?: string[]
@@ -79,6 +81,7 @@ export function buildBackup(input: {
   branding: Branding
   monitors: Monitor[]
   media: MediaAsset[]
+  mediaTags?: string[]
   bibles?: CustomBibleTranslation[]
   hiddenBibleIds?: string[]
   archivedBibleIds?: string[]
@@ -97,6 +100,7 @@ export function buildBackup(input: {
     branding: input.branding,
     monitors: input.monitors,
     media,
+    mediaTags: normalizeMediaTags(input.mediaTags),
     bibles: sanitizeCustomBibleTranslations(input.bibles ?? []),
     hiddenBibleIds: input.hiddenBibleIds ?? [],
     archivedBibleIds: input.archivedBibleIds ?? [],
@@ -110,6 +114,7 @@ export interface ParsedBackup {
   branding: Branding | null
   monitors: Monitor[] | null
   media: MediaAsset[] | null
+  mediaTags: string[] | null
   bibles: CustomBibleTranslation[] | null
   hiddenBibleIds: string[] | null
   archivedBibleIds: string[] | null
@@ -402,6 +407,7 @@ function normalizeMedia(value: unknown): MediaAsset[] | null {
       source: '',
       status: 'missing' as const,
       addedAt: oneLine(record.addedAt, 40) || new Date().toISOString(),
+      tags: normalizeMediaTags(record.tags, 30),
       localOnly: false,
       provider: allowed<MediaAsset['provider']>(record.provider, ['upload', 'url', 'youtube'], 'upload'),
     }
@@ -491,6 +497,7 @@ export function parseBackup(raw: string): ParsedBackup {
     branding,
     monitors: normalizeMonitors(root.monitors),
     media: normalizeMedia(root.media),
+    mediaTags: Array.isArray(root.mediaTags) ? normalizeMediaTags(root.mediaTags) : null,
     bibles,
     hiddenBibleIds,
     archivedBibleIds,

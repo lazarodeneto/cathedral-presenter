@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   buildDirectory,
   parseSongPage,
@@ -6,6 +6,7 @@ import {
   artistRepertoire,
   searchArtists,
   searchSongs,
+  searchLyrics,
   titleFromSlug,
   titleLanguage,
 } from '../providers/songs/letrasGospel'
@@ -23,6 +24,19 @@ const page = (lyrics: string, language = 'pt-BR') => `<!doctype html><html><head
 </head><body><h1>Canção de Teste</h1><div class="musica-letra lyric-text">${lyrics}<script>ads()</script></div></body></html>`
 
 describe('letrasgospel.net directory', () => {
+  it('returns lyric matches from trusted song links only', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(JSON.stringify({ snippets: [
+      { link: `${O}/grupo-exemplo/cancao-de-teste`, lyric_title: 'Canção de Teste - Grupo Exemplo' },
+      { link: 'https://other.site/grupo-exemplo/cancao-de-teste', lyric_title: 'Invalid' },
+      { link: `${O}/grupo-exemplo/cancao-de-teste`, lyric_title: 'Duplicate' },
+    ] }), { status: 200 }))
+    try {
+      const results = await searchLyrics('trecho do cântico')
+      expect(results).toHaveLength(1)
+      expect(results[0]).toMatchObject({ title: 'Canção de Teste', artist: 'Grupo Exemplo', songSlug: 'cancao-de-teste' })
+      expect(String(fetchMock.mock.calls[0][0])).toContain('search?q=')
+    } finally { fetchMock.mockRestore() }
+  })
   it('only lets the proxy fetch sitemaps and artist or song pages', () => {
     expect(isAllowedLetrasGospelPath('sitemaps/musicas_1.xml')).toBe(true)
     expect(isAllowedLetrasGospelPath('grupo-exemplo/cancao-de-teste')).toBe(true)

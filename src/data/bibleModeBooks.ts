@@ -1,23 +1,21 @@
 import type { Locale } from '../types'
 import type { ScreenTone } from '../components/ScreenIcon'
+import { CANONICAL_BIBLE_BOOKS } from './bibleBooks'
 
 /**
  * Bible Mode tiles: a short label and a colour group for each of the 66
  * books, in canonical order (same order as CANONICAL_BIBLE_BOOKS).
  */
-const ABBR_PT = [
-  'Gn', 'Êx', 'Lv', 'Nm', 'Dt', 'Js', 'Jz', 'Rt', '1Sm', '2Sm', '1Rs', '2Rs', '1Cr', '2Cr', 'Ed', 'Ne', 'Et', 'Jó',
-  'Sl', 'Pv', 'Ec', 'Ct', 'Is', 'Jr', 'Lm', 'Ez', 'Dn', 'Os', 'Jl', 'Am', 'Ob', 'Jn', 'Mq', 'Na', 'Hc', 'Sf', 'Ag',
-  'Zc', 'Ml', 'Mt', 'Mc', 'Lc', 'Jo', 'At', 'Rm', '1Co', '2Co', 'Gl', 'Ef', 'Fp', 'Cl', '1Ts', '2Ts', '1Tm', '2Tm',
-  'Tt', 'Fm', 'Hb', 'Tg', '1Pe', '2Pe', '1Jo', '2Jo', '3Jo', 'Jd', 'Ap',
-]
-
-const ABBR_EN = [
-  'Gen', 'Exo', 'Lev', 'Num', 'Deu', 'Jos', 'Jdg', 'Rut', '1Sa', '2Sa', '1Ki', '2Ki', '1Ch', '2Ch', 'Ezr', 'Neh', 'Est',
-  'Job', 'Psa', 'Pro', 'Ecc', 'Sng', 'Isa', 'Jer', 'Lam', 'Ezk', 'Dan', 'Hos', 'Jol', 'Amo', 'Oba', 'Jon', 'Mic', 'Nah',
-  'Hab', 'Zep', 'Hag', 'Zec', 'Mal', 'Mat', 'Mrk', 'Luk', 'Jhn', 'Act', 'Rom', '1Co', '2Co', 'Gal', 'Eph', 'Php', 'Col',
-  '1Th', '2Th', '1Ti', '2Ti', 'Tit', 'Phm', 'Heb', 'Jas', '1Pe', '2Pe', '1Jn', '2Jn', '3Jn', 'Jud', 'Rev',
-]
+// Some names share their first three letters; retain distinct, recognisable labels.
+const AMBIGUOUS_ABBREVIATIONS: Partial<Record<Locale, Record<string, string>>> = {
+  en: { judges: 'Jdg', jude: 'Jud', philippians: 'Php', philemon: 'Phm' },
+  pt: { philippians: 'Flp', philemon: 'Flm' },
+  'pt-BR': { philippians: 'Flp', philemon: 'Flm' },
+  es: { philippians: 'Flp', philemon: 'Flm' },
+  fr: { philippians: 'Php', philemon: 'Phm' },
+  de: { philippians: 'Php', philemon: 'Phm' },
+  it: { joshua: 'Gsu', job: 'Gob', joel: 'Goe', jonah: 'Gon', john: 'Gvn', judges: 'Gdc', jude: 'Gda', philippians: 'Flp', philemon: 'Flm' },
+}
 
 export type BookGroup =
   | 'law'
@@ -31,7 +29,7 @@ export type BookGroup =
   | 'general'
   | 'revelation'
 
-/** Group sizes in canonical order: 5 + 12 + 5 + 5 + 12 = 39 OT, 4 + 1 + 13 + 8 + 1 = 27 NT. */
+/** Group Hebrews with Paul's letters, following the church's preferred grouping. */
 const GROUP_RUNS: [BookGroup, number][] = [
   ['law', 5],
   ['history', 12],
@@ -40,8 +38,8 @@ const GROUP_RUNS: [BookGroup, number][] = [
   ['minorProphets', 12],
   ['gospels', 4],
   ['acts', 1],
-  ['paul', 13],
-  ['general', 8],
+  ['paul', 14],
+  ['general', 7],
   ['revelation', 1],
 ]
 
@@ -65,6 +63,13 @@ export const GROUP_TONES: Record<BookGroup, ScreenTone> = {
 export const OLD_TESTAMENT_COUNT = 39
 
 export function bookAbbreviation(index: number, locale: Locale): string {
-  const list = locale === 'pt' || locale === 'pt-BR' || locale === 'es' || locale === 'it' ? ABBR_PT : ABBR_EN
-  return list[index] ?? ''
+  const book = CANONICAL_BIBLE_BOOKS[index]
+  if (!book) return ''
+  const name = book.names[locale] ?? book.names.en
+  const number = name.match(/^\d+/)?.[0] ?? ''
+  const letters = name.replace(/^\d+[.\s]*/, '').match(/\p{L}/gu) ?? []
+  const letterLimit = Math.max(1, 3 - Array.from(number).length)
+  const short = AMBIGUOUS_ABBREVIATIONS[locale]?.[book.id] ?? letters.slice(0, letterLimit).join('')
+  const normalized = short.toLocaleLowerCase(locale)
+  return number + normalized.slice(0, 1).toLocaleUpperCase(locale) + normalized.slice(1, letterLimit)
 }

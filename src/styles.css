@@ -1267,7 +1267,7 @@ iframe {
 .bible-selector select:focus,
 .song-language select:focus {
   border-color: rgb(var(--violet-rgb) / 0.5);
-  background: rgb(var(--ink-rgb) / 0.52);
+  background-color: rgb(var(--ink-rgb) / 0.52);
 }
 
 .field input[type="range"] {
@@ -2151,9 +2151,28 @@ dialog.modal::backdrop {
   color: var(--muted);
 }
 
+.output-format-trigger .workspace-aspect-copy,
+.output-format-field .workspace-aspect-option .workspace-aspect-copy {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 16px;
+}
+
+.output-format-trigger .workspace-aspect-copy small,
+.output-format-field .workspace-aspect-option .workspace-aspect-copy small {
+  margin-inline-start: auto;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
 .output-format-field .workspace-aspect-menu {
   width: 100%;
   max-width: none;
+}
+
+.output-format-field .workspace-aspect-option:not(.is-active) {
+  padding-right: 34px;
 }
 
 /* A small outline in the format's proportion. */
@@ -3065,6 +3084,28 @@ dialog.modal::backdrop {
   align-items: flex-start;
   justify-content: center;
 }
+
+/* Center selected values across the app while keeping open options easy to scan. */
+body:not(.output-mode) select:not([multiple]):not([size]) {
+  text-align: center;
+  text-align-last: center;
+  justify-content: center;
+}
+body:not(.output-mode) select:not([multiple]):not([size]) option {
+  text-align: start;
+}
+@supports (appearance: base-select) {
+  body:not(.output-mode) select:not([multiple]):not([size]) {
+    display: flex;
+    align-items: center;
+    padding-block: 0;
+  }
+}
+.sort-select-trigger > span {
+  flex: 1 1 auto;
+  text-align: center;
+}
+.language-filter-trigger .topbar-language-name { text-align: center; }
 
 .hero-kicker {
   display: flex;
@@ -4251,6 +4292,9 @@ dialog.modal::backdrop {
   color: var(--amber);
 }
 
+.bible-translation-card .bible-translation-abbr { flex: 1; width: auto; }
+.bible-translation-card > svg:last-child:not(.locale-flag) { margin-inline-start: auto; }
+
 .bible-translation-abbr {
   display: grid;
   width: 48px;
@@ -4504,8 +4548,8 @@ dialog.modal::backdrop {
 
 .bible-language-pair {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
 }
 
 .bible-language-field {
@@ -4520,9 +4564,8 @@ dialog.modal::backdrop {
 }
 
 .bible-language-field span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .bible-language-primary span {
@@ -4545,6 +4588,9 @@ dialog.modal::backdrop {
   background: rgb(var(--ink-rgb) / 0.38);
   font-size: var(--text-meta);
 }
+
+.bible-select-with-flag { position: relative; display: block; min-width: 0; }
+.bible-select-with-flag > .locale-flag { position: absolute; z-index: 1; left: 9px; top: 50%; transform: translateY(-50%); pointer-events: none; }
 
 .bible-language-field select:focus {
   border-color: rgb(var(--violet-rgb) / 0.5);
@@ -4995,6 +5041,30 @@ dialog.modal::backdrop {
   overflow: hidden;
 }
 
+.media-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin: 0 15px 16px; padding: 12px; border: 1px solid var(--line); border-radius: var(--rounded-md); background: rgb(var(--ink-rgb) / 0.25); }
+.media-filter-search { flex: 1 0 100%; }
+.media-filter-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 10px; flex: 1 0 100%; }
+.media-filter-fields .field { min-width: 0; }
+.media-filter-fields input, .media-filter-fields select { min-width: 0; width: 100%; }
+.media-tag-filter, .media-tag-picker { min-width: 0; }
+.media-tag-filter summary, .media-tag-picker summary { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 6px 10px; border: 1px solid var(--line-strong); border-radius: var(--rounded-sm); color: var(--text-2); cursor: pointer; list-style: none; }
+.media-tag-filter summary:hover, .media-tag-picker summary:hover { color: var(--text); border-color: var(--violet); }
+.media-tag-filter summary::-webkit-details-marker, .media-tag-picker summary::-webkit-details-marker { display: none; }
+.media-tag-filter summary strong { display: grid; min-width: 20px; height: 20px; padding-inline: 4px; place-items: center; border-radius: 999px; background: rgb(var(--violet-rgb) / 0.3); font-size: var(--text-micro); }
+.media-tag-choices { display: flex; flex-wrap: wrap; gap: 6px; max-height: 200px; overflow: auto; padding: 10px 0 0; }
+.media-tag-choices label { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: var(--rounded-sm); color: var(--text-2); font-size: var(--text-meta); cursor: pointer; }
+.media-tag-choices label:has(input:checked) { border-color: rgb(var(--violet-rgb) / 0.7); background: rgb(var(--violet-rgb) / 0.15); color: var(--text); }
+.media-tag-choices input { accent-color: var(--violet); }
+.media-filter-clear { min-height: 36px; }
+.media-tags-editor { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; padding: 12px 0; border-block: 1px solid var(--line); }
+.media-tags-editor > strong { display: flex; align-items: center; gap: 7px; font-size: var(--text-ui); }
+.media-selected-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.media-tag-chip { padding: 4px 8px; border: 1px solid rgb(var(--violet-rgb) / 0.4); border-radius: 999px; background: rgb(var(--violet-rgb) / 0.12); font-size: var(--text-meta); }
+.media-tag-empty { color: var(--muted); font-size: var(--text-meta); }
+.media-tag-picker .search-field { margin-top: 9px; }
+.media-create-tag { margin-top: 8px; max-width: 100%; overflow-wrap: anywhere; }
+.media-card-body .media-card-tags { overflow: hidden; color: var(--violet-text); text-overflow: ellipsis; white-space: nowrap; }
+
 .media-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -5210,6 +5280,9 @@ dialog.modal::backdrop {
   color: var(--amber-bright);
   background: var(--amber-soft);
 }
+
+.template-category { display: inline-flex; align-items: center; gap: 6px; }
+.template-category svg { flex: none; }
 
 .template-grid {
   display: grid;
@@ -6002,20 +6075,27 @@ dialog.modal::backdrop {
 .data-summary>div {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 13px 15px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 90px;
+  padding: 14px 12px;
+  text-align: center;
   background: var(--surface-well);
 }
 
 .data-summary span {
-  color: var(--faint);
+  color: var(--muted);
   font-size: var(--text-meta);
 }
 
 .data-summary strong {
   font-family: var(--font-display);
   font-size: 24px;
-  font-weight: 500;
+  font-weight: 650;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
 }
 
 .data-rows {
@@ -6112,6 +6192,9 @@ dialog.modal::backdrop {
   padding: 16px;
   background: var(--surface-well);
 }
+
+.security-grid .eyebrow { display: flex; align-items: center; gap: 8px; }
+.security-grid .eyebrow svg { flex: none; color: var(--text-2); }
 
 .security-grid p {
   margin-top: 6px;
@@ -8459,6 +8542,12 @@ dialog.modal::backdrop {
   border: 3px solid rgb(var(--green-rgb));
   aspect-ratio: 16 / 9;
   box-shadow: 0 0 14px 3px rgb(var(--green-rgb) / 0.3);
+}
+
+.inspector-output-black {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
 }
 
 .inspector-output-frozen {
@@ -13228,7 +13317,7 @@ body:not(.output-mode) .bible-screen .bible-language-field select {
 body:not(.output-mode) .bible-screen .bible-selector select:focus,
 body:not(.output-mode) .bible-screen .bible-language-field select:focus {
   border-color: var(--bible-line-strong);
-  background: rgb(5 24 53 / 0.9);
+  background-color: rgb(5 24 53 / 0.9);
 }
 
 body:not(.output-mode) .bible-screen .bible-provider-state {
@@ -15733,6 +15822,17 @@ body:not(.output-mode) .app-content .screen:not(.workspace-screen) {
   padding: var(--page-top) var(--page-gutter) var(--page-bottom);
 }
 
+/* Align the small top-bar icon with the center of the page heading icon. */
+body:not(.output-mode) .topbar {
+  padding-left: calc(max(0px, (100% - 1600px) / 2) + var(--page-gutter) + 11px);
+}
+
+@media (max-width: 620px) {
+  body:not(.output-mode) .topbar {
+    padding-left: calc(var(--page-gutter) + 6px);
+  }
+}
+
 /* Bible fills the window height; its panels end one gutter above the bottom.
    It drops its old full-bleed margins and dark backdrop so it sits in the
    same frame and on the same glass field as every other screen. */
@@ -15829,6 +15929,12 @@ body:not(.output-mode) select:not([multiple]):not([size]):hover:not(:disabled) {
 body:not(.output-mode) .bible-screen :is(.bible-selector, .bible-language-field) select {
   --select-cap: 24px;
   padding: 0 calc(var(--select-cap) + 3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-align-last: center;
+  background-repeat: no-repeat;
 }
 
 /* Bible bar columns: chapter and each verse field are wide enough for a
@@ -15846,8 +15952,12 @@ body:not(.output-mode) .bible-screen .bible-selector-grid select {
 
 @media (min-width: 821px) and (max-width: 1120px) {
   body:not(.output-mode) .bible-screen .bible-selector-grid {
-    grid-template-columns: minmax(105px, 1.1fr) 88px minmax(180px, 1fr) minmax(125px, 1.2fr) minmax(125px, 1.2fr);
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
+  body:not(.output-mode) .bible-screen .bible-selector-grid > :nth-child(1) { grid-column: span 2; }
+  body:not(.output-mode) .bible-screen .bible-selector-grid > :nth-child(2) { grid-column: span 1; }
+  body:not(.output-mode) .bible-screen .bible-selector-grid > :nth-child(3) { grid-column: span 3; }
+  body:not(.output-mode) .bible-screen .bible-selector-grid > :nth-child(n + 4) { grid-column: span 3; }
 }
 
 /* ── Top bar, refined ─────────────────────────────────────────────
@@ -16971,6 +17081,26 @@ body:not(.output-mode) .backup-panel > div:nth-child(2) {
 body:not(.output-mode) .sidebar .main-nav {
   gap: 8px;
 }
+
+body:not(.output-mode) .sidebar .main-nav { position: relative; }
+.nav-highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  border-radius: var(--rounded-md);
+  background: linear-gradient(180deg, rgb(var(--wash-rgb) / 0.2), rgb(var(--wash-rgb) / 0.1));
+  box-shadow: inset 0 1px 0 rgb(var(--wash-rgb) / 0.28), inset 0 0 0 1px rgb(var(--wash-rgb) / 0.16), 0 6px 18px rgb(0 0 0 / 0.25);
+  transition: transform 220ms var(--ease-out), width 180ms ease, height 180ms ease;
+}
+.has-nav-highlight .nav-highlight { opacity: 1; }
+body:not(.output-mode) .sidebar .main-nav.has-nav-highlight .nav-item { z-index: 1; }
+body:not(.output-mode) .sidebar .main-nav.has-nav-highlight .nav-item.is-active { background: transparent; box-shadow: none; }
+body.window-inactive:not(.output-mode) .nav-highlight { background: rgb(var(--wash-rgb) / 0.12); box-shadow: none; }
+@media (prefers-reduced-motion: reduce) { .nav-highlight { transition: none; } }
+body.reduced-motion .nav-highlight { transition: none !important; }
 
 body:not(.output-mode) .sidebar .nav-item {
   min-height: 40px;
@@ -18380,6 +18510,7 @@ body:not(.output-mode) .topbar::after {
   body:not(.output-mode) .topbar {
     gap: 24px;
     padding: 0 22px 0 24px;
+    padding-left: calc(max(0px, (100% - 1600px) / 2) + var(--page-gutter) + 9px);
   }
 
   body:not(.output-mode) .topbar-breadcrumb {
@@ -19401,11 +19532,35 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
 }
 
 .bm-controls {
-  display: flex;
-  flex-wrap: nowrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
   gap: 8px;
+  min-width: 0;
 }
+
+.bm-controls:has(> .bm-translation-select:nth-child(3)) {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 4px;
+}
+.bm-controls:has(> .bm-translation-select:nth-child(3)) .bm-language-mode button { gap: 3px; padding-inline: 4px; font-size: 12px; }
+.bm-controls:has(> .bm-translation-select:nth-child(3)) .bm-language-mode button svg { width: 12px; }
+.bm-controls:has(> .bm-translation-select:nth-child(3)) .sort-select-trigger {
+  gap: 2px;
+  padding-inline: 4px;
+  font-size: 11px;
+}
+.bm-controls:has(> .bm-translation-select:nth-child(3)) .sort-select-trigger > svg {
+  width: 13px;
+  flex: none;
+}
+.bm-controls:has(> .bm-translation-select:nth-child(3)) .sort-select-trigger > .locale-flag {
+  width: 16px;
+  height: 16px;
+}
+.bm-controls .bm-translation-select { width: 100%; min-width: 0; }
+.bm-controls .sort-select-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bm-controls .sort-select-trigger span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .bm-bar { position: relative; z-index: 5; }
 .bm-translation-select { width: min(240px, 100%); min-width: 0; }
@@ -19464,10 +19619,11 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
 }
 
 .bm-panel h2 {
-  color: var(--muted);
+  color: var(--text-2);
   font-size: var(--text-meta);
   font-weight: 700;
   letter-spacing: 0.08em;
+  line-height: 1.4;
   text-transform: uppercase;
 }
 
@@ -19479,22 +19635,60 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
 
 .bm-book-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
   gap: 5px;
+  padding: 6px;
+  border-radius: var(--rounded-md);
+}
+
+.bm-old-testament { background: rgb(var(--tone-amber-rgb) / 0.18); }
+.bm-new-testament { background: rgb(var(--tone-blue-rgb) / 0.2); }
+
+@media (min-width: 761px) {
+  .bm-books {
+    display: grid;
+    grid-template-rows: auto minmax(min-content, 39fr) auto minmax(min-content, 27fr);
+  }
+  .bm-books .bm-book-grid {
+    grid-auto-rows: minmax(44px, 1fr);
+    align-content: stretch;
+  }
+}
+
+
+.bm-books > h2 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: 0.07em;
+}
+
+.bm-books > h2 svg { flex: none; color: rgb(var(--tone-amber-rgb)); }
+.bm-books > .bm-book-grid + h2 svg { color: rgb(var(--tone-blue-rgb)); }
+
+.bm-books > .bm-book-grid + h2 {
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-strong);
 }
 
 .bm-book {
   display: flex;
   min-width: 0;
-  min-height: 52px;
+  min-height: 44px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 1px;
   padding: 4px 3px;
-  border: 1px solid rgb(var(--tone-rgb) / 0.4);
+  border: 1px solid rgb(var(--tone-rgb) / 0.62);
   border-radius: var(--rounded-sm);
-  background: linear-gradient(160deg, rgb(var(--tone-rgb) / 0.32), rgb(var(--tone-rgb) / 0.12));
+  background: linear-gradient(155deg, rgb(var(--wash-rgb) / 0.1), transparent 52%),
+    linear-gradient(160deg, rgb(var(--tone-rgb) / 0.42), rgb(var(--tone-rgb) / 0.18));
+  box-shadow: inset 0 1px 0 rgb(var(--wash-rgb) / 0.14), 0 3px 9px rgb(0 0 0 / 0.12);
   color: var(--text);
   transition: transform 0.12s var(--ease-out), border-color 0.12s ease, background 0.12s ease;
 }
@@ -19505,18 +19699,23 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
   line-height: 1.1;
 }
 
+.bm-book.is-numbered strong { font-size: 14px; letter-spacing: -0.02em; }
+
 .bm-book small {
   max-width: 100%;
   overflow: hidden;
-  color: rgb(var(--text-rgb) / 0.72);
+  color: rgb(var(--text-rgb) / 0.85);
   font-size: var(--text-micro);
+  line-height: 1.15;
   text-overflow: ellipsis;
+  text-align: center;
   white-space: nowrap;
 }
 
 .bm-book:hover:not(:disabled) {
   border-color: rgb(var(--tone-rgb) / 0.8);
-  background: linear-gradient(160deg, rgb(var(--tone-rgb) / 0.45), rgb(var(--tone-rgb) / 0.2));
+  background: linear-gradient(155deg, rgb(var(--wash-rgb) / 0.14), transparent 52%),
+    linear-gradient(160deg, rgb(var(--tone-rgb) / 0.55), rgb(var(--tone-rgb) / 0.3));
   transform: translateY(-1px);
 }
 
@@ -19532,17 +19731,26 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
 
 .bm-number-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
-  gap: 5px;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid rgb(var(--wash-rgb) / 0.12);
+  border-radius: var(--rounded-md);
+  background: rgb(var(--wash-rgb) / 0.12);
+}
+
+.bm-number-grid.bm-verse-grid {
+  border-color: rgb(var(--wash-rgb) / 0.08);
+  background: rgb(var(--ink-rgb) / 0.38);
 }
 
 .bm-number {
   display: grid;
-  min-height: 42px;
+  min-height: 44px;
   place-items: center;
   border: 1px solid rgb(var(--wash-rgb) / 0.24);
   border-radius: var(--rounded-sm);
-  background: rgb(var(--wash-rgb) / 0.11);
+  background: rgb(var(--wash-rgb) / 0.19);
   color: var(--text);
   font-size: 16px;
   font-weight: 600;
@@ -19555,8 +19763,8 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
 }
 
 .bm-verse-heading {
-  margin-top: 8px;
-  padding-top: 14px;
+  margin-top: 12px;
+  padding-top: 16px;
   border-top: 1px solid var(--line-strong);
 }
 
@@ -19635,7 +19843,7 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
 .bm-on-screen {
   position: absolute;
   top: 8px;
-  left: 8px;
+  right: 8px;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -19678,9 +19886,17 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
   min-width: 0;
   font-size: var(--text-body);
   text-align: center;
-  text-transform: uppercase;
   overflow-wrap: anywhere;
 }
+
+.bm-reference-chapter,
+.bm-reference-verse {
+  font-size: 1.3em;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+.bm-reference-chapter { color: #f4f4f6; }
+.bm-reference-verse { color: #aeb4c0; }
 
 .bm-hint {
   color: var(--faint);
@@ -19739,6 +19955,28 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
   }
 }
 
+/* The book and chapter panels use the full available height; translation
+   controls sit above the preview rather than above the whole workspace. */
+@media (min-width: 1181px) {
+  .bible-mode-screen {
+    display: grid;
+    grid-template-columns: minmax(360px, 1.35fr) minmax(220px, 0.8fr) minmax(320px, 1.15fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 10px 14px;
+  }
+  .bm-layout { display: contents; }
+  .bm-bar { grid-column: 3; grid-row: 1; min-width: 0; }
+  .bm-books { grid-column: 1; grid-row: 1 / 3; }
+  .bm-numbers { grid-column: 2; grid-row: 1 / 3; }
+  .bm-reading { grid-column: 3; grid-row: 2; }
+  .bm-title:has(.sr-only:only-child) { display: none; }
+  .bm-controls { flex: 1 1 100%; min-width: 0; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
+  .bm-translation-select { width: 100%; min-width: 0; }
+  .bm-language-mode { flex: 0 0 auto; }
+  .bm-translation-select .sort-select-trigger span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bm-language-mode button { gap: 4px; padding-inline: 7px; }
+}
+
 @media (max-width: 760px) {
   .bible-mode-screen {
     height: auto;
@@ -19792,13 +20030,113 @@ body:not(.output-mode) .live-control-actions.is-three {
   border-top: 0;
 }
 
+/* Preserve native select semantics while styling the picker where supported. */
+body:not(.output-mode) select { color-scheme: dark; }
+@supports (appearance: base-select) {
+  body:not(.output-mode) select:not([multiple]):not([size]),
+  body:not(.output-mode) select:not([multiple]):not([size])::picker(select) {
+    appearance: base-select;
+  }
+  body:not(.output-mode) select:not([multiple]):not([size])::picker-icon {
+    display: none;
+  }
+  body:not(.output-mode) select:not([multiple]):not([size]) {
+    min-width: 0;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  body:not(.output-mode) select:not([multiple]):not([size]) selectedcontent {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  body:not(.output-mode) select:not([multiple]):not([size])::picker(select) {
+    border: 1px solid var(--line-strong);
+    border-radius: var(--rounded-md);
+    padding: 5px;
+    color: var(--text);
+    background: var(--surface-solid-raised);
+    box-shadow: 0 12px 32px rgb(0 0 0 / 0.4);
+  }
+  body:not(.output-mode) select:not([multiple]):not([size]) option {
+    min-height: 40px;
+    padding: 10px;
+    border-radius: var(--rounded-xs);
+    color: var(--text-2);
+    background: transparent;
+  }
+  body:not(.output-mode) select:not([multiple]):not([size]) option:hover,
+  body:not(.output-mode) select:not([multiple]):not([size]) option:focus {
+    color: var(--text);
+    background: rgb(var(--wash-rgb) / 0.1);
+  }
+  body:not(.output-mode) select:not([multiple]):not([size]) option:checked {
+    color: var(--violet-text);
+    background: rgb(var(--violet-rgb) / 0.18);
+  }
+}
+
 body:not(.output-mode) .bm-live-controls .live-control-back {
   color: var(--danger-text);
   background: rgb(var(--danger-rgb) / 0.13);
-  box-shadow: inset 0 0 0 1px rgb(var(--danger-rgb) / 0.35);
+  box-shadow: inset 0 0 0 2px rgb(var(--danger-rgb) / 0.65);
 }
 
 body:not(.output-mode) .bm-live-controls .live-control-back:hover {
   color: var(--text);
   background: rgb(var(--danger-rgb) / 0.25);
+}
+
+/* Keep the selected translation clear of the chevron, even in narrow panels. */
+body:not(.output-mode) .bible-screen :is(.bible-selector-grid > :nth-child(n + 4), .bible-language-field) select {
+  padding-inline: 38px;
+  justify-content: center;
+}
+@supports (appearance: base-select) {
+  body:not(.output-mode) .bible-screen :is(.bible-selector, .bible-language-field) select selectedcontent {
+    flex: 1 1 0;
+    width: 0;
+    text-align: center;
+  }
+}
+
+.category-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.category-tab svg { flex: none; }
+
+/* A more legible, consistent filter area in the song library. */
+.song-list { padding: 14px; }
+.song-filter-panel { margin-top: 14px; padding: 13px 2px 14px; }
+.song-filter-head { margin-bottom: 10px; }
+.song-language { grid-template-columns: 68px minmax(0, 1fr); gap: 10px; margin-top: 9px; }
+.song-language select,
+.song-language .language-filter-trigger { height: 38px; }
+.song-search-scope { margin-top: 10px; }
+.song-search-scope-option { min-height: 32px; }
+
+.settings-grid > .field { min-width: 0; }
+.settings-grid select:not([multiple]):not([size]) {
+  text-align: center;
+  text-align-last: center;
+  padding-left: 44px;
+  justify-content: center;
+}
+.settings-grid .language-filter-trigger {
+  height: 35px;
+  padding-inline: 12px;
+}
+.settings-grid .language-filter-trigger .topbar-language-name { text-align: center; }
+.song-language select {
+  padding-left: 44px;
+  text-align: center;
+  text-align-last: center;
+  justify-content: center;
 }

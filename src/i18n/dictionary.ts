@@ -7,6 +7,7 @@ import { reviewStrings } from './reviewStrings'
 import { bibleAdminStrings } from './bibleAdminStrings'
 import { songDirectoryStrings } from './songDirectoryStrings'
 import { railStrings } from './railStrings'
+import { mediaTagStrings } from './mediaTagStrings'
 
 type Dict = Record<string, string>
 
@@ -3407,13 +3408,13 @@ const sourceStrings: Record<Locale, Dict> = {
 }
 
 export const dictionaries: Record<Locale, Dict> = {
-  en: { ...en, ...sourceStrings.en, ...bibleAdminStrings.en, ...songDirectoryStrings.en, ...railStrings.en, ...reviewStrings.en, ...templateStrings.en },
-  pt: { ...en, ...editorStrings.pt, ...pt, ...sourceStrings.pt, ...completionStrings.pt, ...bibleAdminStrings.pt, ...songDirectoryStrings.pt, ...railStrings.pt, ...reviewStrings.pt, ...templateStrings.pt },
-  'pt-BR': { ...en, ...editorStrings.pt, ...pt, ...sourceStrings.pt, ...ptBR, ...sourceStrings['pt-BR'], ...completionStrings['pt-BR'], ...bibleAdminStrings['pt-BR'], ...songDirectoryStrings['pt-BR'], ...railStrings['pt-BR'], ...reviewStrings.pt, ...reviewStrings['pt-BR'], ...templateStrings.pt, ...templateStrings['pt-BR'] },
-  es: { ...en, ...editorStrings.es, ...es, ...sourceStrings.es, ...completionStrings.es, ...bibleAdminStrings.es, ...songDirectoryStrings.es, ...railStrings.es, ...reviewStrings.es, ...templateStrings.es },
-  fr: { ...en, ...editorStrings.fr, ...fr, ...sourceStrings.fr, ...completionStrings.fr, ...bibleAdminStrings.fr, ...songDirectoryStrings.fr, ...railStrings.fr, ...reviewStrings.fr, ...templateStrings.fr },
-  de: { ...en, ...editorStrings.de, ...de, ...sourceStrings.de, ...completionStrings.de, ...bibleAdminStrings.de, ...songDirectoryStrings.de, ...railStrings.de, ...reviewStrings.de, ...templateStrings.de },
-  it: { ...en, ...editorStrings.it, ...it, ...sourceStrings.it, ...completionStrings.it, ...bibleAdminStrings.it, ...songDirectoryStrings.it, ...railStrings.it, ...reviewStrings.it, ...templateStrings.it },
+  en: { ...en, ...sourceStrings.en, ...bibleAdminStrings.en, ...songDirectoryStrings.en, ...mediaTagStrings.en, ...railStrings.en, ...reviewStrings.en, ...templateStrings.en },
+  pt: { ...en, ...editorStrings.pt, ...pt, ...sourceStrings.pt, ...completionStrings.pt, ...bibleAdminStrings.pt, ...songDirectoryStrings.pt, ...mediaTagStrings.pt, ...railStrings.pt, ...reviewStrings.pt, ...templateStrings.pt },
+  'pt-BR': { ...en, ...editorStrings.pt, ...pt, ...sourceStrings.pt, ...ptBR, ...sourceStrings['pt-BR'], ...completionStrings['pt-BR'], ...bibleAdminStrings['pt-BR'], ...songDirectoryStrings['pt-BR'], ...mediaTagStrings['pt-BR'], ...railStrings['pt-BR'], ...reviewStrings.pt, ...reviewStrings['pt-BR'], ...templateStrings.pt, ...templateStrings['pt-BR'] },
+  es: { ...en, ...editorStrings.es, ...es, ...sourceStrings.es, ...completionStrings.es, ...bibleAdminStrings.es, ...songDirectoryStrings.es, ...mediaTagStrings.es, ...railStrings.es, ...reviewStrings.es, ...templateStrings.es },
+  fr: { ...en, ...editorStrings.fr, ...fr, ...sourceStrings.fr, ...completionStrings.fr, ...bibleAdminStrings.fr, ...songDirectoryStrings.fr, ...mediaTagStrings.fr, ...railStrings.fr, ...reviewStrings.fr, ...templateStrings.fr },
+  de: { ...en, ...editorStrings.de, ...de, ...sourceStrings.de, ...completionStrings.de, ...bibleAdminStrings.de, ...songDirectoryStrings.de, ...mediaTagStrings.de, ...railStrings.de, ...reviewStrings.de, ...templateStrings.de },
+  it: { ...en, ...editorStrings.it, ...it, ...sourceStrings.it, ...completionStrings.it, ...bibleAdminStrings.it, ...songDirectoryStrings.it, ...mediaTagStrings.it, ...railStrings.it, ...reviewStrings.it, ...templateStrings.it },
 }
 
 export function translate(locale: Locale, key: string, vars?: Record<string, string | number>): string {

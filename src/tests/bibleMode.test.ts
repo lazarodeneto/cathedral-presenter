@@ -6,6 +6,7 @@ import { getVersePassage } from '../providers/bible/LocalBibleProvider'
 import { createBibleSlides } from '../utils/slides'
 import { BOOK_GROUPS, OLD_TESTAMENT_COUNT, bookAbbreviation } from '../data/bibleModeBooks'
 import { BIBLE_BOOKS } from '../data/bible'
+import { LOCALES } from '../types'
 
 function verseSlide() {
   const primary = getVersePassage('web', 'john', 3, 16)
@@ -30,8 +31,25 @@ describe('Bible Mode', () => {
   it('has a label and a colour group for all 66 books', () => {
     expect(BOOK_GROUPS).toHaveLength(BIBLE_BOOKS.length)
     expect(OLD_TESTAMENT_COUNT).toBe(39)
-    expect(bookAbbreviation(42, 'pt-BR')).toBe('Jo')
-    expect(bookAbbreviation(42, 'en')).toBe('Jhn')
+    expect(bookAbbreviation(42, 'pt-BR')).toBe('Joã')
+    expect(bookAbbreviation(8, 'pt-BR')).toBe('1Sa')
+    expect(bookAbbreviation(42, 'en')).toBe('Joh')
+  })
+
+  it('uses distinct three-character abbreviations in every language, counting the number', () => {
+    for (const locale of LOCALES) {
+      const labels = BIBLE_BOOKS.map((_, index) => bookAbbreviation(index, locale))
+      expect(new Set(labels).size).toBe(BIBLE_BOOKS.length)
+      for (const [index, label] of labels.entries()) {
+        const number = label.match(/^\d+/)?.[0] ?? ''
+        const letters = label.replace(/^\d+/, '')
+        const fullName = BIBLE_BOOKS[index].names[locale].replace(/^\d+[.\s]*/, '').replace(/[^\p{L}]/gu, '')
+        expect(Array.from(label).length).toBe(Math.min(3, Array.from(number + fullName).length))
+        expect(Array.from(letters).length).toBe(Math.min(3 - Array.from(number).length, Array.from(fullName).length))
+        expect(letters.slice(0, 1)).toBe(letters.slice(0, 1).toLocaleUpperCase(locale))
+        expect(letters.slice(1)).toBe(letters.slice(1).toLocaleLowerCase(locale))
+      }
+    }
   })
 
   it('shows a verse on the audience screen until the operator moves on', () => {
@@ -63,5 +81,39 @@ describe('Bible Mode', () => {
 
   it('does nothing when no service is live', () => {
     expect(useAppStore.getState().showScriptureLive(verseSlide())).toBe(false)
+  })
+
+  it('blacks out during a mode change until a verse or service slide is explicitly presented', () => {
+    const state = useAppStore.getState()
+    const service = state.services.find((entry) => flatSlides(entry).length > 1 && entry.status !== 'archived')!
+    const slide = flatSlides(service)[0].slide
+    state.startLive(service.id, slide.id)
+    state.toggleFreeze()
+    state.blankForModeTransition()
+    expect(snapshot().audience.mode).toBe('blank')
+    expect(useAppStore.getState().live).toMatchObject({ frozen: false, modeTransitionPending: true, scripture: null })
+    state.toggleBlank()
+    state.toggleFreeze()
+    expect(snapshot().audience.mode).toBe('blank')
+    expect(useAppStore.getState().live?.frozen).toBe(false)
+
+    const verse = verseSlide()
+    state.showScriptureLive(verse)
+    expect(snapshot().audience).toMatchObject({ mode: 'live', slide: expect.objectContaining({ id: verse.id }) })
+
+    state.blankForModeTransition()
+    expect(snapshot().audience.mode).toBe('blank')
+    expect(useAppStore.getState().live?.scripture).toBeNull()
+    expect(state.jumpLive(slide.id)).toBe(true)
+    expect(snapshot().audience).toMatchObject({ mode: 'live', slide: expect.objectContaining({ id: slide.id }) })
+  })
+
+  it('preserves the manual black screen when navigating slides normally', () => {
+    const state = useAppStore.getState()
+    const service = state.services.find((entry) => flatSlides(entry).length > 1 && entry.status !== 'archived')!
+    state.startLive(service.id, flatSlides(service)[0].slide.id)
+    state.toggleBlank()
+    state.nextLive()
+    expect(snapshot().audience.mode).toBe('blank')
   })
 })

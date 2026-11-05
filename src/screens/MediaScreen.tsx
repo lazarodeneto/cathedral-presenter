@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   ChevronRight,
   ExternalLink,
@@ -11,6 +11,8 @@ import {
   Trash2,
   Upload,
   SquarePlay,
+  Search,
+  Tags,
 } from 'lucide-react'
 import type { MediaAsset, MediaKind } from '../types'
 import { webMediaProvider } from '../providers/media/MediaProvider'
@@ -25,6 +27,10 @@ import { QrComposer } from '../components/editor/QrComposer'
 import { qrElement, type QrVariant } from '../providers/media/mediaWorkflow'
 import { SCREEN_META, ScreenIcon } from '../components/ScreenIcon'
 import { reloadAfterAdd } from '../store/appReload'
+import { DateField } from '../components/DateField'
+import { DEFAULT_MEDIA_TAGS, filterMedia, mediaSearchKey, normalizeMediaTags, type MediaFilters } from '../utils/mediaTags'
+
+const emptyFilters: MediaFilters = { query: '', tags: [], kind: '', from: '', to: '', sort: 'newest' }
 
 function errorMessage(reason: string | undefined, t: (key: string) => string): string {
   switch (reason) {
@@ -67,6 +73,9 @@ export function MediaScreen() {
   const activeServiceId = useAppStore((state) => state.activeServiceId)
   const mediaLibrary = useAppStore((state) => state.mediaLibrary)
   const addMedia = useAppStore((state) => state.addMedia)
+  const savedTags = useAppStore((state) => state.mediaTags)
+  const setMediaTags = useAppStore((state) => state.setMediaTags)
+  const addMediaTag = useAppStore((state) => state.addMediaTag)
   const removeMedia = useAppStore((state) => state.removeMedia)
   const addItem = useAppStore((state) => state.addItem)
   const push = useToasts((state) => state.push)
@@ -87,7 +96,16 @@ export function MediaScreen() {
   const [youtubeValue, setYoutubeValue] = useState('')
   const [youtubeError, setYoutubeError] = useState('')
   const [qrOpen, setQrOpen] = useState(false)
-  const [selected, setSelected] = useState<MediaAsset | null>(mediaLibrary[0] ?? null)
+  const [selectedId, setSelectedId] = useState<string | null>(mediaLibrary[0]?.id ?? null)
+  const [filters, setFilters] = useState<MediaFilters>(emptyFilters)
+  const [tagQuery, setTagQuery] = useState('')
+  const allTags = useMemo(() => normalizeMediaTags([...DEFAULT_MEDIA_TAGS, ...savedTags, ...mediaLibrary.flatMap((asset) => asset.tags ?? [])], 300), [savedTags, mediaLibrary])
+  const results = useMemo(() => filterMedia(mediaLibrary, filters), [mediaLibrary, filters])
+  const selected = results.find((asset) => asset.id === selectedId) ?? (selectedId ? results[0] ?? null : null)
+  const matchingTags = allTags.filter((tag) => mediaSearchKey(tag).includes(mediaSearchKey(tagQuery)))
+  const newTag = normalizeMediaTags([tagQuery], 1)[0]
+  const canCreateTag = Boolean(newTag && !allTags.some((tag) => mediaSearchKey(tag) === mediaSearchKey(newTag)))
+  const hasFilters = Boolean(filters.query || filters.tags.length || filters.kind || filters.from || filters.to || filters.sort !== 'newest')
 
   const selectedSection = sectionId || activeService?.sections[0]?.id || ''
 
@@ -101,7 +119,7 @@ export function MediaScreen() {
       const result = await webMediaProvider.registerFile(file)
       if (result.ok && result.asset) {
         addMedia(result.asset)
-        setSelected(result.asset)
+        setSelectedId(result.asset.id)
         push(t('media.uploaded'), 'success')
       } else {
         push(errorMessage(result.reason, t), 'error')
@@ -118,7 +136,7 @@ export function MediaScreen() {
       return
     }
     addMedia(result.asset)
-    setSelected(result.asset)
+    setSelectedId(result.asset.id)
     setUrlOpen(false)
     setUrlValue('')
     setUrlError('')
@@ -133,7 +151,7 @@ export function MediaScreen() {
       return
     }
     addMedia(result.asset)
-    setSelected(result.asset)
+    setSelectedId(result.asset.id)
     setYoutubeOpen(false)
     setYoutubeValue('')
     setYoutubeError('')
@@ -249,7 +267,7 @@ export function MediaScreen() {
           <div className="panel-header">
             <div>
               <h3>
-                {mediaLibrary.length} {t('common.items')}
+                {t('mediaSearch.count', { shown: results.length, total: mediaLibrary.length })}
               </h3>
             </div>
             <label className="inline-select">
@@ -264,13 +282,32 @@ export function MediaScreen() {
               </select>
             </label>
           </div>
-          {mediaLibrary.length ? (
+          <div className="media-filters" aria-label={t('mediaSearch.filters')}>
+            <label className="search-field media-filter-search">
+              <Search size={16} aria-hidden="true" />
+              <input value={filters.query} onChange={(event) => setFilters((current) => ({ ...current, query: event.target.value }))} placeholder={t('mediaSearch.search')} aria-label={t('mediaSearch.search')} />
+            </label>
+            <div className="media-filter-fields">
+              <label className="field"><span>{t('mediaSearch.type')}</span><select value={filters.kind} onChange={(event) => setFilters((current) => ({ ...current, kind: event.target.value }))}><option value="">{t('mediaSearch.allTypes')}</option><option value="image">{t('mediaSearch.image')}</option><option value="video">{t('mediaSearch.video')}</option><option value="youtube">YouTube</option></select></label>
+              <div className="field"><span>{t('mediaSearch.from')}</span><DateField aria-label={t('mediaSearch.from')} value={filters.from} onChange={(value) => setFilters((current) => ({ ...current, from: value }))} /></div>
+              <div className="field"><span>{t('mediaSearch.to')}</span><DateField aria-label={t('mediaSearch.to')} value={filters.to} onChange={(value) => setFilters((current) => ({ ...current, to: value }))} /></div>
+              <label className="field"><span>{t('mediaSearch.sort')}</span><select value={filters.sort} onChange={(event) => setFilters((current) => ({ ...current, sort: event.target.value }))}><option value="newest">{t('mediaSearch.newest')}</option><option value="oldest">{t('mediaSearch.oldest')}</option><option value="name">{t('mediaSearch.name')}</option></select></label>
+            </div>
+            <details className="media-tag-filter">
+              <summary><Tags size={15} aria-hidden="true" />{t('mediaSearch.tags')}{filters.tags.length > 0 && <strong>{filters.tags.length}</strong>}</summary>
+              <div className="media-tag-choices">
+                {allTags.map((tag) => <label key={tag}><input type="checkbox" checked={filters.tags.includes(tag)} onChange={() => setFilters((current) => ({ ...current, tags: current.tags.includes(tag) ? current.tags.filter((item) => item !== tag) : [...current.tags, tag] }))} /><span>{tag}</span></label>)}
+              </div>
+            </details>
+            {hasFilters && <button type="button" className="text-link media-filter-clear" onClick={() => setFilters(emptyFilters)}>{t('mediaSearch.clear')}</button>}
+          </div>
+          {results.length ? (
             <div className="media-grid">
-              {mediaLibrary.map((asset) => (
+              {results.map((asset) => (
                 <button
                   key={asset.id}
                   className={`media-card ${selected?.id === asset.id ? 'is-selected' : ''}`}
-                  onClick={() => setSelected(asset)}
+                  onClick={() => { setSelectedId(asset.id); setTagQuery('') }}
                 >
                   <span className="media-thumb">
                     {asset.kind === 'image' && asset.source ? (
@@ -294,6 +331,7 @@ export function MediaScreen() {
                           ? t('media.localOnly')
                           : t('media.library')}
                     </span>
+                    {asset.tags?.length ? <span className="media-card-tags">{asset.tags.join(' · ')}</span> : null}
                   </span>
                 </button>
               ))}
@@ -301,7 +339,7 @@ export function MediaScreen() {
           ) : (
             <div className="media-empty">
               <ImageIcon size={30} />
-              <p>{t('media.empty')}</p>
+              <p>{mediaLibrary.length ? t('mediaSearch.noResults') : t('media.empty')}</p>
             </div>
           )}
         </section>
@@ -329,6 +367,20 @@ export function MediaScreen() {
                 )}
               </div>
               <h3>{selected.name}</h3>
+              <div className="media-tags-editor">
+                <strong><Tags size={15} aria-hidden="true" />{t('mediaSearch.tags')}</strong>
+                <div className="media-selected-tags">
+                  {selected.tags?.length ? selected.tags.map((tag) => <span key={tag} className="media-tag-chip">{tag}</span>) : <span className="media-tag-empty">{t('mediaSearch.noTags')}</span>}
+                </div>
+                <details key={selected.id} className="media-tag-picker">
+                  <summary>{t('mediaSearch.addTags')}</summary>
+                  <label className="search-field"><Search size={14} aria-hidden="true" /><input value={tagQuery} onChange={(event) => setTagQuery(event.target.value)} placeholder={t('mediaSearch.findTag')} aria-label={t('mediaSearch.findTag')} maxLength={60} /></label>
+                  {canCreateTag && <button type="button" className="btn btn-secondary btn-sm media-create-tag" onClick={() => { addMediaTag(newTag); setMediaTags(selected.id, [...(selected.tags ?? []), newTag]); setTagQuery('') }}><Plus size={14} />{t('mediaSearch.create')}: {newTag}</button>}
+                  <div className="media-tag-choices">
+                    {matchingTags.map((tag) => <label key={tag}><input type="checkbox" checked={(selected.tags ?? []).some((item) => mediaSearchKey(item) === mediaSearchKey(tag))} onChange={() => { const current = selected.tags ?? []; setMediaTags(selected.id, current.some((item) => mediaSearchKey(item) === mediaSearchKey(tag)) ? current.filter((item) => mediaSearchKey(item) !== mediaSearchKey(tag)) : [...current, tag]) }} /><span>{tag}</span></label>)}
+                  </div>
+                </details>
+              </div>
               <div className="detail-list">
                 <span>
                   <small>{t('media.type')}</small>
@@ -375,7 +427,7 @@ export function MediaScreen() {
                   className="btn btn-ghost btn-block danger-text"
                   onClick={() => {
                     removeMedia(selected.id)
-                    setSelected(null)
+                    setSelectedId(null)
                   }}
                 >
                   <Trash2 size={14} />
@@ -386,7 +438,7 @@ export function MediaScreen() {
           ) : (
             <div className="empty-inline">
               <ImageIcon size={26} />
-              <p>{t('media.empty')}</p>
+              <p>{mediaLibrary.length ? t('mediaSearch.noResults') : t('media.empty')}</p>
             </div>
           )}
         </aside>
