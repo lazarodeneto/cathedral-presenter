@@ -5,6 +5,7 @@ export type RouteName =
   | 'calendar'
   | 'services'
   | 'bible'
+  | 'biblemode'
   | 'songs'
   | 'media'
   | 'templates'
@@ -28,6 +29,7 @@ function parse(hash: string): Route {
     'calendar',
     'services',
     'bible',
+    'biblemode',
     'songs',
     'media',
     'templates',

@@ -275,6 +275,13 @@ export function getLocalPassageSync(reference: string, translationId: string): B
   return buildPassage(translation, parsed.bookId, parsed.chapter, bounds.start, bounds.end)
 }
 
+/** One verse as a passage (Bible Mode builds a slide from it). Null when the verse is not in the translation. */
+export function getVersePassage(translationId: string, bookId: string, chapter: number, verse: number): BiblePassage | null {
+  const translation = findBibleTranslation(translationId)
+  if (!translation || !versesOf(translationId, bookId, chapter)[verse]) return null
+  return buildPassage(translation, bookId, chapter, verse, verse)
+}
+
 export const localBibleProvider = new LocalBibleProvider()
 
 export function translationLanguage(translationId: string): Locale {

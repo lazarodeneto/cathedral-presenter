@@ -574,6 +574,11 @@ export interface LiveSession {
   frozenSlideId: string | null
   message: string | null
   messageVisible: boolean
+  /**
+   * A verse projected from Bible Mode, outside the service's slides. It is on
+   * the audience screen until the operator moves to a service slide again.
+   */
+  scripture?: Slide | null
 }
 
 export interface Toast {

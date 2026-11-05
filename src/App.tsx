@@ -20,6 +20,9 @@ const ServicesScreen = lazy(() =>
 const BibleScreen = lazy(() =>
   import('./screens/BibleScreen').then((module) => ({ default: module.BibleScreen })),
 )
+const BibleModeScreen = lazy(() =>
+  import('./screens/BibleModeScreen').then((module) => ({ default: module.BibleModeScreen })),
+)
 const SongsScreen = lazy(() =>
   import('./screens/SongsScreen').then((module) => ({ default: module.SongsScreen })),
 )
@@ -204,6 +207,9 @@ export default function App() {
       break
     case 'bible':
       screen = <BibleScreen />
+      break
+    case 'biblemode':
+      screen = <BibleModeScreen />
       break
     case 'songs':
       screen = <SongsScreen />

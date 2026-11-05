@@ -18999,46 +18999,37 @@ body:not(.output-mode) .rundown .rundown-slide.is-live .rundown-slide-label smal
 }
 
 /* Collapsed menu (icon rail): neutral grey tiles, so the rail stays quiet.
-   The selected row keeps its lit pill; colour returns when the menu expands. */
-body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone] {
+   The current page keeps its colour, so it stands out at a glance. */
+body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-active) {
   --tone-rgb: var(--wash-rgb);
 }
 
-body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone] .nav-app-icon svg {
+body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-active) .nav-app-icon svg {
   color: var(--text-2);
 }
 
-body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item.is-active .nav-app-icon svg,
-body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item:hover .nav-app-icon svg {
+body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-active):hover .nav-app-icon svg {
   color: var(--text);
 }
 
 /* Below 1180px the menu is always the rail. */
 @media (max-width: 1180px) {
-  body:not(.output-mode) .app-shell .nav-item[data-tone] {
+  body:not(.output-mode) .app-shell .nav-item[data-tone]:not(.is-active) {
     --tone-rgb: var(--wash-rgb);
   }
 
-  body:not(.output-mode) .app-shell .nav-item[data-tone] .nav-app-icon svg {
+  body:not(.output-mode) .app-shell .nav-item[data-tone]:not(.is-active) .nav-app-icon svg {
     color: var(--text-2);
-  }
-
-  body:not(.output-mode) .app-shell .nav-item.is-active .nav-app-icon svg {
-    color: var(--text);
   }
 }
 
 @media (min-width: 1181px) and (max-width: 1360px) {
-  body:not(.output-mode) .app-shell.is-editing:not(.is-nav-expanded) .nav-item[data-tone] {
+  body:not(.output-mode) .app-shell.is-editing:not(.is-nav-expanded) .nav-item[data-tone]:not(.is-active) {
     --tone-rgb: var(--wash-rgb);
   }
 
-  body:not(.output-mode) .app-shell.is-editing:not(.is-nav-expanded) .nav-item[data-tone] .nav-app-icon svg {
+  body:not(.output-mode) .app-shell.is-editing:not(.is-nav-expanded) .nav-item[data-tone]:not(.is-active) .nav-app-icon svg {
     color: var(--text-2);
-  }
-
-  body:not(.output-mode) .app-shell.is-editing:not(.is-nav-expanded) .nav-item.is-active .nav-app-icon svg {
-    color: var(--text);
   }
 }
 
@@ -19279,4 +19270,383 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item:hover .nav-app-icon
       0 10px 22px rgb(0 0 0 / 0.5);
     transform: translateY(-1px);
   }
+}
+
+/* ── Bible Mode: book → chapter → verse, straight to the screen ──────
+   Books are coloured by group (category tones), selection is violet, and
+   the verse on the audience screen is live green with a label. */
+.bible-mode-screen {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 22px 20px;
+}
+
+.bm-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
+
+.bm-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bm-title h1 {
+  font-size: 24px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.bm-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--rounded-pill);
+  color: var(--muted);
+  font-size: var(--text-meta);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.bm-live .live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--faint);
+}
+
+.bm-live.is-live {
+  border-color: rgb(var(--green-rgb) / 0.5);
+  background: rgb(var(--green-rgb) / 0.12);
+  color: var(--green-text);
+}
+
+.bm-live.is-live .live-dot {
+  background: var(--green);
+}
+
+.bm-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.bm-select select {
+  height: 32px;
+  max-width: 230px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--rounded-sm);
+  background: rgb(var(--ink-rgb) / 0.38);
+  color: var(--text);
+  font-size: var(--text-ui);
+}
+
+.bm-controls .btn.is-on {
+  border-color: rgb(var(--violet-rgb) / 0.55);
+  background: rgb(var(--violet-rgb) / 0.16);
+  color: var(--text);
+}
+
+.bm-layout {
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: minmax(360px, 1.35fr) minmax(220px, 0.8fr) minmax(320px, 1.15fr);
+  gap: 14px;
+}
+
+.bm-panel {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 10px;
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--rounded-xl);
+  background: var(--surface);
+}
+
+.bm-panel h2 {
+  color: var(--muted);
+  font-size: var(--text-meta);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bm-panel h2 small {
+  margin-left: 4px;
+  color: var(--faint);
+  font-size: inherit;
+}
+
+.bm-book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
+  gap: 5px;
+}
+
+.bm-book {
+  display: flex;
+  min-width: 0;
+  min-height: 52px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 4px 3px;
+  border: 1px solid rgb(var(--tone-rgb) / 0.4);
+  border-radius: var(--rounded-sm);
+  background: linear-gradient(160deg, rgb(var(--tone-rgb) / 0.32), rgb(var(--tone-rgb) / 0.12));
+  color: var(--text);
+  transition: transform 0.12s var(--ease-out), border-color 0.12s ease, background 0.12s ease;
+}
+
+.bm-book strong {
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 1.1;
+}
+
+.bm-book small {
+  max-width: 100%;
+  overflow: hidden;
+  color: rgb(var(--text-rgb) / 0.72);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bm-book:hover:not(:disabled) {
+  border-color: rgb(var(--tone-rgb) / 0.8);
+  background: linear-gradient(160deg, rgb(var(--tone-rgb) / 0.45), rgb(var(--tone-rgb) / 0.2));
+  transform: translateY(-1px);
+}
+
+.bm-book.is-active {
+  border-color: rgb(var(--violet-rgb));
+  box-shadow: 0 0 0 2px rgb(var(--violet-rgb) / 0.55);
+}
+
+.bm-book:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
+}
+
+.bm-number-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+  gap: 5px;
+}
+
+.bm-number {
+  display: grid;
+  min-height: 42px;
+  place-items: center;
+  border: 1px solid rgb(var(--tone-indigo-rgb) / 0.35);
+  border-radius: var(--rounded-sm);
+  background: rgb(var(--tone-indigo-rgb) / 0.16);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.bm-verse-grid .bm-number {
+  border-color: rgb(var(--tone-violet-rgb) / 0.32);
+  background: rgb(var(--tone-violet-rgb) / 0.13);
+}
+
+.bm-number:hover {
+  border-color: rgb(var(--wash-rgb) / 0.35);
+  background: rgb(var(--tone-indigo-rgb) / 0.28);
+}
+
+.bm-number.is-active {
+  border-color: rgb(var(--violet-rgb));
+  background: rgb(var(--violet-rgb) / 0.3);
+  box-shadow: 0 0 0 2px rgb(var(--violet-rgb) / 0.4);
+}
+
+/* Live green means on the audience screen now, and nothing else. */
+.bm-number.is-on-screen,
+.bm-verse.is-on-screen {
+  border-color: var(--green);
+  box-shadow: 0 0 0 2px rgb(var(--green-rgb) / 0.35);
+}
+
+.bm-reading {
+  gap: 12px;
+  overflow: hidden;
+}
+
+/* The preview stays in view; only the verse text list scrolls. */
+.bm-reading .bm-preview {
+  flex: none;
+}
+
+.bm-reading .bm-verses {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.bm-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bm-preview-frame {
+  position: relative;
+  overflow: hidden;
+  border: 2px solid var(--line-strong);
+  border-radius: var(--rounded-md);
+  background: #000;
+}
+
+.bm-preview-frame.is-on-screen {
+  border-color: var(--green);
+  box-shadow: 0 0 18px rgb(var(--green-rgb) / 0.25);
+}
+
+.bm-preview-empty {
+  display: grid;
+  aspect-ratio: 16 / 9;
+  place-items: center;
+  color: var(--muted);
+  font-size: var(--text-ui);
+}
+
+.bm-on-screen {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: var(--rounded-pill);
+  background: rgb(var(--green-rgb) / 0.9);
+  color: #08200f;
+  font-size: var(--text-micro);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.bm-preview-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.bm-reference {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--text-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bm-hint {
+  color: var(--faint);
+  font-size: var(--text-meta);
+  line-height: 1.45;
+}
+
+.bm-verses {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bm-verse {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 8px;
+  padding: 7px 9px;
+  border: 1px solid transparent;
+  border-radius: var(--rounded-sm);
+  color: var(--text-2);
+  font-size: var(--text-ui);
+  line-height: 1.45;
+  text-align: left;
+}
+
+.bm-verse:hover {
+  background: rgb(var(--wash-rgb) / 0.05);
+  color: var(--text);
+}
+
+.bm-verse.is-active {
+  border-color: rgb(var(--violet-rgb) / 0.55);
+  background: rgb(var(--violet-rgb) / 0.14);
+  color: var(--text);
+}
+
+.bm-verse-number {
+  color: var(--muted);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1180px) {
+  .bm-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .bm-reading {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .bible-mode-screen {
+    height: auto;
+    padding: 14px 12px 20px;
+  }
+
+  .bm-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bm-panel,
+  .bm-reading,
+  .bm-reading .bm-verses {
+    overflow: visible;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bm-book {
+    transition: none;
+  }
+}
+
+/* Selected and on screen: the live green border wins over the violet selection. */
+.bm-verse.is-active.is-on-screen,
+.bm-number.is-active.is-on-screen {
+  border-color: var(--green);
+  box-shadow: 0 0 0 2px rgb(var(--green-rgb) / 0.35);
 }

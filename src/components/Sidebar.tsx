@@ -14,6 +14,7 @@ const NAV: { name: ScreenName; key: string }[] = [
   { name: 'services', key: 'nav.services' },
   { name: 'calendar', key: 'nav.calendar' },
   { name: 'bible', key: 'nav.bible' },
+  { name: 'biblemode', key: 'nav.biblemode' },
   { name: 'songs', key: 'nav.songs' },
   { name: 'media', key: 'nav.media' },
   { name: 'templates', key: 'nav.templates' },

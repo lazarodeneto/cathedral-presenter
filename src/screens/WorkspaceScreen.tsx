@@ -1547,7 +1547,12 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
           {isLive && liveCurrentSlide && (
             <div className="inspector-output-preview">
               <SlideRenderer
-                slide={live?.blank ? { ...liveCurrentSlide.slide, elements: [] } : liveCurrentSlide.slide}
+                slide={
+                  live?.blank
+                    ? { ...liveCurrentSlide.slide, elements: [] }
+                    : // A verse projected from Bible Mode is what the audience sees.
+                      live?.scripture ?? liveCurrentSlide.slide
+                }
                 branding={branding}
                 aspectRatio={slideAspectRatio}
                 compact

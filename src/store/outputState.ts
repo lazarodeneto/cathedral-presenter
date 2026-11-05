@@ -32,6 +32,8 @@ export function buildOutputSnapshot(input: {
       ? slideContext(service, live.frozenSlideId)
       : null
   const effectiveContext = frozenContext ?? currentContext
+  // A verse from Bible Mode is on screen instead of the service slide (unless frozen).
+  const scripture = !frozenContext ? live?.scripture ?? null : null
   const currentIndex = currentContext?.index ?? -1
   const next = currentIndex >= 0 ? slides[currentIndex + 1] ?? null : slides[0] ?? null
   const position =
@@ -70,22 +72,22 @@ export function buildOutputSnapshot(input: {
     },
     audience: {
       mode: audienceMode,
-      slide: audienceMode === 'test' ? null : effectiveContext?.slide ?? null,
+      slide: audienceMode === 'test' ? null : scripture ?? effectiveContext?.slide ?? null,
       message: live?.message ?? null,
       messageVisible: Boolean(live?.messageVisible && live.message),
       branding,
       monitorName: audienceMonitor?.name ?? 'Audience',
       testMonitorName: audienceMode === 'test' ? testMonitor?.name : undefined,
       isFrozen: Boolean(live?.frozen && audienceMode === 'live'),
-      transition: effectiveContext?.slide.transition ?? service?.transition ?? defaultTransition ?? DEFAULT_TRANSITION,
+      transition: (scripture ? undefined : effectiveContext?.slide.transition) ?? service?.transition ?? defaultTransition ?? DEFAULT_TRANSITION,
       format,
       updatedAt: now,
     },
     confidence: {
       mode: confidenceMode,
-      current: confidenceMode === 'test' ? null : currentContext?.slide ?? null,
+      current: confidenceMode === 'test' ? null : scripture ?? currentContext?.slide ?? null,
       next: confidenceMode === 'test' ? null : next?.slide ?? null,
-      notes: currentContext?.slide.notes ?? null,
+      notes: scripture ? null : currentContext?.slide.notes ?? null,
       itemTitle: currentContext?.item.title ?? null,
       sectionTitle: currentContext?.section.title ?? null,
       position,

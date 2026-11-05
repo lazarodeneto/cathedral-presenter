@@ -240,6 +240,9 @@ interface AppState {
   nextLive: () => boolean
   prevLive: () => boolean
   jumpLive: (slideId: string) => boolean
+  /** Bible Mode: put a verse on the audience screen without adding it to the service. */
+  showScriptureLive: (slide: Slide) => boolean
+  clearScriptureLive: () => void
   toggleBlank: () => void
   toggleFreeze: () => void
   setAudienceMessage: (message: string) => void
@@ -1308,6 +1311,7 @@ export const useAppStore = create<AppState>()(
               ...state.live,
               currentSlideId: next.slide.id,
               history: [...state.live.history, next.slide.id].slice(-20),
+              scripture: null,
             },
             // The editor, rundown and slide strip follow the slide on the audience screen.
             selectedItemId: next.item.id,
@@ -1330,6 +1334,7 @@ export const useAppStore = create<AppState>()(
               ...state.live,
               currentSlideId: prev.slide.id,
               history: [...state.live.history, prev.slide.id].slice(-20),
+              scripture: null,
             },
             // The editor, rundown and slide strip follow the slide on the audience screen.
             selectedItemId: prev.item.id,
@@ -1350,6 +1355,7 @@ export const useAppStore = create<AppState>()(
               ...state.live,
               currentSlideId: slideId,
               history: [...state.live.history, slideId].slice(-20),
+              scripture: null,
             },
             selectedItemId: target.item.id,
             selectedSlideId: slideId,
@@ -1357,6 +1363,15 @@ export const useAppStore = create<AppState>()(
           })
           return true
         },
+        showScriptureLive: (slide) => {
+          const state = get()
+          if (!state.live) return false
+          // A new verse replaces the frozen picture too: the operator chose it on purpose.
+          set({ live: { ...state.live, scripture: slide, blank: false, frozen: false, frozenSlideId: null } })
+          return true
+        },
+        clearScriptureLive: () =>
+          set((state) => (state.live?.scripture ? { live: { ...state.live, scripture: null } } : {})),
         toggleBlank: () =>
           set((state) => (state.live ? { live: { ...state.live, blank: !state.live.blank } } : {})),
         toggleFreeze: () =>
