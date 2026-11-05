@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import {
   ChevronLeft,
+  ArrowLeft,
   ChevronRight,
   EyeOff,
   MessageSquare,
@@ -33,10 +34,12 @@ export interface LiveNavigation {
 export function LiveControlBar({
   navigation,
   showJump = true,
+  onBackToService,
 }: {
   navigation?: LiveNavigation
   /** "Go to slide" opens the service's slide list; Bible Mode has its own picker. */
   showJump?: boolean
+  onBackToService?: () => void
 } = {}) {
   const t = useT()
   const live = useAppStore((state) => state.live)
@@ -102,7 +105,7 @@ export function LiveControlBar({
           </button>
         </div>
       )}
-      <div className={`live-control-actions ${showJump ? '' : 'is-three'}`}>
+      <div className={`live-control-actions ${showJump || onBackToService ? '' : 'is-three'}`}>
         <button
           className={`live-control ${live.blank ? 'is-active' : ''}`}
           onClick={() => {
@@ -140,6 +143,12 @@ export function LiveControlBar({
           <button className="live-control" onClick={() => { setJumpQuery(''); setJumpOpen(true) }}>
             <Search size={17} />
             <span>{t('live.jump')}</span>
+          </button>
+        )}
+        {onBackToService && (
+          <button type="button" className="live-control live-control-back" onClick={onBackToService}>
+            <ArrowLeft size={17} />
+            <span>{t('biblemode.backToService')}</span>
           </button>
         )}
       </div>

@@ -22,6 +22,7 @@ import { CultoFormDialog } from '../components/culto/CultoFormDialog'
 import { DeleteCultoDialog, DuplicateCultoDialog } from '../components/culto/CultoDialogs'
 import { StatusChip } from '../components/culto/StatusChip'
 import { DateField } from '../components/DateField'
+import { SortSelect } from '../components/SortSelect'
 import { SCREEN_META, ScreenIcon } from '../components/ScreenIcon'
 
 const VIEWS: ServiceView[] = ['upcoming', 'past', 'draft', 'scheduled', 'active', 'archived', 'all']
@@ -103,39 +104,12 @@ export function ServicesScreen() {
               />
             </label>
           </div>
-          <label className="field compact">
-            <span>{t('culto.status')}</span>
-            <select value={query.status} onChange={(event) => update({ status: event.target.value as ServiceQuery['status'] })}>
-              <option value="">{t('culto.any')}</option>
-              {(['draft', 'scheduled', 'active', 'completed', 'archived'] as const).map((status) => (
-                <option key={status} value={status}>
-                  {t(`culto.statusName.${status}`)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="field compact">
-            <span>{t('event.type')}</span>
-            <select value={query.type} onChange={(event) => update({ type: event.target.value })}>
-              <option value="">{t('culto.any')}</option>
-              {SERVICE_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {t(SERVICE_TYPE_KEYS[type])}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="field compact">
-            <span>{t('culto.leader')}</span>
-            <select value={query.leader} onChange={(event) => update({ leader: event.target.value })}>
-              <option value="">{t('culto.any')}</option>
-              {leaders.map((leader) => (
-                <option key={leader} value={leader}>
-                  {leader}
-                </option>
-              ))}
-            </select>
-          </label>
+          <SortSelect value={query.status} label={t('culto.status')} onChange={(status) => update({ status: status as ServiceQuery['status'] })}
+            options={[{ value: '', label: t('culto.any') }, ...(['draft', 'scheduled', 'active', 'completed', 'archived'] as const).map((status) => ({ value: status, label: t(`culto.statusName.${status}`) }))]} />
+          <SortSelect value={query.type} label={t('event.type')} onChange={(type) => update({ type })}
+            options={[{ value: '', label: t('culto.any') }, ...SERVICE_TYPES.map((type) => ({ value: type, label: t(SERVICE_TYPE_KEYS[type]) }))]} />
+          <SortSelect value={query.leader} label={t('culto.leader')} onChange={(leader) => update({ leader })}
+            options={[{ value: '', label: t('culto.any') }, ...leaders.map((leader) => ({ value: leader, label: leader }))]} />
         </div>
         <div className="services-filter-secondary">
           <fieldset className="services-date-range" aria-label={t('common.date')}>
@@ -148,16 +122,11 @@ export function ServicesScreen() {
               <DateField value={query.to} onChange={(to) => update({ to })} />
             </label>
           </fieldset>
-          <label className="field compact services-sort">
-            <span>{t('culto.sort')}</span>
-            <select value={query.sort} onChange={(event) => update({ sort: event.target.value as ServiceSort })}>
-              {SORTS.map((sort) => (
-                <option key={sort} value={sort}>
-                  {t(`culto.sortName.${sort}`)}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="services-sort">
+            <SortSelect value={query.sort} label={t('culto.sort')}
+              options={SORTS.map((sort) => ({ value: sort, label: t(`culto.sortName.${sort}`) }))}
+              onChange={(sort) => update({ sort })} />
+          </div>
           {filtersActive && (
             <button
               className="services-clear"
@@ -224,7 +193,7 @@ export function ServicesScreen() {
                 </button>
                 <div className="service-card-actions" role="group" aria-label={t('culto.actionsFor', { title: service.title })}>
                   <button
-                    className="btn btn-ghost btn-sm"
+                    className="btn btn-ghost btn-sm service-card-present"
                     onClick={() => navigate(`/service/${service.id}/present`)}
                     disabled={Boolean(problem)}
                     title={problem ? t(`culto.problem.${problem}`) : `${t('editor.present')}: ${service.title}`}

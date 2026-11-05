@@ -187,7 +187,7 @@ export function HomeScreen() {
             </div>
           </div>
           <div className="home-hero-preview">
-            <div className="hero-preview-frame">
+            <div className="hero-preview-frame" aria-hidden="true">
               <SlideRenderer
                 slide={heroPreview}
                 branding={branding}
@@ -380,7 +380,7 @@ export function HomeScreen() {
             {recent.length ? (
               recent.map((service) => (
                 <button key={service.id} className="recent-row" onClick={() => open(service.id)}>
-                  <span className="recent-thumb">
+                  <span className="recent-thumb" aria-hidden="true">
                     <SlideRenderer
                       slide={flatSlides(service)[0]?.slide ?? null}
                       branding={branding}
