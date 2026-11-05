@@ -18077,3 +18077,64 @@ body:not(.output-mode) .rundown .rundown-slide.is-active:not(.is-live) > span:fi
 .slide-canvas .scripture-secondary .translation-tag {
   font-size: clamp(6px, 1.2cqw, 24px);
 }
+
+/* Slides under an item: a small indent with the guide line, so verse names
+   get the width instead of sitting far to the right under the title. */
+body:not(.output-mode) .rundown .rundown-slides {
+  margin: 4px 4px 8px 18px;
+  padding-left: 8px;
+}
+
+/* Rundown slide rows: the reference (chapter and verses) bold and bright,
+   the translations after it small and muted. */
+body:not(.output-mode) .rundown .rundown-slide > .rundown-slide-label {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 6px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.rundown-slide-label strong {
+  flex: 0 0 auto;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--text);
+  font-size: var(--text-ui);
+  font-weight: 650;
+  letter-spacing: -0.005em;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
+.rundown-slide-label small {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--faint);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+}
+
+body:not(.output-mode) .rundown .rundown-slide {
+  min-height: 34px;
+}
+
+body:not(.output-mode) .rundown .rundown-slide.is-active .rundown-slide-label small,
+body:not(.output-mode) .rundown .rundown-slide.is-live .rundown-slide-label small {
+  color: var(--muted);
+}
+
+/* Verse numbers in rundown verse rows: underlined in the selection accent. */
+.reference-verses {
+  text-decoration: underline;
+  text-decoration-color: rgb(var(--violet-rgb) / 0.85);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.rundown-slide.is-live .reference-verses {
+  text-decoration-color: rgb(var(--green-rgb) / 0.9);
+}

@@ -114,6 +114,24 @@ const GEOMETRY_FIELDS = [
   { key: 'height', label: 'editor.height', min: 4, max: 160 },
 ] as const
 
+/** Thin spaces around a chapter:verse colon ("23 : 4") for easier reading in the rundown. Display only. */
+function spacedReference(text: string): string {
+  return text.replace(/(\d):(\d)/g, '$1\u2009:\u2009$2')
+}
+
+/** A reference with its verses ("4", "6–7") underlined after the spaced colon. */
+function referenceWithVerses(text: string): React.ReactNode {
+  const match = text.match(/^(.*\d):(\d[\d\s,–-]*)$/)
+  if (!match) return spacedReference(text)
+  return (
+    <>
+      {match[1]}
+      {'\u2009:\u2009'}
+      <span className="reference-verses">{match[2]}</span>
+    </>
+  )
+}
+
 /** Content type to the sidebar tone family, so a song or a Bible reading is recognisable at a glance. */
 const ITEM_TONES: Partial<Record<string, string>> = {
   song: 'rose',
@@ -773,7 +791,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                                 <Icon size={15} />
                               </span>
                               <span className="rundown-copy">
-                                <strong>{item.title}</strong>
+                                <strong>{spacedReference(item.title)}</strong>
                                 <span>
                                   {item.slides.length} {t(item.slides.length === 1 ? 'common.slide' : 'common.slides')} · {t(`type.${item.type}`)}
                                 </span>
@@ -821,7 +839,21 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                                   title={isLive ? t('live.doubleClickHint') : undefined}
                                 >
                                   <span>{index + 1}</span>
-                                  <span>{slideLabel(slide, slide.text.slice(0, 42)) || t('editor.blankSlide')}</span>
+                                  {(() => {
+                                    // "Salmos 23:4 · KJA + WEB": the reference stands out, the translations step back.
+                                    const label = slideLabel(slide, slide.text.slice(0, 42)) || t('editor.blankSlide')
+                                    const split = label.indexOf(' · ')
+                                    return split > 0 ? (
+                                      <span className="rundown-slide-label">
+                                        <strong>{referenceWithVerses(label.slice(0, split))}</strong>
+                                        <small>{label.slice(split + 3)}</small>
+                                      </span>
+                                    ) : (
+                                      <span className="rundown-slide-label">
+                                        <strong>{label}</strong>
+                                      </span>
+                                    )
+                                  })()}
                                 </button>
                               ))}
                             </div>
