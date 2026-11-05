@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { INCLUDED_BIBLES } from '../data/includedBibles'
-import { loadIncludedBible } from '../components/settings/IncludedBibles'
+import { BIBLE_CATALOG } from '../data/bibleCatalog'
+import { loadBundledCatalogBible } from '../providers/bible/githubBibles'
 import { parseBibleTextJson } from '../utils/bibleImport'
 
 const read = (file: string) => readFileSync(resolve(__dirname, '../../public', file), 'utf8')
@@ -25,10 +26,10 @@ describe('included public-domain Bibles', () => {
   })
 
   it('builds a library entry from the app file', async () => {
-    const bible = INCLUDED_BIBLES[0]
-    vi.stubGlobal('fetch', vi.fn(async () => new Response(read(bible.file))))
-    const entry = await loadIncludedBible(bible)
-    expect(entry?.translation).toMatchObject({ id: 'included-pt-br-tb', abbreviation: 'TB', licenseType: 'public-domain' })
+    const bible = BIBLE_CATALOG.find((entry) => entry.code === 'TB')!
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(read(bible.bundledFile!))))
+    const entry = await loadBundledCatalogBible(bible)
+    expect(entry?.translation).toMatchObject({ id: 'included-pt-br-tb', abbreviation: 'TB', licenseType: 'public-domain', year: 2010 })
     expect(entry?.translation.verseCount).toBeGreaterThan(31_000)
   })
 })

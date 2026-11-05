@@ -221,6 +221,8 @@ export function normalizeCustomBible(
     licenseText ||
     'Imported by the church. Check the publisher terms before redistribution.'
   const sourceUrl = sanitizeSingleLine(translation.sourceUrl, 500)
+  const year = Number(translation.year)
+  const publisher = sanitizeSingleLine(translation.publisher, 120)
 
   return {
     translation: {
@@ -237,6 +239,8 @@ export function normalizeCustomBible(
       sample: false,
       verseCount: awaitingText && Number.isInteger(storedVerseCount) && storedVerseCount > 0 ? storedVerseCount : verseCount,
       availability: 'bundled',
+      ...(Number.isInteger(year) && year >= 1000 && year <= 2200 ? { year } : {}),
+      ...(publisher ? { publisher } : {}),
     },
     books,
   }
