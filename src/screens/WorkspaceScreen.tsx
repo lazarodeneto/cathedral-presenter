@@ -81,6 +81,7 @@ import { SlideRenderer } from '../components/SlideRenderer'
 import { AddContentModal } from '../components/AddContentModal'
 import { ConfirmDialog, Modal } from '../components/Modal'
 import { InspectorGroup, InspectorGroupList } from '../components/editor/InspectorGroup'
+import { TextPositionGrid } from '../components/editor/TextPositionGrid'
 import { ASPECT_RATIO, outputFormat, resolutionLabel } from '../utils/outputFormats'
 import { OutputFormatPicker } from '../components/OutputFormatPicker'
 import { CanvasGuidesRail, EditorToolbar, ElementActionRail, RailTooltip } from '../components/editor/EditorToolbar'
@@ -2145,36 +2146,17 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                 )}
                 </InspectorGroup>
                 <InspectorGroup id="text" icon={Type} title={t('inspector.typography')}>
-                <label className="field">
+                <div className="field">
                   <FieldTitle icon={AlignCenter}>{t('editor.alignment')}</FieldTitle>
-                  <div className="align-row">
-                    {(['left', 'center', 'right'] as const).map((align) => (
-                      <button
-                        key={align}
-                        className={`icon-toggle ${activeSlide.textAlign === align ? 'is-active' : ''}`}
-                        onClick={() =>
-                          updateSlide(service.id, activeItem.id, activeSlide.id, { textAlign: align })
-                        }
-                        aria-label={align}
-                      >
-                        {align === 'left' ? <AlignLeft size={15} /> : align === 'center' ? <AlignCenter size={15} /> : <AlignRight size={15} />}
-                      </button>
-                    ))}
-                    <span className="align-divider" />
-                    {(['top', 'middle', 'bottom'] as const).map((align) => (
-                      <button
-                        key={align}
-                        className={`icon-toggle ${(activeSlide.textVerticalAlign ?? 'middle') === align ? 'is-active' : ''}`}
-                        onClick={() =>
-                          updateSlide(service.id, activeItem.id, activeSlide.id, { textVerticalAlign: align })
-                        }
-                        aria-label={align}
-                      >
-                        {align === 'top' ? <AlignStartHorizontal size={15} /> : align === 'middle' ? <AlignCenterHorizontal size={15} /> : <AlignEndHorizontal size={15} />}
-                      </button>
-                    ))}
-                  </div>
-                </label>
+                  <TextPositionGrid
+                    align={activeSlide.textAlign}
+                    vertical={activeSlide.textVerticalAlign ?? 'middle'}
+                    label={t('editor.alignment')}
+                    onChange={(textAlign, textVerticalAlign) =>
+                      updateSlide(service.id, activeItem.id, activeSlide.id, { textAlign, textVerticalAlign })
+                    }
+                  />
+                </div>
                 {activeSlide.kind !== 'timer' && (
                   <>
                     <label className="field compact">
