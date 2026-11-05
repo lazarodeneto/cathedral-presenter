@@ -288,7 +288,8 @@ iframe {
 
 .screen-heading {
   display: flex;
-  align-items: flex-end;
+  /* Title always starts at the same spot, whatever the height of the actions. */
+  align-items: flex-start;
   justify-content: space-between;
   gap: 24px;
   margin-bottom: 26px;
@@ -2888,20 +2889,6 @@ dialog.modal::backdrop {
 }
 
 /* home */
-.home-heading {
-  align-items: flex-end;
-  margin-bottom: 20px;
-}
-
-.home-heading h1 {
-  font-size: clamp(30px, 2.4vw, 38px);
-}
-
-.home-heading p {
-  margin-top: 6px;
-  font-size: var(--text-ui);
-}
-
 .home-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.06fr) minmax(340px, 0.94fr);
@@ -3909,7 +3896,6 @@ dialog.modal::backdrop {
 
 .bible-screen .screen-heading {
   flex: 0 0 auto;
-  margin-bottom: 18px;
 }
 
 .bible-search {
@@ -6603,6 +6589,7 @@ dialog.modal::backdrop {
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
+  align-items: center;
   gap: 2px;
   padding: 3px;
   border: 1px solid var(--line);
@@ -6633,6 +6620,170 @@ dialog.modal::backdrop {
 
 .editor-element-actions .editor-tool:last-child:hover:not(:disabled) svg {
   color: var(--danger-text);
+}
+
+.editor-element-actions .editor-tool.has-caption {
+  width: 44px;
+  min-width: 44px;
+  height: 42px;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 2px 3px;
+}
+
+.rail-caption {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9.5px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The two "add" buttons read as creation, apart from the element tools below. */
+.editor-element-actions .editor-tool.is-add {
+  --rail-badge-bg: rgb(28 30 33);
+}
+
+.editor-element-actions .editor-tool.is-add svg {
+  color: var(--green-text);
+}
+
+.editor-element-actions .editor-tool.is-add:hover:not(:disabled) {
+  background: rgb(var(--green-rgb) / 0.14);
+}
+
+.editor-element-actions .editor-tool.is-add:hover:not(:disabled) svg,
+.editor-element-actions .editor-tool.is-add:hover:not(:disabled) .rail-caption {
+  color: #d4f5df;
+}
+
+/* Inspector: icons in the Design / Element switch, foldable and draggable groups. */
+.inspector-head .segmented button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.inspector-group {
+  border-top: 1px solid var(--line);
+}
+
+.inspector-group:first-of-type {
+  border-top: 0;
+}
+
+.inspector-group-head {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 0 -6px;
+}
+
+.inspector-group-grip {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  color: var(--faint);
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.inspector-group-head:hover .inspector-group-grip {
+  opacity: 1;
+}
+
+.inspector-group-toggle {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 6px 10px 2px;
+  border-radius: var(--rounded-xs);
+  color: var(--muted);
+  font-size: var(--text-meta);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.inspector-group-toggle:hover {
+  color: var(--text);
+  background: rgb(var(--wash-rgb) / 0.035);
+}
+
+.inspector-group-icon {
+  flex: none;
+  color: var(--text-2);
+}
+
+.inspector-group-title {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inspector-group-meta {
+  overflow: hidden;
+  max-width: 45%;
+  color: var(--faint);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.inspector-group-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 2px 0 16px;
+}
+
+.inspector-group.is-dragging {
+  opacity: 0.45;
+}
+
+/* Drop markers shared by the inspector groups and the service sequence. */
+.inspector-group.drop-before,
+.rundown-item-wrap.drop-before,
+.rundown-section-head.drop-before,
+.rundown-slide.drop-before {
+  box-shadow: inset 0 2px 0 rgb(var(--tone-violet-rgb));
+}
+
+.inspector-group.drop-after,
+.rundown-item-wrap.drop-after,
+.rundown-section-head.drop-after,
+.rundown-slide.drop-after {
+  box-shadow: inset 0 -2px 0 rgb(var(--tone-violet-rgb));
+}
+
+.rundown-section-head.drop-into {
+  border-radius: var(--rounded-xs);
+  background: rgb(var(--tone-violet-rgb) / 0.16);
+  box-shadow: inset 0 0 0 1px rgb(var(--tone-violet-rgb) / 0.6);
+}
+
+.rundown-section.is-dragging,
+.rundown-item-wrap.is-dragging,
+.rundown-slide.is-dragging {
+  opacity: 0.45;
+}
+
+.rundown-section-head[draggable='true'],
+.rundown-item-wrap[draggable='true'] .rundown-item-main,
+.rundown-slide[draggable='true'] {
+  cursor: grab;
 }
 
 /* Canvas rail tooltips: label and a short explanation, to the left of the button. */
@@ -12712,14 +12863,8 @@ body:not(.output-mode) .bible-screen {
   color: var(--bible-text);
 }
 
-body:not(.output-mode) .bible-screen .screen-heading {
-  margin-bottom: 20px;
-}
-
 body:not(.output-mode) .bible-screen .screen-heading h1 {
   color: var(--bible-text);
-  font-size: clamp(30px, 3vw, 42px);
-  letter-spacing: -0.04em;
 }
 
 body:not(.output-mode) .bible-screen .screen-heading p {
@@ -13789,7 +13934,8 @@ body:not(.output-mode) .nav-item[data-tone]:not(.is-active) svg {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   column-gap: 16px;
-  align-items: center;
+  /* Icon level with the title on every screen, even when the subtitle wraps. */
+  align-items: start;
 }
 
 .screen-heading > div:has(> .screen-icon) > :not(.screen-icon) {

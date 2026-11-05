@@ -16,6 +16,13 @@ const en: Strings = {
   'rail.snap': 'While you drag, elements line up with the edges, the centre and each other.',
   'rail.deleteSlide': 'Delete slide',
   'rail.deleteSlideHint': 'Remove this slide from the item. You will be asked to confirm.',
+  'rail.captionItem': 'Item',
+  'rail.captionSlide': 'Slide',
+  'inspector.content': 'Content',
+  'inspector.typography': 'Text style',
+  'inspector.designHint': 'Edit the whole slide: text, style, background, transition and notes.',
+  'inspector.elementHint': 'Edit the selected element on the slide.',
+  'rundown.dragHint': 'Drag to reorder',
 }
 
 const pt: Strings = {
@@ -31,6 +38,13 @@ const pt: Strings = {
   'rail.snap': 'Ao arrastar, os elementos alinham-se com as margens, o centro e uns com os outros.',
   'rail.deleteSlide': 'Apagar slide',
   'rail.deleteSlideHint': 'Remover este slide do item. Será pedida confirmação.',
+  'rail.captionItem': 'Item',
+  'rail.captionSlide': 'Slide',
+  'inspector.content': 'Conteúdo',
+  'inspector.typography': 'Estilo do texto',
+  'inspector.designHint': 'Editar o slide inteiro: texto, estilo, fundo, transição e notas.',
+  'inspector.elementHint': 'Editar o elemento selecionado no slide.',
+  'rundown.dragHint': 'Arraste para reordenar',
 }
 
 const ptBR: Strings = {
@@ -54,6 +68,13 @@ const es: Strings = {
   'rail.snap': 'Al arrastrar, los elementos se alinean con los bordes, el centro y entre sí.',
   'rail.deleteSlide': 'Eliminar diapositiva',
   'rail.deleteSlideHint': 'Quita esta diapositiva del elemento. Se pedirá confirmación.',
+  'rail.captionItem': 'Ítem',
+  'rail.captionSlide': 'Diapo',
+  'inspector.content': 'Contenido',
+  'inspector.typography': 'Estilo del texto',
+  'inspector.designHint': 'Edita toda la diapositiva: texto, estilo, fondo, transición y notas.',
+  'inspector.elementHint': 'Edita el elemento seleccionado en la diapositiva.',
+  'rundown.dragHint': 'Arrastra para reordenar',
 }
 
 const fr: Strings = {
@@ -69,6 +90,13 @@ const fr: Strings = {
   'rail.snap': 'Pendant le glissement, les éléments s’alignent sur les bords, le centre et entre eux.',
   'rail.deleteSlide': 'Supprimer la diapositive',
   'rail.deleteSlideHint': 'Retirer cette diapositive de l’élément. Une confirmation sera demandée.',
+  'rail.captionItem': 'Élément',
+  'rail.captionSlide': 'Diapo',
+  'inspector.content': 'Contenu',
+  'inspector.typography': 'Style du texte',
+  'inspector.designHint': 'Modifier toute la diapositive : texte, style, fond, transition et notes.',
+  'inspector.elementHint': 'Modifier l’élément sélectionné sur la diapositive.',
+  'rundown.dragHint': 'Glissez pour réorganiser',
 }
 
 const de: Strings = {
@@ -84,6 +112,13 @@ const de: Strings = {
   'rail.snap': 'Beim Ziehen richten sich Elemente an Rändern, Mitte und aneinander aus.',
   'rail.deleteSlide': 'Folie löschen',
   'rail.deleteSlideHint': 'Diese Folie aus dem Element entfernen. Sie werden um Bestätigung gebeten.',
+  'rail.captionItem': 'Inhalt',
+  'rail.captionSlide': 'Folie',
+  'inspector.content': 'Inhalt',
+  'inspector.typography': 'Textstil',
+  'inspector.designHint': 'Die ganze Folie bearbeiten: Text, Stil, Hintergrund, Übergang und Notizen.',
+  'inspector.elementHint': 'Das ausgewählte Element auf der Folie bearbeiten.',
+  'rundown.dragHint': 'Zum Umordnen ziehen',
 }
 
 const it: Strings = {
@@ -99,6 +134,13 @@ const it: Strings = {
   'rail.snap': 'Durante il trascinamento, gli elementi si allineano ai bordi, al centro e tra loro.',
   'rail.deleteSlide': 'Elimina diapositiva',
   'rail.deleteSlideHint': 'Rimuovi questa diapositiva dall’elemento. Ti verrà chiesta conferma.',
+  'rail.captionItem': 'Voce',
+  'rail.captionSlide': 'Slide',
+  'inspector.content': 'Contenuto',
+  'inspector.typography': 'Stile del testo',
+  'inspector.designHint': 'Modifica tutta la diapositiva: testo, stile, sfondo, transizione e note.',
+  'inspector.elementHint': 'Modifica l’elemento selezionato sulla diapositiva.',
+  'rundown.dragHint': 'Trascina per riordinare',
 }
 
 export const railStrings: Record<Locale, Strings> = { en, pt, 'pt-BR': ptBR, es, fr, de, it }

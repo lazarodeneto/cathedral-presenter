@@ -12,6 +12,9 @@ import {
   BookOpenText,
   Heading,
   Palette,
+  Paintbrush,
+  MousePointer2,
+  FileText,
   Clapperboard,
   StickyNote,
   SquareRoundCorner,
@@ -77,6 +80,7 @@ import { webOutputProvider } from '../providers/output/WebOutputProvider'
 import { SlideRenderer } from '../components/SlideRenderer'
 import { AddContentModal } from '../components/AddContentModal'
 import { ConfirmDialog, Modal } from '../components/Modal'
+import { InspectorGroup, InspectorGroupList } from '../components/editor/InspectorGroup'
 import { CanvasGuidesRail, EditorToolbar, ElementActionRail, RailTooltip } from '../components/editor/EditorToolbar'
 import { EditorMediaDialog, mediaError, type MediaDialogMode } from '../components/editor/EditorMediaDialog'
 import { EditorBackgroundDialog } from '../components/editor/EditorBackgroundDialog'
@@ -211,6 +215,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   const snapToObjects = useAppStore((state) => state.settings.snapToObjects ?? true)
   const updateSettings = useAppStore((state) => state.updateSettings)
   const moveItemNextTo = useAppStore((state) => state.moveItemNextTo)
+  const moveItemToSection = useAppStore((state) => state.moveItemToSection)
+  const moveSectionNextTo = useAppStore((state) => state.moveSectionNextTo)
   const addItem = useAppStore((state) => state.addItem)
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false)
   const duplicateSlide = useAppStore((state) => state.duplicateSlide)
@@ -251,6 +257,21 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   const [backgroundOpen, setBackgroundOpen] = useState(false)
   const [logoPlacementOpen, setLogoPlacementOpen] = useState(false)
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+  // Drag and drop in the service sequence: sections, items and the selected item's slides.
+  const [rundownDrag, setRundownDrag] = useState<{ kind: 'section' | 'item' | 'slide'; id: string; itemId?: string } | null>(null)
+  const [rundownDrop, setRundownDrop] = useState<{ id: string; side: 'before' | 'after' | 'into' } | null>(null)
+  const endRundownDrag = () => {
+    setRundownDrag(null)
+    setRundownDrop(null)
+  }
+  const dropSide = (event: React.DragEvent<HTMLElement>): 'before' | 'after' => {
+    const rect = event.currentTarget.getBoundingClientRect()
+    return event.clientY < rect.top + rect.height / 2 ? 'before' : 'after'
+  }
+  const markDrop = (id: string, side: 'before' | 'after' | 'into') => {
+    if (rundownDrop?.id !== id || rundownDrop.side !== side) setRundownDrop({ id, side })
+  }
+  const dropClass = (id: string) => (rundownDrop?.id === id ? `drop-${rundownDrop.side}` : '')
   const [aspectMenuOpen, setAspectMenuOpen] = useState(false)
   const [copiedSlide, setCopiedSlide] = useState<Slide | null>(null)
   const [slideAspectRatio, setSlideAspectRatio] = useState<'wide' | 'classic'>('wide')
@@ -740,8 +761,40 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
             {service.sections.map((section) => {
               const isCollapsed = collapsed.has(section.id)
               return (
-                <div key={section.id} className="rundown-section">
-                  <div className="rundown-section-head">
+                <div
+                  key={section.id}
+                  className={`rundown-section ${rundownDrag?.kind === 'section' && rundownDrag.id === section.id ? 'is-dragging' : ''}`}
+                >
+                  <div
+                    className={`rundown-section-head ${dropClass(section.id)}`}
+                    draggable
+                    title={t('rundown.dragHint')}
+                    onDragStart={(event) => {
+                      event.dataTransfer.effectAllowed = 'move'
+                      event.dataTransfer.setData('text/plain', section.id)
+                      setRundownDrag({ kind: 'section', id: section.id })
+                    }}
+                    onDragOver={(event) => {
+                      if (!rundownDrag || rundownDrag.kind === 'slide') return
+                      if (rundownDrag.kind === 'section' && rundownDrag.id === section.id) return
+                      event.preventDefault()
+                      event.dataTransfer.dropEffect = 'move'
+                      markDrop(section.id, rundownDrag.kind === 'item' ? 'into' : dropSide(event))
+                    }}
+                    onDragLeave={(event) => {
+                      if (event.currentTarget.contains(event.relatedTarget as Node | null)) return
+                      setRundownDrop((current) => (current?.id === section.id ? null : current))
+                    }}
+                    onDrop={(event) => {
+                      event.preventDefault()
+                      if (rundownDrag?.kind === 'item') moveItemToSection(service.id, rundownDrag.id, section.id)
+                      else if (rundownDrag?.kind === 'section' && rundownDrop?.id === section.id && rundownDrop.side !== 'into') {
+                        moveSectionNextTo(service.id, rundownDrag.id, section.id, rundownDrop.side)
+                      }
+                      endRundownDrag()
+                    }}
+                    onDragEnd={endRundownDrag}
+                  >
                     <button
                       className="section-collapse"
                       onClick={() => {
@@ -779,7 +832,37 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                       const Icon = TYPE_ICONS[item.type] ?? Square
                       const selected = item.id === activeItem?.id
                       return (
-                        <div key={item.id} className={`rundown-item-wrap ${selected ? 'is-selected' : ''}`}>
+                        <div
+                          key={item.id}
+                          className={`rundown-item-wrap ${selected ? 'is-selected' : ''} ${
+                            rundownDrag?.kind === 'item' && rundownDrag.id === item.id ? 'is-dragging' : ''
+                          } ${dropClass(item.id)}`}
+                          draggable
+                          onDragStart={(event) => {
+                            event.dataTransfer.effectAllowed = 'move'
+                            event.dataTransfer.setData('text/plain', item.id)
+                            setRundownDrag({ kind: 'item', id: item.id })
+                          }}
+                          onDragOver={(event) => {
+                            if (rundownDrag?.kind !== 'item' || rundownDrag.id === item.id) return
+                            event.preventDefault()
+                            event.dataTransfer.dropEffect = 'move'
+                            markDrop(item.id, dropSide(event))
+                          }}
+                          onDragLeave={(event) => {
+                            if (event.currentTarget.contains(event.relatedTarget as Node | null)) return
+                            setRundownDrop((current) => (current?.id === item.id ? null : current))
+                          }}
+                          onDrop={(event) => {
+                            if (rundownDrag?.kind !== 'item') return
+                            event.preventDefault()
+                            if (rundownDrop?.id === item.id && rundownDrop.side !== 'into') {
+                              moveItemNextTo(service.id, rundownDrag.id, item.id, rundownDrop.side)
+                            }
+                            endRundownDrag()
+                          }}
+                          onDragEnd={endRundownDrag}
+                        >
                           <div className="rundown-item">
                             <button
                               type="button"
@@ -832,7 +915,40 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                               {item.slides.map((slide, index) => (
                                 <button
                                   key={slide.id}
-                                  className={`rundown-slide ${slide.id === activeSlide?.id ? 'is-active' : ''} ${live?.currentSlideId === slide.id ? 'is-live' : ''}`}
+                                  className={`rundown-slide ${slide.id === activeSlide?.id ? 'is-active' : ''} ${live?.currentSlideId === slide.id ? 'is-live' : ''} ${
+                                    rundownDrag?.kind === 'slide' && rundownDrag.id === slide.id ? 'is-dragging' : ''
+                                  } ${dropClass(slide.id)}`}
+                                  draggable
+                                  onDragStart={(event) => {
+                                    // Slides move within their item; keep the item itself from starting a drag.
+                                    event.stopPropagation()
+                                    event.dataTransfer.effectAllowed = 'move'
+                                    event.dataTransfer.setData('text/plain', slide.id)
+                                    setRundownDrag({ kind: 'slide', id: slide.id, itemId: item.id })
+                                  }}
+                                  onDragOver={(event) => {
+                                    if (rundownDrag?.kind !== 'slide' || rundownDrag.itemId !== item.id || rundownDrag.id === slide.id) return
+                                    event.preventDefault()
+                                    event.stopPropagation()
+                                    event.dataTransfer.dropEffect = 'move'
+                                    markDrop(slide.id, dropSide(event))
+                                  }}
+                                  onDrop={(event) => {
+                                    if (rundownDrag?.kind !== 'slide' || rundownDrag.itemId !== item.id) return
+                                    event.preventDefault()
+                                    event.stopPropagation()
+                                    if (rundownDrop?.id === slide.id && rundownDrop.side !== 'into') {
+                                      const from = item.slides.findIndex((entry) => entry.id === rundownDrag.id)
+                                      let to = index + (rundownDrop.side === 'after' ? 1 : 0)
+                                      if (from < to) to -= 1
+                                      moveSlide(service.id, item.id, rundownDrag.id, to)
+                                    }
+                                    endRundownDrag()
+                                  }}
+                                  onDragEnd={(event) => {
+                                    event.stopPropagation()
+                                    endRundownDrag()
+                                  }}
                                   aria-label={live?.currentSlideId === slide.id ? `${t('status.live')}: ${slideLabel(slide, slide.text.slice(0, 42)) || t('editor.blankSlide')}` : undefined}
                                   onClick={() => { selectSlide(item.id, slide.id); setMobileRundown(false) }}
                                   onDoubleClick={() => sendSlideLive(slide.id)}
@@ -1423,10 +1539,16 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
               </button>
             )}
             <div className="segmented segmented-sm">
-              <button className={!selectedElement ? 'is-active' : ''} onClick={() => selectElement(null)}>
+              <button className={!selectedElement ? 'is-active' : ''} onClick={() => selectElement(null)} title={t('inspector.designHint')}>
+                <Paintbrush size={13} />
                 {t('editor.design')}
               </button>
-              <button className={selectedElement ? 'is-active' : ''} disabled={!selectedElement}>
+              <button
+                className={selectedElement ? 'is-active' : ''}
+                disabled={!selectedElement}
+                title={selectedElement ? t('inspector.elementHint') : t('rail.needsSelection')}
+              >
+                <MousePointer2 size={13} />
                 {t('editor.element')}
               </button>
             </div>
@@ -1848,6 +1970,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   <span className="badge badge-quiet">{t(`culto.origin.${itemOrigin(activeItem)}`)}</span>
                   <span>{t(`culto.originNote.${itemOrigin(activeItem) === 'here' ? 'here' : 'copy'}`)}</span>
                 </p>
+                <InspectorGroupList dragHint={t('rundown.dragHint')}>
+                <InspectorGroup id="content" icon={FileText} title={t('inspector.content')}>
                 {activeSlide.bible ? (
                   <>
                     <div className="inspector-label">
@@ -1966,6 +2090,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     )}
                   </>
                 )}
+                </InspectorGroup>
+                <InspectorGroup id="text" icon={Type} title={t('inspector.typography')}>
                 <label className="field">
                   <FieldTitle icon={AlignCenter}>{t('editor.alignment')}</FieldTitle>
                   <div className="align-row">
@@ -2045,10 +2171,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     </div>
                   </>
                 )}
-                <div className="inspector-label">
-                  <FieldTitle icon={Palette}>{t('editor.background')}</FieldTitle>
-                  <span className="muted-note">{activeSlide.background.preset}</span>
-                </div>
+                </InspectorGroup>
+                <InspectorGroup id="background" icon={Palette} title={t('editor.background')} meta={activeSlide.background.preset}>
                 <div className="preset-grid">
                   {BACKGROUND_PRESETS.map((preset) => (
                     <button
@@ -2067,12 +2191,13 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     </button>
                   ))}
                 </div>
-                <div className="inspector-label">
-                  <FieldTitle icon={Clapperboard}>{t('editor.transition')}</FieldTitle>
-                  <span className="muted-note">
-                    {activeSlide.transition ? `${(activeSlide.transition.durationMs / 1000).toFixed(1)} s` : t('editor.transitionDefault')}
-                  </span>
-                </div>
+                </InspectorGroup>
+                <InspectorGroup
+                  id="transition"
+                  icon={Clapperboard}
+                  title={t('editor.transition')}
+                  meta={activeSlide.transition ? `${(activeSlide.transition.durationMs / 1000).toFixed(1)} s` : t('editor.transitionDefault')}
+                >
                 {(() => {
                   const current = activeSlide.transition ?? service.transition ?? DEFAULT_TRANSITION
                   const icons = { fade: Blend, cut: Scissors, slide: MoveRight, zoom: ZoomIn }
@@ -2097,10 +2222,12 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     </div>
                   )
                 })()}
+                </InspectorGroup>
+                <InspectorGroup id="notes" icon={StickyNote} title={t('editor.notes')}>
                 <label className="field">
-                  <FieldTitle icon={StickyNote}>{t('editor.notes')}</FieldTitle>
                   <textarea
                     rows={4}
+                    aria-label={t('editor.notes')}
                     value={activeSlide.notes ?? ''}
                     placeholder={t('editor.notesPlaceholder')}
                     onChange={(event) =>
@@ -2108,6 +2235,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     }
                   />
                 </label>
+                </InspectorGroup>
+                </InspectorGroupList>
                 <div className="inspector-actions">
                   <button
                     className="btn btn-secondary btn-sm"
