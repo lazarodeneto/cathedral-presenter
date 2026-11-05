@@ -20,6 +20,7 @@ import { SlideRenderer } from '../components/SlideRenderer'
 import { LibrarySongFormDialog } from '../components/songs/LibrarySongFormDialog'
 import { DeleteLibrarySongDialog } from '../components/songs/DeleteLibrarySongDialog'
 import { SongDirectoryPanel } from '../components/songs/SongDirectoryPanel'
+import { clearReloadFocus, peekReloadFocus } from '../store/appReload'
 import { SCREEN_META, ScreenIcon } from '../components/ScreenIcon'
 
 export function SongsScreen() {
@@ -34,7 +35,18 @@ export function SongsScreen() {
   const activeService = services.find((service) => service.id === activeServiceId)
 
   const [libQuery, setLibQuery] = useState<SongLibraryQuery>(DEFAULT_LIBRARY_QUERY)
-  const [selectedLibId, setSelectedLibId] = useState<string>('')
+  // After adding or downloading a song the app reloads; open that song, not the first one.
+  const [selectedLibId, setSelectedLibId] = useState<string>(() => peekReloadFocus('song') ?? '')
+  const listRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const focusId = peekReloadFocus('song')
+    if (!focusId) return
+    clearReloadFocus()
+    // Bring the new song into view in the list as well.
+    requestAnimationFrame(() =>
+      listRef.current?.querySelector(`[data-song-id="${CSS.escape(focusId)}"]`)?.scrollIntoView({ block: 'nearest' }),
+    )
+  }, [])
   const [createOpen, setCreateOpen] = useState(false)
   const [editing, setEditing] = useState<LibrarySong | null>(null)
   const [deleting, setDeleting] = useState<LibrarySong | null>(null)
@@ -117,7 +129,7 @@ export function SongsScreen() {
       </div>
 
       <div className="library-layout">
-          <aside className="song-list panel">
+          <aside className="song-list panel" ref={listRef}>
             <label className="search-field">
               <Search size={16} />
               <input
@@ -195,6 +207,7 @@ export function SongsScreen() {
                 libResults.map((song) => (
                   <button
                     key={song.id}
+                    data-song-id={song.id}
                     className={`song-row ${selectedLib?.id === song.id ? 'is-selected' : ''}`}
                     onClick={() => setSelectedLibId(song.id)}
                   >

@@ -106,7 +106,7 @@ export function LibrarySongFormDialog({
     } else {
       createLibrarySong(result)
       onClose()
-      void reloadAfterAdd(t('library.created', { title: result.title }))
+      void reloadAfterAdd(t('library.created', { title: result.title }), 'success', { kind: 'song', id: result.id })
       return
     }
     onClose()

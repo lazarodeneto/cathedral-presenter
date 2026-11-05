@@ -103,7 +103,7 @@ export function SongDirectoryPanel({ onClose }: { onClose: () => void }) {
     try {
       const song = await downloadDirectorySong(entry)
       createLibrarySong(song)
-      await reloadAfterAdd(t('songDirectory.downloaded', { title: song.title }))
+      await reloadAfterAdd(t('songDirectory.downloaded', { title: song.title }), 'success', { kind: 'song', id: song.id })
     } catch (error) {
       push(failureMessage(error, 'songDirectory.downloadFailed', { title: entry.title }), 'error')
       setDownloading(null)
