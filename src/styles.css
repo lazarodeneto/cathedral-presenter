@@ -18997,3 +18997,286 @@ body:not(.output-mode) .rundown .rundown-slide.is-live .rundown-slide-label smal
 .rundown-slide.is-live .reference-verses {
   text-decoration-color: rgb(var(--green-rgb) / 0.9);
 }
+
+/* Collapsed menu (icon rail): neutral grey tiles, so the rail stays quiet.
+   The selected row keeps its lit pill; colour returns when the menu expands. */
+body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone] {
+  --tone-rgb: var(--wash-rgb);
+}
+
+body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone] .nav-app-icon svg {
+  color: var(--text-2);
+}
+
+body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item.is-active .nav-app-icon svg,
+body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item:hover .nav-app-icon svg {
+  color: var(--text);
+}
+
+/* Below 1180px the menu is always the rail. */
+@media (max-width: 1180px) {
+  body:not(.output-mode) .app-shell .nav-item[data-tone] {
+    --tone-rgb: var(--wash-rgb);
+  }
+
+  body:not(.output-mode) .app-shell .nav-item[data-tone] .nav-app-icon svg {
+    color: var(--text-2);
+  }
+
+  body:not(.output-mode) .app-shell .nav-item.is-active .nav-app-icon svg {
+    color: var(--text);
+  }
+}
+
+@media (min-width: 1181px) and (max-width: 1360px) {
+  body:not(.output-mode) .app-shell.is-editing:not(.is-nav-expanded) .nav-item[data-tone] {
+    --tone-rgb: var(--wash-rgb);
+  }
+
+  body:not(.output-mode) .app-shell.is-editing:not(.is-nav-expanded) .nav-item[data-tone] .nav-app-icon svg {
+    color: var(--text-2);
+  }
+
+  body:not(.output-mode) .app-shell.is-editing:not(.is-nav-expanded) .nav-item.is-active .nav-app-icon svg {
+    color: var(--text);
+  }
+}
+
+/* Labels beside the icon rail: the collapsed menu names each button on hover or keyboard focus. */
+.nav-tooltip {
+  display: none;
+}
+
+.app-shell.is-nav-collapsed .sidebar,
+.app-shell.is-nav-collapsed .main-nav {
+  overflow: visible;
+}
+
+.app-shell.is-nav-collapsed :is(.nav-item, .sidebar-toggle) {
+  position: relative;
+}
+
+.app-shell.is-nav-collapsed .nav-tooltip {
+  position: absolute;
+  z-index: 90;
+  top: 50%;
+  left: calc(100% + 12px);
+  display: block !important;
+  padding: 6px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--rounded-sm);
+  background: var(--surface-solid-raised);
+  box-shadow: 0 10px 26px rgb(0 0 0 / 0.45);
+  color: var(--text);
+  font-size: var(--text-ui);
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-4px, -50%);
+  transition: opacity 120ms ease, transform 120ms ease;
+  visibility: hidden;
+}
+
+.app-shell.is-nav-collapsed :is(.nav-item, .sidebar-toggle):is(:hover, :focus-visible) .nav-tooltip {
+  opacity: 1;
+  transform: translate(0, -50%);
+  transition-delay: 150ms;
+  visibility: visible;
+}
+
+@media (max-width: 1180px) {
+  .sidebar,
+  .main-nav {
+    overflow: visible;
+  }
+
+  :is(.nav-item, .sidebar-toggle) {
+    position: relative;
+  }
+
+  .app-shell .nav-tooltip {
+    position: absolute;
+    z-index: 90;
+    top: 50%;
+    left: calc(100% + 12px);
+    display: block !important;
+    padding: 6px 10px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--rounded-sm);
+    background: var(--surface-solid-raised);
+    box-shadow: 0 10px 26px rgb(0 0 0 / 0.45);
+    color: var(--text);
+    font-size: var(--text-ui);
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-4px, -50%);
+    transition: opacity 120ms ease, transform 120ms ease;
+    visibility: hidden;
+  }
+
+  :is(.nav-item, .sidebar-toggle):is(:hover, :focus-visible) .nav-tooltip {
+    opacity: 1;
+    transform: translate(0, -50%);
+    transition-delay: 150ms;
+    visibility: visible;
+  }
+}
+
+@media (min-width: 1181px) and (max-width: 1360px) {
+  .app-shell.is-editing:not(.is-nav-expanded) :is(.sidebar, .main-nav) {
+    overflow: visible;
+  }
+
+  .app-shell.is-editing:not(.is-nav-expanded) :is(.nav-item, .sidebar-toggle) {
+    position: relative;
+  }
+
+  .app-shell.is-editing:not(.is-nav-expanded) .nav-tooltip {
+    position: absolute;
+    z-index: 90;
+    top: 50%;
+    left: calc(100% + 12px);
+    display: block !important;
+    padding: 6px 10px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--rounded-sm);
+    background: var(--surface-solid-raised);
+    box-shadow: 0 10px 26px rgb(0 0 0 / 0.45);
+    color: var(--text);
+    font-size: var(--text-ui);
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-4px, -50%);
+    visibility: hidden;
+  }
+
+  .app-shell.is-editing:not(.is-nav-expanded) :is(.nav-item, .sidebar-toggle):is(:hover, :focus-visible) .nav-tooltip {
+    opacity: 1;
+    transform: translate(0, -50%);
+    transition-delay: 150ms;
+    visibility: visible;
+  }
+}
+
+@media (hover: none) {
+  .nav-tooltip {
+    display: none !important;
+  }
+}
+
+/* Icon rail: the church logo centred, a little larger, on its own solid disc
+   with a soft ring, and the rail's top kept opaque so the top bar's bottom
+   line does not show through the glass behind the logo. */
+@supports (display: block) {
+  body:not(.output-mode) .app-shell.is-nav-collapsed .sidebar {
+    background:
+      linear-gradient(180deg, rgb(var(--chrome-rgb) / 0.97) 0, rgb(var(--chrome-rgb) / 0.97) 76px, transparent 120px),
+      linear-gradient(180deg, rgb(var(--wash-rgb) / 0.035), transparent 30%),
+      rgb(var(--chrome-rgb) / var(--glass-opacity));
+  }
+
+  .app-shell.is-nav-collapsed .sidebar .brand {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .app-shell.is-nav-collapsed .sidebar .brand .brand-mark {
+    width: 46px;
+    height: 46px;
+    margin: 6px auto 18px;
+    border-radius: 50%;
+    background: rgb(var(--chrome-rgb));
+    box-shadow:
+      0 0 0 1px rgb(var(--wash-rgb) / 0.16),
+      0 0 0 4px rgb(var(--wash-rgb) / 0.04),
+      0 8px 18px rgb(0 0 0 / 0.45);
+    transition: box-shadow 0.16s var(--ease-out), transform 0.16s var(--ease-out);
+  }
+
+  .app-shell.is-nav-collapsed .sidebar .brand:hover .brand-mark,
+  .app-shell.is-nav-collapsed .sidebar .brand:focus-visible .brand-mark {
+    box-shadow:
+      0 0 0 1px rgb(var(--wash-rgb) / 0.32),
+      0 0 0 4px rgb(var(--wash-rgb) / 0.07),
+      0 10px 22px rgb(0 0 0 / 0.5);
+    transform: translateY(-1px);
+  }
+}
+
+@media (max-width: 1180px) {
+  body:not(.output-mode) .app-shell .sidebar {
+    background:
+      linear-gradient(180deg, rgb(var(--chrome-rgb) / 0.97) 0, rgb(var(--chrome-rgb) / 0.97) 76px, transparent 120px),
+      linear-gradient(180deg, rgb(var(--wash-rgb) / 0.035), transparent 30%),
+      rgb(var(--chrome-rgb) / var(--glass-opacity));
+  }
+
+  .app-shell .sidebar .brand {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .app-shell .sidebar .brand .brand-mark {
+    width: 46px;
+    height: 46px;
+    margin: 6px auto 18px;
+    border-radius: 50%;
+    background: rgb(var(--chrome-rgb));
+    box-shadow:
+      0 0 0 1px rgb(var(--wash-rgb) / 0.16),
+      0 0 0 4px rgb(var(--wash-rgb) / 0.04),
+      0 8px 18px rgb(0 0 0 / 0.45);
+    transition: box-shadow 0.16s var(--ease-out), transform 0.16s var(--ease-out);
+  }
+
+  .app-shell .sidebar .brand:hover .brand-mark,
+  .app-shell .sidebar .brand:focus-visible .brand-mark {
+    box-shadow:
+      0 0 0 1px rgb(var(--wash-rgb) / 0.32),
+      0 0 0 4px rgb(var(--wash-rgb) / 0.07),
+      0 10px 22px rgb(0 0 0 / 0.5);
+    transform: translateY(-1px);
+  }
+}
+
+@media (min-width: 1181px) and (max-width: 1360px) {
+  body:not(.output-mode) .app-shell.is-editing:not(.is-nav-expanded) .sidebar {
+    background:
+      linear-gradient(180deg, rgb(var(--chrome-rgb) / 0.97) 0, rgb(var(--chrome-rgb) / 0.97) 76px, transparent 120px),
+      linear-gradient(180deg, rgb(var(--wash-rgb) / 0.035), transparent 30%),
+      rgb(var(--chrome-rgb) / var(--glass-opacity));
+  }
+
+  .app-shell.is-editing:not(.is-nav-expanded) .sidebar .brand {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .app-shell.is-editing:not(.is-nav-expanded) .sidebar .brand .brand-mark {
+    width: 46px;
+    height: 46px;
+    margin: 6px auto 18px;
+    border-radius: 50%;
+    background: rgb(var(--chrome-rgb));
+    box-shadow:
+      0 0 0 1px rgb(var(--wash-rgb) / 0.16),
+      0 0 0 4px rgb(var(--wash-rgb) / 0.04),
+      0 8px 18px rgb(0 0 0 / 0.45);
+    transition: box-shadow 0.16s var(--ease-out), transform 0.16s var(--ease-out);
+  }
+
+  .app-shell.is-editing:not(.is-nav-expanded) .sidebar .brand:hover .brand-mark,
+  .app-shell.is-editing:not(.is-nav-expanded) .sidebar .brand:focus-visible .brand-mark {
+    box-shadow:
+      0 0 0 1px rgb(var(--wash-rgb) / 0.32),
+      0 0 0 4px rgb(var(--wash-rgb) / 0.07),
+      0 10px 22px rgb(0 0 0 / 0.5);
+    transform: translateY(-1px);
+  }
+}

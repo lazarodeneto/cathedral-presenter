@@ -94,13 +94,16 @@ export function Sidebar({ current }: { current: RouteName }) {
                   : undefined
               }
               aria-label={t(key)}
-              title={t(key)}
               onClick={() => navigate(`/${name}`)}
             >
               <span className="nav-app-icon" aria-hidden="true">
                 <Icon size={15} strokeWidth={1.9} />
               </span>
               <span>{t(key)}</span>
+              {/* Shown on hover only while the menu is the icon rail. */}
+              <span className="nav-tooltip" aria-hidden="true">
+                {t(key)}
+              </span>
             </button>
           )
         })}
@@ -152,10 +155,12 @@ export function Sidebar({ current }: { current: RouteName }) {
         onClick={() => updateSettings({ sidebarCollapsed: !collapsed })}
         aria-label={t(collapsed ? 'sidebar.expand' : 'sidebar.collapse')}
         aria-expanded={!collapsed}
-        title={t(collapsed ? 'sidebar.expand' : 'sidebar.collapse')}
       >
         {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
         <span>{t(collapsed ? 'sidebar.expand' : 'sidebar.collapse')}</span>
+        <span className="nav-tooltip" aria-hidden="true">
+          {t(collapsed ? 'sidebar.expand' : 'sidebar.collapse')}
+        </span>
       </button>
       <button
         type="button"
@@ -166,6 +171,9 @@ export function Sidebar({ current }: { current: RouteName }) {
       >
         <RotateCcw size={15} />
         <span>{t('sidebar.reset')}</span>
+        <span className="nav-tooltip" aria-hidden="true">
+          {t('sidebar.reset')}
+        </span>
       </button>
     </aside>
   )
