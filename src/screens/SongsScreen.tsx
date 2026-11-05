@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
+  AlignLeft,
   ChevronRight,
   Filter,
+  Mic2,
   Globe,
   Music4,
   Pencil,
@@ -10,22 +12,21 @@ import {
   Trash2,
 } from 'lucide-react'
 import type { LibrarySong, Locale } from '../types'
-import { languageName } from '../i18n/dictionary'
 import { useAppStore } from '../store/useAppStore'
 import { useToasts } from '../store/useToasts'
-import { useLocale, useT } from '../i18n/useT'
+import { useT } from '../i18n/useT'
 import { navigate } from '../hooks/useHashRoute'
 import { createLibrarySongItem, DEFAULT_LIBRARY_QUERY, querySongLibrary, parseLyrics, type SongLibraryQuery, type SongLibrarySort } from '../utils/songLibrary'
 import { SlideRenderer } from '../components/SlideRenderer'
 import { LibrarySongFormDialog } from '../components/songs/LibrarySongFormDialog'
 import { DeleteLibrarySongDialog } from '../components/songs/DeleteLibrarySongDialog'
 import { SongDirectoryPanel } from '../components/songs/SongDirectoryPanel'
+import { LanguageFilterSelect } from '../components/LanguageFilterSelect'
 import { clearReloadFocus, peekReloadFocus } from '../store/appReload'
 import { SCREEN_META, ScreenIcon } from '../components/ScreenIcon'
 
 export function SongsScreen() {
   const t = useT()
-  const locale = useLocale()
   const services = useAppStore((state) => state.services)
   const activeServiceId = useAppStore((state) => state.activeServiceId)
   const branding = useAppStore((state) => state.branding)
@@ -135,9 +136,29 @@ export function SongsScreen() {
               <input
                 value={libQuery.search}
                 onChange={(e) => setLibQuery((q) => ({ ...q, search: e.target.value }))}
-                placeholder={t('library.search')}
+                placeholder={t(`library.searchIn.${libQuery.field ?? 'all'}`)}
+                aria-label={t(`library.searchIn.${libQuery.field ?? 'all'}`)}
               />
             </label>
+            <div className="song-search-scope" role="radiogroup" aria-label={t('library.searchScope')}>
+              {(['all', 'title', 'author', 'lyrics'] as const).map((field) => {
+                const Icon = { all: Search, title: Music4, author: Mic2, lyrics: AlignLeft }[field]
+                const active = (libQuery.field ?? 'all') === field
+                return (
+                  <button
+                    key={field}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    className={`song-search-scope-option ${active ? 'is-active' : ''}`}
+                    onClick={() => setLibQuery((q) => ({ ...q, field }))}
+                  >
+                    <Icon size={12} aria-hidden="true" />
+                    {t(`library.scope.${field}`)}
+                  </button>
+                )
+              })}
+            </div>
             <div className="song-filter-panel">
               <div className="song-filter-head">
                 <span className="eyebrow">
@@ -150,15 +171,16 @@ export function SongsScreen() {
                   </button>
                 )}
               </div>
-              <label className="song-language">
+              <div className="song-language">
                 <span>{t('songs.language')}</span>
-                <select value={libQuery.language} onChange={(e) => setLibQuery((q) => ({ ...q, language: e.target.value as Locale | '' }))}>
-                  <option value="">{t('songs.allLanguages')}</option>
-                  {[...new Set(librarySongs.map((s) => s.language).filter(Boolean) as Locale[])].sort().map((lang) => (
-                    <option key={lang} value={lang}>{languageName(lang, locale)}</option>
-                  ))}
-                </select>
-              </label>
+                <LanguageFilterSelect
+                  value={libQuery.language}
+                  languages={[...new Set(librarySongs.map((s) => s.language).filter(Boolean) as Locale[])]}
+                  allLabel={t('songs.allLanguages')}
+                  label={t('songs.language')}
+                  onChange={(language) => setLibQuery((q) => ({ ...q, language }))}
+                />
+              </div>
               {libCategories.length > 0 && (
                 <label className="song-language">
                   <span>{t('library.field.category')}</span>

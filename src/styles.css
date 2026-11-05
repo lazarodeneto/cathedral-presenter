@@ -4621,21 +4621,39 @@ dialog.modal::backdrop {
   color: var(--amber);
 }
 
+/* Filter rows: label column, then a control filling the rest; every control the same size. */
 .song-language {
-  display: flex;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
   margin-top: 8px;
-  color: var(--faint);
-  font-size: var(--text-micro);
+  color: var(--muted);
+  font-size: var(--text-meta);
 }
 
-.song-language select {
-  width: 132px;
-  height: 27px;
-  padding: 0 5px;
-  font-size: var(--text-meta);
+.song-language select,
+.song-language .language-filter-trigger {
+  width: 100%;
+  height: 32px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--rounded-sm);
+  background-color: rgb(var(--ink-rgb) / 0.38);
+  color: var(--text);
+  font-size: var(--text-ui);
+  font-weight: 500;
+}
+
+.song-language .language-filter-trigger {
+  gap: 7px;
+}
+
+.song-language .language-filter-trigger .locale-flag,
+.song-language .language-filter-trigger .language-filter-globe {
+  width: 16px;
+  height: 16px;
+  flex: none;
 }
 
 .song-tag-filters {
@@ -15875,6 +15893,95 @@ body:not(.output-mode) .topbar-language:hover {
 
 .topbar-language-trigger.is-open .topbar-language-chevron {
   transform: rotate(180deg);
+}
+
+/* Songs library: where the search looks (all, song title, artist, lyrics). */
+.song-search-scope {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 3px;
+  margin-top: 8px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--rounded-sm);
+  background: rgb(var(--ink-rgb) / 0.3);
+}
+
+.song-search-scope-option {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 4px;
+  border-radius: var(--rounded-xs);
+  color: var(--muted);
+  font-size: var(--text-meta);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.song-search-scope-option:hover {
+  color: var(--text);
+}
+
+.song-search-scope-option.is-active {
+  color: var(--text);
+  background: rgb(var(--violet-rgb) / 0.18);
+  box-shadow: inset 0 0 0 1px rgb(var(--violet-rgb) / 0.45);
+}
+
+/* Songs language filter: a select-like trigger, the switcher's flag menu below it. */
+.language-filter {
+  position: relative;
+  min-width: 0;
+}
+
+.language-filter-trigger {
+  display: flex;
+  width: 100%;
+  height: 35px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--rounded-sm);
+  color: var(--text);
+  background: rgb(var(--ink-rgb) / 0.38);
+  font-size: var(--text-ui);
+  text-align: left;
+}
+
+.language-filter-trigger:hover,
+.language-filter-trigger.is-open {
+  border-color: var(--line-strong);
+}
+
+.language-filter-trigger .topbar-language-name {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.language-filter-trigger > svg:last-child {
+  flex: none;
+  color: var(--muted);
+}
+
+.language-filter-globe {
+  justify-self: center;
+  color: var(--muted);
+}
+
+.topbar-language-menu.language-filter-menu {
+  right: auto;
+  left: 0;
+  width: max-content;
+  min-width: 100%;
+  transform-origin: top left;
 }
 
 .topbar-language-menu {
