@@ -1765,7 +1765,7 @@ function queueBibleTextSync(entries: CustomBibleTranslation[]) {
     })
 }
 
-void loadBibleTexts(useAppStore.getState().customBibles).then((loaded) => {
+const bibleTextsLoaded = loadBibleTexts(useAppStore.getState().customBibles).then((loaded) => {
   if (Object.keys(loaded).length > 0) {
     useAppStore.setState((state) => ({
       customBibles: state.customBibles.map((entry) => {
@@ -1783,6 +1783,12 @@ void loadBibleTexts(useAppStore.getState().customBibles).then((loaded) => {
     if (state.customBibles !== previous.customBibles) queueBibleTextSync(state.customBibles)
   })
 })
+
+/** Resolves once every imported Bible text change so far is saved in IndexedDB. */
+export async function whenBibleTextsSaved(): Promise<void> {
+  await bibleTextsLoaded.catch(() => undefined)
+  await bibleTextSync.catch(() => undefined)
+}
 
 export { flatSlides }
 export type { AppState }

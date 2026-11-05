@@ -20,6 +20,7 @@ import {
   type BibleImportError,
 } from '../../utils/bibleImport'
 import { IncludedBibles } from './IncludedBibles'
+import { reloadAfterAdd } from '../../store/appReload'
 
 const LICENSE_TYPES: BibleTranslation['licenseType'][] = [
   'church-import',
@@ -335,7 +336,8 @@ export function BibleLibraryPanel() {
           onSaved={() => {
             const updated = Boolean(editing)
             closeForm()
-            push(t(updated ? 'settings.bibleUpdated' : 'settings.bibleAdded'), 'success')
+            if (updated) push(t('settings.bibleUpdated'), 'success')
+            else void reloadAfterAdd(t('settings.bibleAdded'))
           }}
           addCustomBible={addCustomBible}
           updateCustomBible={updateCustomBible}

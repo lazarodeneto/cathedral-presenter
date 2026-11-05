@@ -41,6 +41,7 @@ import { installShortcutListener, runShortcutAction, useShortcutHandlers } from 
 import { startHistory } from './store/history'
 import { webOutputProvider } from './providers/output/WebOutputProvider'
 import { useToasts } from './store/useToasts'
+import { takeReloadMessage } from './store/appReload'
 
 function RouteLoading({ label }: { label: string }) {
   return <div className="route-loading" role="status" aria-label={label} />
@@ -78,6 +79,12 @@ export default function App() {
   useEffect(() => (isOutput ? undefined : webOutputProvider.onCommand((actionId) => runShortcutAction(actionId))), [isOutput])
   const saveNow = useAppStore((state) => state.saveNow)
   const push = useToasts((state) => state.push)
+  // Confirmation carried across the reload that follows adding a Bible, song or media link.
+  useEffect(() => {
+    if (isOutput) return
+    const flash = takeReloadMessage()
+    if (flash) push(flash.message, flash.tone)
+  }, [isOutput, push])
   useShortcutHandlers(
     'global',
     {
