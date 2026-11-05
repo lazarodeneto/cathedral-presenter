@@ -155,6 +155,7 @@ export function BibleLibraryPanel() {
                   <strong>{translation.name}</strong>
                   <small>
                     {languageName(translation.language, locale)} ·{' '}
+                    {[translation.year, translation.publisher].filter(Boolean).map((part) => `${part} · `).join('')}
                     {translation.verseCount === 1
                       ? t('settings.bibleCountOne')
                       : t('settings.bibleCount', { count: translation.verseCount })}
@@ -395,6 +396,8 @@ function BibleImportDialog({
   const source = editing?.translation
   const [name, setName] = useState(source?.name ?? '')
   const [abbreviation, setAbbreviation] = useState(source?.abbreviation ?? '')
+  const [year, setYear] = useState(source?.year ? String(source.year) : '')
+  const [publisher, setPublisher] = useState(source?.publisher ?? '')
   const [language, setLanguage] = useState<Locale>(source?.language ?? locale)
   const [licenseType, setLicenseType] = useState<BibleTranslation['licenseType']>(
     source?.licenseType ?? 'church-import',
@@ -458,6 +461,9 @@ function BibleImportDialog({
       checkedSource = validation.url
     }
 
+    const parsedYear = Number(year.trim())
+    const cleanYear = year.trim() && Number.isInteger(parsedYear) && parsedYear >= 1000 && parsedYear <= 2200 ? parsedYear : undefined
+
     const id = editing?.translation.id ?? createCustomBibleId(cleanAbbreviation, language, existingIds)
     const entry: CustomBibleTranslation = {
       translation: {
@@ -477,6 +483,8 @@ function BibleImportDialog({
         sample: false,
         verseCount: countBibleVerses(books),
         availability: 'bundled',
+        ...(cleanYear ? { year: cleanYear } : {}),
+        ...(publisher.trim() ? { publisher: publisher.trim() } : {}),
       },
       books,
     }
@@ -526,6 +534,24 @@ function BibleImportDialog({
               placeholder={t('settings.bibleAbbreviationPlaceholder')}
               maxLength={24}
               required
+            />
+          </label>
+          <label className="field">
+            <span>{t('settings.bibleYear')}</span>
+            <input
+              value={year}
+              onChange={(event) => setYear(event.target.value.replace(/[^0-9]/g, '').slice(0, 4))}
+              inputMode="numeric"
+              placeholder="1993"
+            />
+          </label>
+          <label className="field">
+            <span>{t('settings.biblePublisher')}</span>
+            <input
+              value={publisher}
+              onChange={(event) => setPublisher(event.target.value)}
+              placeholder={t('settings.biblePublisherPlaceholder')}
+              maxLength={120}
             />
           </label>
           <label className="field">

@@ -351,6 +351,10 @@ export interface BibleTranslation {
   sample: boolean
   verseCount: number
   availability: ProviderAvailability
+  /** Publication year (Ano), when known. */
+  year?: number
+  /** Publisher (Editora), when known. */
+  publisher?: string
 }
 
 /** Imported Scripture text keyed by book, chapter, and verse. */
