@@ -19891,12 +19891,29 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
 
 .bm-reference-chapter,
 .bm-reference-verse {
-  font-size: 1.3em;
-  font-weight: 750;
+  display: inline-grid;
+  min-width: 1.75em;
+  min-height: 1.75em;
+  margin-inline: 0.18em;
+  padding-inline: 0.38em;
+  place-items: center;
+  border: 1.5px solid currentColor;
+  border-radius: var(--rounded-xs);
+  font-size: 1.28em;
+  font-weight: 850;
   font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
-.bm-reference-chapter { color: #f4f4f6; }
-.bm-reference-verse { color: #aeb4c0; }
+.bm-reference-chapter {
+  color: rgb(var(--tone-cyan-rgb));
+  background: rgb(var(--tone-cyan-rgb) / 0.2);
+  box-shadow: inset 0 0 0 1px rgb(var(--tone-cyan-rgb) / 0.18), 0 0 10px rgb(var(--tone-cyan-rgb) / 0.16);
+}
+.bm-reference-verse {
+  color: rgb(var(--tone-cyan-rgb));
+  background: rgb(var(--tone-cyan-rgb) / 0.2);
+  box-shadow: inset 0 0 0 1px rgb(var(--tone-cyan-rgb) / 0.18), 0 0 10px rgb(var(--tone-cyan-rgb) / 0.16);
+}
 
 .bm-hint {
   color: var(--faint);
