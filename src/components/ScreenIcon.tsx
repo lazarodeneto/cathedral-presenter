@@ -1,5 +1,6 @@
 import {
   BookOpen,
+  BookOpenText,
   CalendarDays,
   House,
   Image as ImageIcon,
@@ -21,6 +22,7 @@ export const SCREEN_META = {
   services: { icon: ListChecks, tone: 'indigo' },
   calendar: { icon: CalendarDays, tone: 'orange' },
   bible: { icon: BookOpen, tone: 'amber' },
+  biblemode: { icon: BookOpenText, tone: 'amber' },
   songs: { icon: Music4, tone: 'rose' },
   media: { icon: ImageIcon, tone: 'cyan' },
   templates: { icon: LayoutTemplate, tone: 'violet' },

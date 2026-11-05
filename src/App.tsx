@@ -20,6 +20,9 @@ const ServicesScreen = lazy(() =>
 const BibleScreen = lazy(() =>
   import('./screens/BibleScreen').then((module) => ({ default: module.BibleScreen })),
 )
+const BibleModeScreen = lazy(() =>
+  import('./screens/BibleModeScreen').then((module) => ({ default: module.BibleModeScreen })),
+)
 const SongsScreen = lazy(() =>
   import('./screens/SongsScreen').then((module) => ({ default: module.SongsScreen })),
 )
@@ -79,6 +82,7 @@ export default function App() {
   useEffect(() => (isOutput ? undefined : webOutputProvider.onCommand((actionId) => runShortcutAction(actionId))), [isOutput])
   const saveNow = useAppStore((state) => state.saveNow)
   const push = useToasts((state) => state.push)
+  const sidebarCollapsed = useAppStore((state) => state.settings.sidebarCollapsed)
   // Confirmation carried across the reload that follows adding a Bible, song or media link.
   useEffect(() => {
     if (isOutput) return
@@ -179,7 +183,7 @@ export default function App() {
   }, [activeService?.id, isLive])
 
   if (isOutput) {
-    const role = route.id === 'confidence' ? 'confidence' : 'audience'
+    const role = route.id === 'confidence' ? 'confidence' : route.id === 'broadcast' ? 'broadcast' : 'audience'
     return (
       <div className="output-root">
         <ErrorBoundary>
@@ -204,6 +208,9 @@ export default function App() {
     case 'bible':
       screen = <BibleScreen />
       break
+    case 'biblemode':
+      screen = <BibleModeScreen />
+      break
     case 'songs':
       screen = <SongsScreen />
       break
@@ -227,7 +234,9 @@ export default function App() {
 
   return (
     <div
-      className={`app-shell ${route.name === 'service' ? 'is-editing' : ''}`}
+      className={`app-shell ${route.name === 'service' ? 'is-editing' : ''} ${
+        sidebarCollapsed === true ? 'is-nav-collapsed' : sidebarCollapsed === false ? 'is-nav-expanded' : ''
+      }`}
       // The current screen's tone colours the full-width top band (a service uses the Services tone).
       data-band-tone={(SCREEN_META[(route.name === 'service' ? 'services' : route.name) as ScreenName] ?? SCREEN_META.home).tone}
     >

@@ -333,3 +333,25 @@ describe('importFromText', () => {
     expect(result.lyrics).toContain('Line one')
   })
 })
+
+describe('library search scope', () => {
+  const now = '2026-11-05T00:00:00.000Z'
+  const songs = [
+    { id: 'a', title: 'Ele Vem', author: 'Gabriela Rocha', lyrics: 'Rocha eterna', createdAt: now, updatedAt: now },
+    { id: 'b', title: 'Rocha Eterna', author: 'Outro Cantor', lyrics: 'Ele vem', createdAt: now, updatedAt: now },
+  ]
+  const ids = (search: string, field?: 'all' | 'title' | 'author' | 'lyrics') =>
+    querySongLibrary(songs, { ...DEFAULT_LIBRARY_QUERY, search, field }).map((song) => song.id)
+
+  it('looks only where the operator asks', () => {
+    expect(ids('rocha')).toEqual(['a', 'b'])
+    expect(ids('rocha', 'title')).toEqual(['b'])
+    expect(ids('rocha', 'author')).toEqual(['a'])
+    expect(ids('ele vem', 'lyrics')).toEqual(['b'])
+  })
+
+  it('matches every word in any order, without accents', () => {
+    expect(ids('rocha gabriela', 'author')).toEqual(['a'])
+    expect(ids('eterna rocha', 'title')).toEqual(['b'])
+  })
+})

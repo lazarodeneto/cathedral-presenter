@@ -1,3 +1,4 @@
+import type { OutputFormatId } from '../../utils/outputFormats'
 import type {
   AudienceOutputState,
   ConfidenceOutputState,
@@ -11,6 +12,12 @@ export interface OutputSnapshot {
   confidence: ConfidenceOutputState
   /** Countdown state for timer slides currently on any output, keyed by slide id. */
   timers?: Record<string, TimerRuntime>
+  /** The broadcast window (OBS / live stream) mirrors the audience slide in its own format. */
+  broadcast?: {
+    mode: 'mirror' | 'test'
+    format?: OutputFormatId
+    monitorName: string
+  }
 }
 
 /**

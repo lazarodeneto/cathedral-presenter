@@ -1,4 +1,5 @@
 import type { MonitorRole } from '../../types'
+import { ASPECT_RATIO, outputFormat } from '../../utils/outputFormats'
 import type { OutputProvider, OutputSnapshot } from './OutputProvider'
 
 const CHANNEL = 'church-presenter-output-v1'
@@ -55,10 +56,15 @@ class WebOutputProvider implements OutputProvider {
     }
     const base = `${window.location.origin}${window.location.pathname}`
     const url = `${base}#/output/${role}`
+    // Open the window in the projection proportion, so the preview has no black bars.
+    const snapshot = this.readSnapshot()
+    const ratio = ASPECT_RATIO[outputFormat(role === 'broadcast' ? snapshot?.broadcast?.format : snapshot?.audience.format).aspect]
+    const width = 1280
+    const height = Math.round(width / ratio)
     const opened = window.open(
       url,
       WINDOW_NAMES[role],
-      'popup=yes,width=1280,height=720,menubar=no,toolbar=no,location=no,status=no',
+      `popup=yes,width=${width},height=${height},menubar=no,toolbar=no,location=no,status=no`,
     )
     this.windows.set(role, opened)
     return Boolean(opened)

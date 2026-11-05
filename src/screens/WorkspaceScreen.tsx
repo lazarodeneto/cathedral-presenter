@@ -12,6 +12,7 @@ import {
   BookOpenText,
   Heading,
   Palette,
+  Move,
   Paintbrush,
   MousePointer2,
   FileText,
@@ -25,11 +26,8 @@ import {
   Scissors,
   SlidersHorizontal,
   ZoomIn,
-  AlignCenterHorizontal,
-  AlignEndHorizontal,
   AlignLeft,
   AlignRight,
-  AlignStartHorizontal,
   ArrowDown,
   Archive,
   ArrowLeft,
@@ -81,6 +79,9 @@ import { SlideRenderer } from '../components/SlideRenderer'
 import { AddContentModal } from '../components/AddContentModal'
 import { ConfirmDialog, Modal } from '../components/Modal'
 import { InspectorGroup, InspectorGroupList } from '../components/editor/InspectorGroup'
+import { TextPositionGrid } from '../components/editor/TextPositionGrid'
+import { ASPECT_RATIO, outputFormat, resolutionLabel } from '../utils/outputFormats'
+import { OutputFormatPicker } from '../components/OutputFormatPicker'
 import { CanvasGuidesRail, EditorToolbar, ElementActionRail, RailTooltip } from '../components/editor/EditorToolbar'
 import { EditorMediaDialog, mediaError, type MediaDialogMode } from '../components/editor/EditorMediaDialog'
 import { EditorBackgroundDialog } from '../components/editor/EditorBackgroundDialog'
@@ -191,6 +192,14 @@ function ElementIcon({ type }: { type: ElementType }) {
   return <Type size={13} />
 }
 
+/** Which of the 9 grid places a box is at now, per axis; null when it sits elsewhere. */
+function boxPlacement(element: { x: number; y: number; width: number; height: number }) {
+  const near = (a: number, b: number) => Math.abs(a - b) < 0.6
+  const align = near(element.x, 4) ? 'left' : near(element.x + element.width / 2, 50) ? 'center' : near(element.x + element.width, 96) ? 'right' : null
+  const vertical = near(element.y, 4) ? 'top' : near(element.y + element.height / 2, 50) ? 'middle' : near(element.y + element.height, 96) ? 'bottom' : null
+  return { align, vertical } as const
+}
+
 export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceId?: string; presentOnOpen?: boolean }) {
   const t = useT()
   const services = useAppStore((state) => state.services)
@@ -272,9 +281,32 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
     if (rundownDrop?.id !== id || rundownDrop.side !== side) setRundownDrop({ id, side })
   }
   const dropClass = (id: string) => (rundownDrop?.id === id ? `drop-${rundownDrop.side}` : '')
-  const [aspectMenuOpen, setAspectMenuOpen] = useState(false)
+  // Every drag in the sequence has a keyboard and touch twin: buttons, and Alt+↑ / Alt+↓.
+  const moveSectionBy = (sectionId: string, direction: -1 | 1) => {
+    if (!service) return
+    const index = service.sections.findIndex((section) => section.id === sectionId)
+    const target = service.sections[index + direction]
+    if (index < 0 || !target) return
+    moveSectionNextTo(service.id, sectionId, target.id, direction < 0 ? 'before' : 'after')
+  }
+  const moveSlideBy = (itemId: string, slideId: string, direction: -1 | 1) => {
+    const item = service?.items.find((entry) => entry.id === itemId)
+    if (!service || !item) return
+    const index = item.slides.findIndex((slide) => slide.id === slideId)
+    const to = index + direction
+    if (index < 0 || to < 0 || to >= item.slides.length) return
+    moveSlide(service.id, itemId, slideId, to)
+  }
+  const altArrow = (event: React.KeyboardEvent, move: (direction: -1 | 1) => void) => {
+    if (!event.altKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) return
+    event.preventDefault()
+    event.stopPropagation()
+    move(event.key === 'ArrowUp' ? -1 : 1)
+  }
   const [copiedSlide, setCopiedSlide] = useState<Slide | null>(null)
-  const [slideAspectRatio, setSlideAspectRatio] = useState<'wide' | 'classic'>('wide')
+  // Projection format, saved in Settings: the canvas and the audience output use the same one.
+  const projection = outputFormat(useAppStore((state) => state.settings.outputFormat))
+  const slideAspectRatio = projection.aspect
   const [sectionInputOpen, setSectionInputOpen] = useState(false)
   const [sectionTitle, setSectionTitle] = useState('')
   const [confirm, setConfirm] = useState<
@@ -311,7 +343,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   const canvasAreaRef = useRef<HTMLDivElement>(null)
   const canvasRailRef = useRef<HTMLDivElement>(null)
   // The canvas fills its area at the exact slide format: 16:9 (1920 × 1080) or 4:3.
-  const canvasFit = useContainFit(canvasAreaRef, slideAspectRatio === 'wide' ? 1920 / 1080 : 4 / 3, canvasRailRef, 2)
+  const canvasFit = useContainFit(canvasAreaRef, ASPECT_RATIO[slideAspectRatio], canvasRailRef, 2)
   // Which way the slide strip can still scroll, so the arrows show only when useful.
   const [thumbScroll, setThumbScroll] = useState({ left: false, right: false })
   const updateThumbScroll = useCallback(() => {
@@ -663,7 +695,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
     const size = 11
     // height% must compensate for the canvas aspect ratio so square/circle render as square/circle.
     // Percentages are relative to canvas width and height independently; canvas is 1920:1080 (wide) or 4:3 (classic).
-    const [aw, ah] = slideAspectRatio === 'wide' ? [1920, 1080] : [4, 3]
+    const [aw, ah] = [projection.width, projection.height]
     const height = Math.round(size * aw / ah * 10) / 10
     const makeLogo = () => makeElement('image', {
       source: logoUrl,
@@ -696,13 +728,13 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
     push(t('editor.logoAddedAll', { count: added }), 'success')
   }
 
-  const alignSelected = (axis: 'horizontal' | 'vertical', value: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => {
+  /** Moves the selected box to one of 9 places inside the 4% safe margin. */
+  const placeSelected = (align: 'left' | 'center' | 'right', vertical: 'top' | 'middle' | 'bottom') => {
     if (!selectedElement || !activeItem || !activeSlide) return
-    const patch =
-      axis === 'horizontal'
-        ? { x: value === 'left' ? 4 : value === 'center' ? 50 - selectedElement.width / 2 : 96 - selectedElement.width }
-        : { y: value === 'top' ? 4 : value === 'middle' ? 50 - selectedElement.height / 2 : 96 - selectedElement.height }
-    updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, patch)
+    updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
+      x: align === 'left' ? 4 : align === 'center' ? 50 - selectedElement.width / 2 : 96 - selectedElement.width,
+      y: vertical === 'top' ? 4 : vertical === 'middle' ? 50 - selectedElement.height / 2 : 96 - selectedElement.height,
+    })
   }
 
   const toggleLive = () => {
@@ -758,7 +790,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
             </button>
           </div>
           <div className="rundown-scroll">
-            {service.sections.map((section) => {
+            {service.sections.map((section, sectionIndex) => {
               const isCollapsed = collapsed.has(section.id)
               return (
                 <div
@@ -797,6 +829,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   >
                     <button
                       className="section-collapse"
+                      aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"
+                      onKeyDown={(event) => altArrow(event, (direction) => moveSectionBy(section.id, direction))}
                       onClick={() => {
                         const next = new Set(collapsed)
                         if (next.has(section.id)) next.delete(section.id)
@@ -809,6 +843,24 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                       <small className="rundown-count">{section.itemIds.length}</small>
                     </button>
                     <div className="section-actions">
+                      <button
+                        className="icon-btn icon-btn-xs"
+                        onClick={() => moveSectionBy(section.id, -1)}
+                        disabled={sectionIndex === 0}
+                        aria-label={`${t('common.moveUp')}: ${section.title}`}
+                        title={t('common.moveUp')}
+                      >
+                        <ArrowUp size={12} />
+                      </button>
+                      <button
+                        className="icon-btn icon-btn-xs"
+                        onClick={() => moveSectionBy(section.id, 1)}
+                        disabled={sectionIndex === service.sections.length - 1}
+                        aria-label={`${t('common.moveDown')}: ${section.title}`}
+                        title={t('common.moveDown')}
+                      >
+                        <ArrowDown size={12} />
+                      </button>
                       <button
                         className="icon-btn icon-btn-xs"
                         onClick={() => openAdd(section.id)}
@@ -868,6 +920,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                               type="button"
                               className="rundown-item-main"
                               aria-current={selected ? 'true' : undefined}
+                              aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"
+                              onKeyDown={(event) => altArrow(event, (direction) => moveItem(service.id, item.id, direction))}
                               onClick={() => { selectItem(item.id); setMobileRundown(false) }}
                             >
                               <span className="rundown-type tone-chip" data-tone={ITEM_TONES[item.type] ?? 'wash'} aria-hidden="true">
@@ -913,12 +967,14 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                           {selected && (
                             <div className="rundown-slides">
                               {item.slides.map((slide, index) => (
+                                <div key={slide.id} className="rundown-slide-row">
                                 <button
-                                  key={slide.id}
                                   className={`rundown-slide ${slide.id === activeSlide?.id ? 'is-active' : ''} ${live?.currentSlideId === slide.id ? 'is-live' : ''} ${
                                     rundownDrag?.kind === 'slide' && rundownDrag.id === slide.id ? 'is-dragging' : ''
                                   } ${dropClass(slide.id)}`}
                                   draggable
+                                  aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"
+                                  onKeyDown={(event) => altArrow(event, (direction) => moveSlideBy(item.id, slide.id, direction))}
                                   onDragStart={(event) => {
                                     // Slides move within their item; keep the item itself from starting a drag.
                                     event.stopPropagation()
@@ -971,6 +1027,31 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                                     )
                                   })()}
                                 </button>
+                                {slide.id === activeSlide?.id && item.slides.length > 1 && (
+                                  <span className="rundown-slide-move">
+                                    <button
+                                      type="button"
+                                      className="icon-btn icon-btn-xs"
+                                      disabled={index === 0}
+                                      onClick={() => moveSlideBy(item.id, slide.id, -1)}
+                                      aria-label={`${t('common.moveUp')}: ${t('common.slide')} ${index + 1}`}
+                                      title={t('common.moveUp')}
+                                    >
+                                      <ArrowUp size={12} />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="icon-btn icon-btn-xs"
+                                      disabled={index === item.slides.length - 1}
+                                      onClick={() => moveSlideBy(item.id, slide.id, 1)}
+                                      aria-label={`${t('common.moveDown')}: ${t('common.slide')} ${index + 1}`}
+                                      title={t('common.moveDown')}
+                                    >
+                                      <ArrowDown size={12} />
+                                    </button>
+                                  </span>
+                                )}
+                                </div>
                               ))}
                             </div>
                           )}
@@ -1438,41 +1519,19 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
             onEnd={() => setEndOpen(true)}
             tools={
               <>
-            <div className="workspace-aspect-picker">
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={() => setAspectMenuOpen((open) => !open)}
-                aria-label={t('editor.slideFormat')}
-                aria-haspopup="menu"
-                aria-expanded={aspectMenuOpen}
-              >
-                <Monitor size={14} />
-                <span>{slideAspectRatio === 'wide' ? '1920 × 1080' : '4:3'}</span>
-                <ChevronDown size={13} />
-              </button>
-              {aspectMenuOpen && (
-                <div className="workspace-aspect-menu" role="menu" aria-label={t('editor.slideFormat')}>
-                  {([
-                    ['wide', '1920 × 1080'],
-                    ['classic', '4:3'],
-                  ] as const).map(([value, label]) => (
-                    <button
-                      key={value}
-                      className={`workspace-aspect-option ${slideAspectRatio === value ? 'is-active' : ''}`}
-                      role="menuitemradio"
-                      aria-checked={slideAspectRatio === value}
-                      onClick={() => {
-                        setSlideAspectRatio(value)
-                        setAspectMenuOpen(false)
-                      }}
-                    >
-                      <span>{label}</span>
-                      {slideAspectRatio === value && <Check size={13} />}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <OutputFormatPicker
+              value={projection.id}
+              onChange={(id) => updateSettings({ outputFormat: id })}
+              label={t('editor.slideFormat')}
+              trigger={
+                <>
+                  <Monitor size={14} />
+                  <span>
+                    {resolutionLabel(projection)} <small className="workspace-aspect-ratio">{projection.ratio}</small>
+                  </span>
+                </>
+              }
+            />
             <button
               className="btn btn-secondary btn-sm inspector-edit-details-btn"
               onClick={() => setDetailsOpen(true)}
@@ -1488,8 +1547,14 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
           {isLive && liveCurrentSlide && (
             <div className="inspector-output-preview">
               <SlideRenderer
-                slide={live?.blank ? { ...liveCurrentSlide.slide, elements: [] } : liveCurrentSlide.slide}
+                slide={
+                  live?.blank
+                    ? { ...liveCurrentSlide.slide, elements: [] }
+                    : // A verse projected from Bible Mode is what the audience sees.
+                      live?.scripture ?? liveCurrentSlide.slide
+                }
                 branding={branding}
+                aspectRatio={slideAspectRatio}
                 compact
                 message={live?.message ?? undefined}
                 messageVisible={Boolean(live?.messageVisible && live.message && !live.blank)}
@@ -1822,32 +1887,14 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     </label>
                   </>
                 )}
-                <div className="inspector-label">
-                  <FieldTitle icon={AlignCenter}>{t('editor.alignment')}</FieldTitle>
-                </div>
-                <div className="align-row">
-                  {(['left', 'center', 'right'] as const).map((align) => (
-                    <button
-                      key={align}
-                      className="icon-toggle"
-                      onClick={() => alignSelected('horizontal', align)}
-                      aria-label={t(`editor.${align}`)}
-                    >
-                      {align === 'left' ? <AlignLeft size={15} /> : align === 'center' ? <AlignCenter size={15} /> : <AlignRight size={15} />}
-                    </button>
-                  ))}
-                  <span className="align-divider" />
-                  {(['top', 'middle', 'bottom'] as const).map((align) => (
-                    <button
-                      key={align}
-                      className="icon-toggle"
-                      onClick={() => alignSelected('vertical', align)}
-                      title={t(`editor.${align}`)}
-                      aria-label={t(`editor.${align}`)}
-                    >
-                      {align === 'top' ? <AlignStartHorizontal size={15} /> : align === 'middle' ? <AlignCenterHorizontal size={15} /> : <AlignEndHorizontal size={15} />}
-                    </button>
-                  ))}
+                <div className="field">
+                  <FieldTitle icon={Move}>{t('editor.boxPosition')}</FieldTitle>
+                  <TextPositionGrid
+                    align={boxPlacement(selectedElement).align}
+                    vertical={boxPlacement(selectedElement).vertical}
+                    label={t('editor.boxPosition')}
+                    onChange={(align, vertical) => placeSelected(align, vertical)}
+                  />
                 </div>
                 {(selectedElement.type === 'image' || selectedElement.type === 'video') && (
                   <>
@@ -1970,7 +2017,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   <span className="badge badge-quiet">{t(`culto.origin.${itemOrigin(activeItem)}`)}</span>
                   <span>{t(`culto.originNote.${itemOrigin(activeItem) === 'here' ? 'here' : 'copy'}`)}</span>
                 </p>
-                <InspectorGroupList dragHint={t('rundown.dragHint')}>
+                <InspectorGroupList dragHint={t('rundown.dragHint')} moveUpLabel={t('common.moveUp')} moveDownLabel={t('common.moveDown')}>
                 <InspectorGroup id="content" icon={FileText} title={t('inspector.content')}>
                 {activeSlide.bible ? (
                   <>
@@ -2092,36 +2139,17 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                 )}
                 </InspectorGroup>
                 <InspectorGroup id="text" icon={Type} title={t('inspector.typography')}>
-                <label className="field">
-                  <FieldTitle icon={AlignCenter}>{t('editor.alignment')}</FieldTitle>
-                  <div className="align-row">
-                    {(['left', 'center', 'right'] as const).map((align) => (
-                      <button
-                        key={align}
-                        className={`icon-toggle ${activeSlide.textAlign === align ? 'is-active' : ''}`}
-                        onClick={() =>
-                          updateSlide(service.id, activeItem.id, activeSlide.id, { textAlign: align })
-                        }
-                        aria-label={align}
-                      >
-                        {align === 'left' ? <AlignLeft size={15} /> : align === 'center' ? <AlignCenter size={15} /> : <AlignRight size={15} />}
-                      </button>
-                    ))}
-                    <span className="align-divider" />
-                    {(['top', 'middle', 'bottom'] as const).map((align) => (
-                      <button
-                        key={align}
-                        className={`icon-toggle ${(activeSlide.textVerticalAlign ?? 'middle') === align ? 'is-active' : ''}`}
-                        onClick={() =>
-                          updateSlide(service.id, activeItem.id, activeSlide.id, { textVerticalAlign: align })
-                        }
-                        aria-label={align}
-                      >
-                        {align === 'top' ? <AlignStartHorizontal size={15} /> : align === 'middle' ? <AlignCenterHorizontal size={15} /> : <AlignEndHorizontal size={15} />}
-                      </button>
-                    ))}
-                  </div>
-                </label>
+                <div className="field">
+                  <FieldTitle icon={Move}>{t('editor.boxPosition')}</FieldTitle>
+                  <TextPositionGrid
+                    align={activeSlide.textAlign}
+                    vertical={activeSlide.textVerticalAlign ?? 'middle'}
+                    label={t('editor.boxPosition')}
+                    onChange={(textAlign, textVerticalAlign) =>
+                      updateSlide(service.id, activeItem.id, activeSlide.id, { textAlign, textVerticalAlign })
+                    }
+                  />
+                </div>
                 {activeSlide.kind !== 'timer' && (
                   <>
                     <label className="field compact">

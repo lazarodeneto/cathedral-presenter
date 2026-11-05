@@ -1,3 +1,5 @@
+import { DEFAULT_MONITORS } from '../data/seed'
+import { DEFAULT_OUTPUT_FORMAT_ID, isOutputFormatId } from '../utils/outputFormats'
 import type { StateStorage } from 'zustand/middleware'
 import type { Branding, LibrarySong, MediaAsset, Monitor } from '../types'
 import { LOCALES } from '../types'
@@ -63,7 +65,24 @@ function sanitizeMonitors(value: unknown, fallback: Monitor[]): Monitor[] {
         entry.role === 'disabled')
     )
   })
-  return monitors.length > 0 ? monitors : fallback
+  return ensureOutputMonitors(monitors.length > 0 ? monitors : fallback)
+}
+
+/**
+ * Every workspace has the two outputs the app offers: the church
+ * presentation (audience) and the broadcast window. Older saves marked the
+ * broadcast output unsupported; it works now.
+ */
+export function ensureOutputMonitors(monitors: Monitor[]): Monitor[] {
+  const next = monitors.map((monitor) =>
+    monitor.role === 'broadcast' && monitor.status === 'unsupported' ? { ...monitor, status: 'ready' as const } : monitor,
+  )
+  for (const role of ['audience', 'broadcast'] as const) {
+    if (next.some((monitor) => monitor.role === role)) continue
+    const fallback = DEFAULT_MONITORS.find((monitor) => monitor.role === role)
+    if (fallback && !next.some((monitor) => monitor.id === fallback.id)) next.push({ ...fallback, status: 'ready' })
+  }
+  return next
 }
 
 function sanitizeMediaLibrary(value: unknown, fallback: MediaAsset[]): MediaAsset[] {
@@ -243,6 +262,9 @@ export function mergeWorkspace(persisted: unknown, current: AppState): AppState 
         translationIds,
       ),
       highlightWeekday: validHighlightWeekday(settings.highlightWeekday),
+      outputFormat: isOutputFormatId(settings.outputFormat) ? settings.outputFormat : DEFAULT_OUTPUT_FORMAT_ID,
+      broadcastFormat: isOutputFormatId(settings.broadcastFormat) ? settings.broadcastFormat : DEFAULT_OUTPUT_FORMAT_ID,
+      sidebarCollapsed: typeof settings.sidebarCollapsed === 'boolean' ? settings.sidebarCollapsed : undefined,
     },
     monitors: sanitizeMonitors(value.monitors, current.monitors),
     mediaLibrary: sanitizeMediaLibrary(value.mediaLibrary, current.mediaLibrary),

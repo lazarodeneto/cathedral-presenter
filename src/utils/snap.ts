@@ -1,3 +1,4 @@
+import type { SlideAspect } from './outputFormats'
 // Snapping for the slide canvas. All positions are percentages of the canvas
 // (x/width of its width, y/height of its height).
 
@@ -16,8 +17,8 @@ export interface SnapTargets {
 /** Columns of the editor grid; rows follow the slide format so cells stay square. */
 export const GRID_COLUMNS = 16
 
-export function gridRows(aspectRatio: 'wide' | 'classic'): number {
-  return aspectRatio === 'classic' ? 12 : 9
+export function gridRows(aspectRatio: SlideAspect): number {
+  return aspectRatio === 'classic' ? 12 : aspectRatio === 'wide10' ? 10 : 9
 }
 
 /** Lines an element can snap to: the canvas edges and center, other elements, and the grid when shown. */

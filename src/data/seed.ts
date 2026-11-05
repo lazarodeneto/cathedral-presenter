@@ -540,9 +540,9 @@ export const DEFAULT_MONITORS: Monitor[] = [
   {
     id: 'monitor_broadcast',
     name: 'Broadcast / OBS',
-    displayName: 'Future output',
+    displayName: 'Window for OBS or live stream',
     role: 'broadcast',
-    status: 'unsupported',
+    status: 'ready',
     width: 1920,
     height: 1080,
     fullscreen: false,

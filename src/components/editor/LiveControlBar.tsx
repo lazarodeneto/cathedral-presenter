@@ -19,13 +19,30 @@ import { SlideRenderer } from '../SlideRenderer'
 import { slideLabel } from '../../utils/slides'
 import { Modal } from '../Modal'
 import { useDialogFocus } from '../../hooks/useDialogFocus'
+import { outputFormat } from '../../utils/outputFormats'
 import type { ReactNode } from 'react'
 
-export function LiveControlBar() {
+/** Previous / Next for a screen that steps through something else (Bible Mode steps verses). */
+export interface LiveNavigation {
+  onPrevious: () => void
+  onNext: () => void
+  previousDisabled: boolean
+  nextDisabled: boolean
+}
+
+export function LiveControlBar({
+  navigation,
+  showJump = true,
+}: {
+  navigation?: LiveNavigation
+  /** "Go to slide" opens the service's slide list; Bible Mode has its own picker. */
+  showJump?: boolean
+} = {}) {
   const t = useT()
   const live = useAppStore((state) => state.live)
   const services = useAppStore((state) => state.services)
   const branding = useAppStore((state) => state.branding)
+  const aspect = outputFormat(useAppStore((state) => state.settings.outputFormat)).aspect
   const nextLive = useAppStore((state) => state.nextLive)
   const prevLive = useAppStore((state) => state.prevLive)
   const jumpLive = useAppStore((state) => state.jumpLive)
@@ -85,7 +102,7 @@ export function LiveControlBar() {
           </button>
         </div>
       )}
-      <div className="live-control-actions">
+      <div className={`live-control-actions ${showJump ? '' : 'is-three'}`}>
         <button
           className={`live-control ${live.blank ? 'is-active' : ''}`}
           onClick={() => {
@@ -119,24 +136,26 @@ export function LiveControlBar() {
           {alertOn ? <TriangleAlert size={17} strokeWidth={2.4} /> : <MessageSquare size={17} />}
           <span>{t('live.message')}</span>
         </button>
-        <button className="live-control" onClick={() => { setJumpQuery(''); setJumpOpen(true) }}>
-          <Search size={17} />
-          <span>{t('live.jump')}</span>
-        </button>
+        {showJump && (
+          <button className="live-control" onClick={() => { setJumpQuery(''); setJumpOpen(true) }}>
+            <Search size={17} />
+            <span>{t('live.jump')}</span>
+          </button>
+        )}
       </div>
       <div className="live-control-bar">
         <button
           className="live-control live-control-nav"
-          onClick={() => prevLive()}
-          disabled={currentIndex <= 0}
+          onClick={() => (navigation ? navigation.onPrevious() : prevLive())}
+          disabled={navigation ? navigation.previousDisabled : currentIndex <= 0}
         >
           <ChevronLeft size={20} />
           <span>{t('live.previous')}</span>
         </button>
         <button
           className="live-control live-control-nav live-control-primary"
-          onClick={() => nextLive()}
-          disabled={currentIndex >= slides.length - 1}
+          onClick={() => (navigation ? navigation.onNext() : nextLive())}
+          disabled={navigation ? navigation.nextDisabled : currentIndex >= slides.length - 1}
         >
           <ChevronRight size={22} />
           <span>{t('live.next')}</span>
@@ -216,7 +235,7 @@ export function LiveControlBar() {
                 >
                   <span className="jump-number">{entry.index + 1}</span>
                   <span className="jump-thumb">
-                    <SlideRenderer slide={entry.slide} branding={branding} compact thumbnail />
+                    <SlideRenderer slide={entry.slide} branding={branding} aspectRatio={aspect} compact thumbnail />
                   </span>
                   <span className="jump-copy">
                     <strong>{slideLabel(entry.slide, entry.item.title)}</strong>

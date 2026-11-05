@@ -38,6 +38,15 @@ const en: Strings = {
   'songDirectory.featured': 'Featured on {count} songs by others',
   'songDirectory.featuredLabel': 'Featured songs',
   'songDirectory.artistShortcut': 'See artist {name} · {count} songs',
+  'library.searchScope': 'Search in',
+  'library.scope.all': 'All',
+  'library.scope.title': 'Song',
+  'library.scope.author': 'Artist',
+  'library.scope.lyrics': 'Lyrics',
+  'library.searchIn.all': 'Search songs, artists or lyrics',
+  'library.searchIn.title': 'Search by song title',
+  'library.searchIn.author': 'Search by artist',
+  'library.searchIn.lyrics': 'Search in the lyrics',
 }
 
 const pt: Strings = {
@@ -76,6 +85,15 @@ const pt: Strings = {
   'songDirectory.featured': 'Participações em {count} músicas de outros cantores',
   'songDirectory.featuredLabel': 'Participações',
   'songDirectory.artistShortcut': 'Ver cantor {name} · {count} músicas',
+  'library.searchScope': 'Pesquisar em',
+  'library.scope.all': 'Tudo',
+  'library.scope.title': 'Música',
+  'library.scope.author': 'Cantor',
+  'library.scope.lyrics': 'Letra',
+  'library.searchIn.all': 'Pesquisar músicas, cantores ou letras',
+  'library.searchIn.title': 'Pesquisar pelo título da música',
+  'library.searchIn.author': 'Pesquisar pelo cantor',
+  'library.searchIn.lyrics': 'Pesquisar na letra',
 }
 
 const ptBR: Strings = {
@@ -130,6 +148,15 @@ const es: Strings = {
   'songDirectory.featured': 'Participa en {count} canciones de otros artistas',
   'songDirectory.featuredLabel': 'Participaciones',
   'songDirectory.artistShortcut': 'Ver artista {name} · {count} canciones',
+  'library.searchScope': 'Buscar en',
+  'library.scope.all': 'Todo',
+  'library.scope.title': 'Canción',
+  'library.scope.author': 'Artista',
+  'library.scope.lyrics': 'Letra',
+  'library.searchIn.all': 'Buscar canciones, artistas o letras',
+  'library.searchIn.title': 'Buscar por título de la canción',
+  'library.searchIn.author': 'Buscar por artista',
+  'library.searchIn.lyrics': 'Buscar en la letra',
 }
 
 const fr: Strings = {
@@ -168,6 +195,15 @@ const fr: Strings = {
   'songDirectory.featured': 'Participe à {count} chants d’autres artistes',
   'songDirectory.featuredLabel': 'Participations',
   'songDirectory.artistShortcut': 'Voir l’artiste {name} · {count} chants',
+  'library.searchScope': 'Chercher dans',
+  'library.scope.all': 'Tout',
+  'library.scope.title': 'Chant',
+  'library.scope.author': 'Artiste',
+  'library.scope.lyrics': 'Paroles',
+  'library.searchIn.all': 'Chercher des chants, artistes ou paroles',
+  'library.searchIn.title': 'Chercher par titre du chant',
+  'library.searchIn.author': 'Chercher par artiste',
+  'library.searchIn.lyrics': 'Chercher dans les paroles',
 }
 
 const de: Strings = {
@@ -206,6 +242,15 @@ const de: Strings = {
   'songDirectory.featured': 'Mitwirkung an {count} Liedern anderer Interpreten',
   'songDirectory.featuredLabel': 'Mitwirkungen',
   'songDirectory.artistShortcut': 'Interpret {name} anzeigen · {count} Lieder',
+  'library.searchScope': 'Suchen in',
+  'library.scope.all': 'Alles',
+  'library.scope.title': 'Lied',
+  'library.scope.author': 'Interpret',
+  'library.scope.lyrics': 'Text',
+  'library.searchIn.all': 'Lieder, Interpreten oder Texte suchen',
+  'library.searchIn.title': 'Nach Liedtitel suchen',
+  'library.searchIn.author': 'Nach Interpret suchen',
+  'library.searchIn.lyrics': 'Im Liedtext suchen',
 }
 
 const it: Strings = {
@@ -244,6 +289,15 @@ const it: Strings = {
   'songDirectory.featured': 'Partecipa a {count} canti di altri artisti',
   'songDirectory.featuredLabel': 'Partecipazioni',
   'songDirectory.artistShortcut': 'Vedi artista {name} · {count} canti',
+  'library.searchScope': 'Cerca in',
+  'library.scope.all': 'Tutto',
+  'library.scope.title': 'Canto',
+  'library.scope.author': 'Artista',
+  'library.scope.lyrics': 'Testo',
+  'library.searchIn.all': 'Cerca canti, artisti o testi',
+  'library.searchIn.title': 'Cerca per titolo del canto',
+  'library.searchIn.author': 'Cerca per artista',
+  'library.searchIn.lyrics': 'Cerca nel testo',
 }
 
 export const songDirectoryStrings: Record<Locale, Strings> = {

@@ -555,6 +555,12 @@ export interface AppSettings {
   showGrid?: boolean
   /** Editor canvas: snap elements to the canvas, other elements and the grid. On when missing. */
   snapToObjects?: boolean
+  /** Projection format (resolution and proportion) for the editor canvas and the audience output. */
+  outputFormat?: import('./utils/outputFormats').OutputFormatId
+  /** Left menu: true shows icons only, false keeps labels; missing follows the screen width. */
+  sidebarCollapsed?: boolean
+  /** Format of the broadcast window captured by OBS or a streaming tool. */
+  broadcastFormat?: import('./utils/outputFormats').OutputFormatId
 }
 
 export interface LiveSession {
@@ -568,6 +574,13 @@ export interface LiveSession {
   frozenSlideId: string | null
   message: string | null
   messageVisible: boolean
+  /**
+   * A verse projected from Bible Mode, outside the service's slides. It is on
+   * the audience screen until the operator moves to a service slide again.
+   */
+  scripture?: Slide | null
+  /** The Bible Mode verse that was on screen when Freeze was pressed. */
+  frozenScripture?: Slide | null
 }
 
 export interface Toast {
@@ -587,6 +600,8 @@ export interface AudienceOutputState {
   isFrozen?: boolean
   /** How the audience screen moves into `slide`: the slide's own transition, else the service default. */
   transition?: SlideTransition
+  /** Projection format chosen in the editor or Settings; the output letterboxes to it. */
+  format?: import('./utils/outputFormats').OutputFormatId
   updatedAt: string
 }
 

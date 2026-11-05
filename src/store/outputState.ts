@@ -2,6 +2,7 @@ import type { Branding, LiveSession, Monitor, Service, SlideTransition, TimerRun
 import type { OutputSnapshot } from '../providers/output/OutputProvider'
 import { flatSlides, slideContext } from './serviceUtils'
 import { DEFAULT_TRANSITION } from '../utils/culto'
+import type { OutputFormatId } from '../utils/outputFormats'
 
 export function buildOutputSnapshot(input: {
   service: Service | null
@@ -12,8 +13,13 @@ export function buildOutputSnapshot(input: {
   timers?: Record<string, TimerRuntime>
   /** The app-wide default from Settings; used when neither the slide nor the service sets one. */
   defaultTransition?: SlideTransition
+  /** Projection format from Settings. */
+  format?: OutputFormatId
+  /** Broadcast window format from Settings. */
+  broadcastFormat?: OutputFormatId
 }): OutputSnapshot {
-  const { service, live, monitors, branding, testMonitorId, timers = {}, defaultTransition } = input
+  const { service, live, monitors, branding, testMonitorId, timers = {}, defaultTransition, format, broadcastFormat } = input
+  const broadcastMonitor = monitors.find((monitor) => monitor.role === 'broadcast')
   const now = new Date().toISOString()
   const audienceMonitor = monitors.find((monitor) => monitor.role === 'audience')
   const confidenceMonitor = monitors.find((monitor) => monitor.role === 'confidence')
@@ -26,6 +32,8 @@ export function buildOutputSnapshot(input: {
       ? slideContext(service, live.frozenSlideId)
       : null
   const effectiveContext = frozenContext ?? currentContext
+  // A verse from Bible Mode is on screen instead of the service slide; when frozen, the verse frozen with it.
+  const scripture = live?.frozen ? live.frozenScripture ?? null : live?.scripture ?? null
   const currentIndex = currentContext?.index ?? -1
   const next = currentIndex >= 0 ? slides[currentIndex + 1] ?? null : slides[0] ?? null
   const position =
@@ -57,23 +65,29 @@ export function buildOutputSnapshot(input: {
 
   return {
     timers: shownTimers,
+    broadcast: {
+      mode: testMonitor && testRole === 'broadcast' ? 'test' : 'mirror',
+      format: broadcastFormat,
+      monitorName: broadcastMonitor?.name ?? 'Broadcast',
+    },
     audience: {
       mode: audienceMode,
-      slide: audienceMode === 'test' ? null : effectiveContext?.slide ?? null,
+      slide: audienceMode === 'test' ? null : scripture ?? effectiveContext?.slide ?? null,
       message: live?.message ?? null,
       messageVisible: Boolean(live?.messageVisible && live.message),
       branding,
       monitorName: audienceMonitor?.name ?? 'Audience',
       testMonitorName: audienceMode === 'test' ? testMonitor?.name : undefined,
       isFrozen: Boolean(live?.frozen && audienceMode === 'live'),
-      transition: effectiveContext?.slide.transition ?? service?.transition ?? defaultTransition ?? DEFAULT_TRANSITION,
+      transition: (scripture ? undefined : effectiveContext?.slide.transition) ?? service?.transition ?? defaultTransition ?? DEFAULT_TRANSITION,
+      format,
       updatedAt: now,
     },
     confidence: {
       mode: confidenceMode,
-      current: confidenceMode === 'test' ? null : currentContext?.slide ?? null,
+      current: confidenceMode === 'test' ? null : scripture ?? currentContext?.slide ?? null,
       next: confidenceMode === 'test' ? null : next?.slide ?? null,
-      notes: currentContext?.slide.notes ?? null,
+      notes: scripture ? null : currentContext?.slide.notes ?? null,
       itemTitle: currentContext?.item.title ?? null,
       sectionTitle: currentContext?.section.title ?? null,
       position,

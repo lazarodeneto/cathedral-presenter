@@ -1,4 +1,6 @@
-import { Play, Sparkles } from 'lucide-react'
+import { PanelLeftClose, PanelLeftOpen, Play, RotateCcw, Sparkles } from 'lucide-react'
+import { resetLayoutToDefault } from '../store/layoutReset'
+import { useEffect, useState } from 'react'
 import { useT } from '../i18n/useT'
 import { useAppStore } from '../store/useAppStore'
 import { navigate, type RouteName } from '../hooks/useHashRoute'
@@ -12,11 +14,27 @@ const NAV: { name: ScreenName; key: string }[] = [
   { name: 'services', key: 'nav.services' },
   { name: 'calendar', key: 'nav.calendar' },
   { name: 'bible', key: 'nav.bible' },
+  { name: 'biblemode', key: 'nav.biblemode' },
   { name: 'songs', key: 'nav.songs' },
   { name: 'media', key: 'nav.media' },
   { name: 'templates', key: 'nav.templates' },
   { name: 'settings', key: 'nav.settings' },
 ]
+
+/** True while the CSS shows the icon rail on its own (narrow windows, or the editor on mid-size ones). */
+function useAutoRail(editing: boolean): boolean {
+  const query = editing ? '(max-width: 1360px)' : '(max-width: 1180px)'
+  const [matches, setMatches] = useState(() => typeof window !== 'undefined' && window.matchMedia?.(query).matches === true)
+  useEffect(() => {
+    const list = window.matchMedia?.(query)
+    if (!list) return
+    const update = () => setMatches(list.matches)
+    update()
+    list.addEventListener('change', update)
+    return () => list.removeEventListener('change', update)
+  }, [query])
+  return matches
+}
 
 export function Sidebar({ current }: { current: RouteName }) {
   const t = useT()
@@ -28,6 +46,10 @@ export function Sidebar({ current }: { current: RouteName }) {
   const isLive = useAppStore((state) => Boolean(state.live))
   const activeService = services.find((service) => service.id === activeServiceId)
   const slideCount = activeService ? flatSlides(activeService).length : 0
+  const collapsedSetting = useAppStore((state) => state.settings.sidebarCollapsed)
+  const updateSettings = useAppStore((state) => state.updateSettings)
+  const autoRail = useAutoRail(current === 'service')
+  const collapsed = collapsedSetting ?? autoRail
 
   const openPresent = () => {
     if (!activeService) {
@@ -73,13 +95,16 @@ export function Sidebar({ current }: { current: RouteName }) {
                   : undefined
               }
               aria-label={t(key)}
-              title={t(key)}
               onClick={() => navigate(`/${name}`)}
             >
               <span className="nav-app-icon" aria-hidden="true">
                 <Icon size={15} strokeWidth={1.9} />
               </span>
               <span>{t(key)}</span>
+              {/* Shown on hover only while the menu is the icon rail. */}
+              <span className="nav-tooltip" aria-hidden="true">
+                {t(key)}
+              </span>
             </button>
           )
         })}
@@ -124,6 +149,33 @@ export function Sidebar({ current }: { current: RouteName }) {
           </div>
         </div>
       )}
+
+      <button
+        type="button"
+        className="sidebar-toggle"
+        onClick={() => updateSettings({ sidebarCollapsed: !collapsed })}
+        aria-label={t(collapsed ? 'sidebar.expand' : 'sidebar.collapse')}
+        aria-expanded={!collapsed}
+      >
+        {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+        <span>{t(collapsed ? 'sidebar.expand' : 'sidebar.collapse')}</span>
+        <span className="nav-tooltip" aria-hidden="true">
+          {t(collapsed ? 'sidebar.expand' : 'sidebar.collapse')}
+        </span>
+      </button>
+      <button
+        type="button"
+        className="sidebar-toggle sidebar-reset"
+        onClick={() => void resetLayoutToDefault(t('sidebar.resetDone'))}
+        aria-label={t('sidebar.reset')}
+        title={t('sidebar.resetHint')}
+      >
+        <RotateCcw size={15} />
+        <span>{t('sidebar.reset')}</span>
+        <span className="nav-tooltip" aria-hidden="true">
+          {t('sidebar.reset')}
+        </span>
+      </button>
     </aside>
   )
 }

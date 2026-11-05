@@ -112,8 +112,13 @@ export function librarySongFromForm(form: SongLibraryForm, existing?: LibrarySon
 
 export type SongLibrarySort = 'title' | 'author' | 'updated' | 'created'
 
+/** Where the search text is looked for: everywhere, or only the title, the artist or the lyrics. */
+export type SongSearchField = 'all' | 'title' | 'author' | 'lyrics'
+
 export interface SongLibraryQuery {
   search: string
+  /** Missing means 'all'. */
+  field?: SongSearchField
   language: Locale | ''
   category: string
   sort: SongLibrarySort
@@ -139,10 +144,18 @@ export function querySongLibrary(songs: LibrarySong[], query: SongLibraryQuery):
     if (query.language && song.language !== query.language) return false
     if (query.category && normalize(song.category ?? '') !== normalize(query.category)) return false
     if (needle) {
+      const field = query.field ?? 'all'
       const hay = normalize(
-        [song.title, song.author ?? '', song.lyrics, song.category ?? '', (song.tags ?? []).join(' '), song.key ?? ''].join(' '),
+        field === 'title'
+          ? song.title
+          : field === 'author'
+            ? song.author ?? ''
+            : field === 'lyrics'
+              ? song.lyrics
+              : [song.title, song.author ?? '', song.lyrics, song.category ?? '', (song.tags ?? []).join(' '), song.key ?? ''].join(' '),
       )
-      if (!hay.includes(needle)) return false
+      // Every word must appear, in any order: "rocha gabriela" finds Gabriela Rocha.
+      if (!needle.split(/\s+/).every((word) => hay.includes(word))) return false
     }
     return true
   })

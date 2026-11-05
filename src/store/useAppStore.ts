@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { isOutputFormatId, outputFormat } from '../utils/outputFormats'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import type {
   AppSettings,
@@ -100,6 +101,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   defaultSectionTitle: 'Message',
   showGrid: false,
   snapToObjects: true,
+  outputFormat: 'fhd',
+  broadcastFormat: 'fhd',
 }
 
 export { DEFAULT_BRANDING }
@@ -237,6 +240,9 @@ interface AppState {
   nextLive: () => boolean
   prevLive: () => boolean
   jumpLive: (slideId: string) => boolean
+  /** Bible Mode: put a verse on the audience screen without adding it to the service. */
+  showScriptureLive: (slide: Slide) => boolean
+  clearScriptureLive: () => void
   toggleBlank: () => void
   toggleFreeze: () => void
   setAudienceMessage: (message: string) => void
@@ -403,7 +409,19 @@ export const useAppStore = create<AppState>()(
           set((state) => ({ settings: { ...state.settings, locale } }))
         },
         updateSettings: (patch) =>
-          set((state) => ({ settings: { ...state.settings, ...patch } })),
+          set((state) => {
+            const projection = isOutputFormatId(patch.outputFormat) ? outputFormat(patch.outputFormat) : null
+            const broadcast = isOutputFormatId(patch.broadcastFormat) ? outputFormat(patch.broadcastFormat) : null
+            if (!projection && !broadcast) return { settings: { ...state.settings, ...patch } }
+            // Each output monitor takes the resolution of its chosen format.
+            return {
+              settings: { ...state.settings, ...patch },
+              monitors: state.monitors.map((monitor) => {
+                const format = monitor.role === 'audience' ? projection : monitor.role === 'broadcast' ? broadcast : null
+                return format ? { ...monitor, width: format.width, height: format.height } : monitor
+              }),
+            }
+          }),
         saveBranding: (branding) => {
           const saved = normalizeBranding(branding)
           set((state) => ({
@@ -1293,6 +1311,7 @@ export const useAppStore = create<AppState>()(
               ...state.live,
               currentSlideId: next.slide.id,
               history: [...state.live.history, next.slide.id].slice(-20),
+              scripture: null,
             },
             // The editor, rundown and slide strip follow the slide on the audience screen.
             selectedItemId: next.item.id,
@@ -1315,6 +1334,7 @@ export const useAppStore = create<AppState>()(
               ...state.live,
               currentSlideId: prev.slide.id,
               history: [...state.live.history, prev.slide.id].slice(-20),
+              scripture: null,
             },
             // The editor, rundown and slide strip follow the slide on the audience screen.
             selectedItemId: prev.item.id,
@@ -1335,6 +1355,7 @@ export const useAppStore = create<AppState>()(
               ...state.live,
               currentSlideId: slideId,
               history: [...state.live.history, slideId].slice(-20),
+              scripture: null,
             },
             selectedItemId: target.item.id,
             selectedSlideId: slideId,
@@ -1342,6 +1363,15 @@ export const useAppStore = create<AppState>()(
           })
           return true
         },
+        showScriptureLive: (slide) => {
+          const state = get()
+          if (!state.live) return false
+          // Frozen stays frozen: the audience keeps the frozen picture while the operator moves on.
+          set({ live: { ...state.live, scripture: slide } })
+          return true
+        },
+        clearScriptureLive: () =>
+          set((state) => (state.live?.scripture ? { live: { ...state.live, scripture: null } } : {})),
         toggleBlank: () =>
           set((state) => (state.live ? { live: { ...state.live, blank: !state.live.blank } } : {})),
         toggleFreeze: () =>
@@ -1352,6 +1382,8 @@ export const useAppStore = create<AppState>()(
                     ...state.live,
                     frozen: !state.live.frozen,
                     frozenSlideId: state.live.frozen ? null : state.live.currentSlideId,
+                    // A verse from Bible Mode freezes too, not the service slide under it.
+                    frozenScripture: state.live.frozen ? null : state.live.scripture ?? null,
                   },
                 }
               : {},
@@ -1669,7 +1701,7 @@ export const useAppStore = create<AppState>()(
                 return {
                   ...monitor,
                   role,
-                  status: role === 'broadcast' ? 'unsupported' : role === 'disabled' ? monitor.status : 'ready',
+                  status: role === 'disabled' ? monitor.status : 'ready',
                 }
               }
               if (role !== 'disabled' && role !== 'broadcast' && monitor.role === role) {
@@ -1684,7 +1716,7 @@ export const useAppStore = create<AppState>()(
               monitor.id === id
                 ? {
                     ...monitor,
-                    status: monitor.role === 'broadcast' ? 'unsupported' : 'ready',
+                    status: 'ready',
                   }
                 : monitor,
             ),
