@@ -1,4 +1,5 @@
-import { PanelLeftClose, PanelLeftOpen, Play, Sparkles } from 'lucide-react'
+import { PanelLeftClose, PanelLeftOpen, Play, RotateCcw, Sparkles } from 'lucide-react'
+import { resetLayoutToDefault } from '../store/layoutReset'
 import { useEffect, useState } from 'react'
 import { useT } from '../i18n/useT'
 import { useAppStore } from '../store/useAppStore'
@@ -155,6 +156,16 @@ export function Sidebar({ current }: { current: RouteName }) {
       >
         {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
         <span>{t(collapsed ? 'sidebar.expand' : 'sidebar.collapse')}</span>
+      </button>
+      <button
+        type="button"
+        className="sidebar-toggle sidebar-reset"
+        onClick={() => void resetLayoutToDefault(t('sidebar.resetDone'))}
+        aria-label={t('sidebar.reset')}
+        title={t('sidebar.resetHint')}
+      >
+        <RotateCcw size={15} />
+        <span>{t('sidebar.reset')}</span>
       </button>
     </aside>
   )

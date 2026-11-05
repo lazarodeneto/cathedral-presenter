@@ -591,6 +591,10 @@ iframe {
   background: rgb(var(--wash-rgb) / 0.05);
 }
 
+.sidebar-toggle.sidebar-reset {
+  margin-top: 2px;
+}
+
 .sidebar-footer {
   display: flex;
   align-items: center;

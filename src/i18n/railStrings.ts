@@ -34,6 +34,9 @@ const en: Strings = {
   'settings.outputsSubtitle': 'Where the slides go: the projector in the church and a window for the broadcast. Choose the format of each.',
   'sidebar.collapse': 'Collapse menu',
   'sidebar.expand': 'Expand menu',
+  'sidebar.reset': 'Reset layout',
+  'sidebar.resetHint': 'Put the menu, panels and inspector back to their default layout. Your services and content are not changed.',
+  'sidebar.resetDone': 'Layout reset to default.',
 }
 
 const pt: Strings = {
@@ -67,6 +70,9 @@ const pt: Strings = {
   'settings.outputsSubtitle': 'Para onde vão os slides: o projetor da igreja e uma janela para a transmissão. Escolha o formato de cada uma.',
   'sidebar.collapse': 'Recolher menu',
   'sidebar.expand': 'Expandir menu',
+  'sidebar.reset': 'Repor layout',
+  'sidebar.resetHint': 'Repor o menu, os painéis e o inspetor no layout padrão. Os cultos e o conteúdo não mudam.',
+  'sidebar.resetDone': 'Layout reposto no padrão.',
 }
 
 const ptBR: Strings = {
@@ -76,6 +82,9 @@ const ptBR: Strings = {
   'rail.snap': 'Ao arrastar, os elementos se alinham às bordas, ao centro e uns aos outros.',
   'rail.deleteSlideHint': 'Remover este slide do item. Você vai precisar confirmar.',
   'outputs.churchCopy': 'Projetor ou telas que a congregação vê.',
+  'sidebar.reset': 'Restaurar layout',
+  'sidebar.resetHint': 'Voltar o menu, os painéis e o inspetor ao layout padrão. Os cultos e o conteúdo não mudam.',
+  'sidebar.resetDone': 'Layout restaurado para o padrão.',
 }
 
 const es: Strings = {
@@ -109,6 +118,9 @@ const es: Strings = {
   'settings.outputsSubtitle': 'A dónde van las diapositivas: el proyector de la iglesia y una ventana para la transmisión. Elige el formato de cada una.',
   'sidebar.collapse': 'Contraer menú',
   'sidebar.expand': 'Expandir menú',
+  'sidebar.reset': 'Restablecer diseño',
+  'sidebar.resetHint': 'Devuelve el menú, los paneles y el inspector a su diseño predeterminado. Tus cultos y contenidos no cambian.',
+  'sidebar.resetDone': 'Diseño restablecido.',
 }
 
 const fr: Strings = {
@@ -142,6 +154,9 @@ const fr: Strings = {
   'settings.outputsSubtitle': 'Où vont les diapositives : le projecteur de l’église et une fenêtre pour la diffusion. Choisissez le format de chacune.',
   'sidebar.collapse': 'Réduire le menu',
   'sidebar.expand': 'Développer le menu',
+  'sidebar.reset': 'Réinitialiser la disposition',
+  'sidebar.resetHint': 'Remettre le menu, les panneaux et l’inspecteur dans leur disposition par défaut. Vos cultes et contenus ne changent pas.',
+  'sidebar.resetDone': 'Disposition réinitialisée.',
 }
 
 const de: Strings = {
@@ -175,6 +190,9 @@ const de: Strings = {
   'settings.outputsSubtitle': 'Wohin die Folien gehen: der Projektor in der Gemeinde und ein Fenster für die Übertragung. Wählen Sie jeweils das Format.',
   'sidebar.collapse': 'Menü einklappen',
   'sidebar.expand': 'Menü ausklappen',
+  'sidebar.reset': 'Layout zurücksetzen',
+  'sidebar.resetHint': 'Menü, Bereiche und Inspektor auf das Standardlayout zurücksetzen. Gottesdienste und Inhalte bleiben unverändert.',
+  'sidebar.resetDone': 'Layout zurückgesetzt.',
 }
 
 const it: Strings = {
@@ -208,6 +226,9 @@ const it: Strings = {
   'settings.outputsSubtitle': 'Dove vanno le diapositive: il proiettore della chiesa e una finestra per la trasmissione. Scegli il formato di ciascuna.',
   'sidebar.collapse': 'Comprimi menu',
   'sidebar.expand': 'Espandi menu',
+  'sidebar.reset': 'Ripristina layout',
+  'sidebar.resetHint': 'Riporta menu, pannelli e ispettore al layout predefinito. I culti e i contenuti non cambiano.',
+  'sidebar.resetDone': 'Layout ripristinato.',
 }
 
 export const railStrings: Record<Locale, Strings> = { en, pt, 'pt-BR': ptBR, es, fr, de, it }
