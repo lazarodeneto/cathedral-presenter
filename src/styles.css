@@ -13834,6 +13834,67 @@ body:not(.output-mode) .btn {
 }
 
 /* Online song directory (letrasgospel.net) in Songs. */
+.btn-directory {
+  gap: 10px;
+  min-height: 44px;
+  padding: 6px 16px 6px 7px;
+  border: 1px solid rgb(var(--tone-rose-rgb) / 0.55);
+  color: #fff;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgb(255 255 255 / 0.18), transparent 55%),
+    linear-gradient(120deg, rgb(var(--tone-rose-rgb) / 0.95), rgb(var(--tone-violet-rgb) / 0.95));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.28), 0 8px 22px rgb(var(--tone-rose-rgb) / 0.32);
+  text-align: left;
+}
+
+.btn-directory:hover:not(:disabled) {
+  border-color: rgb(var(--tone-rose-rgb) / 0.8);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.32), 0 10px 28px rgb(var(--tone-rose-rgb) / 0.45);
+  transform: translateY(-1px);
+}
+
+.btn-directory:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.25), 0 4px 12px rgb(var(--tone-rose-rgb) / 0.3);
+}
+
+.songs-screen .heading-actions {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.songs-screen .heading-actions > .btn {
+  justify-content: flex-start;
+}
+
+.btn-directory-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.2);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.3);
+}
+
+.btn-directory-copy {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.btn-directory-copy strong {
+  font-size: var(--text-ui);
+  font-weight: 700;
+}
+
+.btn-directory-copy small {
+  color: rgb(255 255 255 / 0.82);
+  font-size: var(--text-micro);
+  font-weight: 500;
+}
+
 .song-directory {
   display: flex;
   flex-direction: column;
@@ -13876,6 +13937,114 @@ body:not(.output-mode) .btn {
   font-size: var(--text-micro);
   font-weight: 700;
   letter-spacing: 0.04em;
+}
+
+.song-directory-tabs {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--rounded-pill);
+  background: rgb(var(--ink-rgb) / 0.22);
+}
+
+.song-directory-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--rounded-pill);
+  color: var(--muted);
+  font-size: var(--text-ui);
+  font-weight: 600;
+}
+
+.song-directory-tab:hover {
+  color: var(--text);
+}
+
+.song-directory-tab.is-active {
+  background: var(--surface-solid-raised);
+  color: var(--text);
+  box-shadow: 0 0 0 1px var(--line-strong);
+}
+
+.song-directory-shortcut {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--rounded-md);
+  background: rgb(var(--tone-violet-rgb) / 0.1);
+  color: var(--text);
+  font-size: var(--text-ui);
+  text-align: left;
+}
+
+.song-directory-shortcut span {
+  flex: 1;
+}
+
+.song-directory-shortcut:hover {
+  background: rgb(var(--tone-violet-rgb) / 0.18);
+}
+
+.song-directory-artist-row {
+  width: 100%;
+  color: var(--text);
+  text-align: left;
+}
+
+.song-directory-artist-row:hover {
+  border-color: var(--line-strong);
+  background: rgb(var(--ink-rgb) / 0.32);
+}
+
+.song-directory-artist-row > svg {
+  flex: none;
+  color: var(--muted);
+}
+
+.song-directory-artist-link {
+  color: var(--text-2);
+  font-size: inherit;
+  font-weight: 600;
+}
+
+.song-directory-artist-link:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.song-directory-artist {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.song-directory-artist-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.song-directory-artist-head strong {
+  font-size: var(--text-body);
+}
+
+.song-directory-subhead {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: var(--text-meta);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.song-directory-artist .song-directory-list {
+  max-height: min(40vh, 420px);
 }
 
 /* Included public-domain Bibles in Settings → Bible library. */

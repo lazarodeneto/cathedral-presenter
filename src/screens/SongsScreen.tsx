@@ -95,9 +95,14 @@ export function SongsScreen() {
           <p>{t('library.subtitle')}</p>
         </div>
         <div className="heading-actions">
-          <button className="btn btn-secondary" onClick={() => setDirectoryOpen(true)}>
-            <Globe size={15} />
-            {t('songDirectory.open')}
+          <button className="btn btn-directory" onClick={() => setDirectoryOpen(true)}>
+            <span className="btn-directory-icon" aria-hidden="true">
+              <Globe size={16} />
+            </span>
+            <span className="btn-directory-copy">
+              <strong>{t('songDirectory.open')}</strong>
+              <small>{t('songDirectory.openHint')}</small>
+            </span>
           </button>
           <button className="btn btn-primary" onClick={() => setCreateOpen(true)}>
             <Plus size={15} />

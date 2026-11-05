@@ -159,26 +159,70 @@ export function searchKey(value: string): string {
 }
 
 /**
- * Songs whose title or artist contains every word of the query. Titles that
- * start with the query come first, then other title matches, then artist matches.
+ * Songs whose title contains every word of the query (titles only; artists
+ * have their own search). Titles that start with the query come first.
  */
-export function searchDirectory(directory: SongDirectory, query: string, limit = 100): DirectoryEntry[] {
+export function searchSongs(directory: SongDirectory, query: string, limit = 100): DirectoryEntry[] {
   const key = searchKey(query)
   if (!key) return []
   const words = key.split(' ')
-  const artistKeys = directory.artists.map((slug) => slug.replace(/-/g, ' '))
   const ranked: { rank: number; song: [number, string] }[] = []
+  let leading = 0
   for (const song of directory.songs) {
     const title = song[1].replace(/-/g, ' ')
-    const artist = artistKeys[song[0]] ?? ''
-    const both = `${title} ${artist}`
-    if (!words.every((word) => both.includes(word))) continue
-    const rank = title.startsWith(key) ? 0 : words.every((word) => title.includes(word)) ? 1 : 2
+    if (!words.every((word) => title.includes(word))) continue
+    const rank = title.startsWith(key) ? 0 : 1
     ranked.push({ rank, song })
-    if (rank === 0 && ranked.filter((entry) => entry.rank === 0).length >= limit) break
+    if (rank === 0 && ++leading >= limit) break
   }
   ranked.sort((a, b) => a.rank - b.rank || a.song[1].localeCompare(b.song[1]))
   return ranked.slice(0, limit).map((entry) => directoryEntry(directory, entry.song))
+}
+
+export interface DirectoryArtist {
+  slug: string
+  name: string
+  songCount: number
+}
+
+/** Songs per artist index, counted once per catalogue. */
+export function artistSongCounts(directory: SongDirectory): number[] {
+  const counts = new Array<number>(directory.artists.length).fill(0)
+  for (const [artist] of directory.songs) counts[artist] = (counts[artist] ?? 0) + 1
+  return counts
+}
+
+/** Artists whose name contains every word; names that start with the query first, then the largest repertoires. */
+export function searchArtists(directory: SongDirectory, query: string, limit = 100, counts = artistSongCounts(directory)): DirectoryArtist[] {
+  const key = searchKey(query)
+  if (!key) return []
+  const words = key.split(' ')
+  return directory.artists
+    .map((slug, index) => ({ slug, key: slug.replace(/-/g, ' '), index }))
+    .filter((artist) => words.every((word) => artist.key.includes(word)))
+    .map((artist) => ({ ...artist, rank: artist.key.startsWith(key) ? 0 : 1, songCount: counts[artist.index] ?? 0 }))
+    .sort((a, b) => a.rank - b.rank || b.songCount - a.songCount || a.key.localeCompare(b.key))
+    .slice(0, limit)
+    .map(({ slug, songCount }) => ({ slug, name: titleFromSlug(slug), songCount }))
+}
+
+/**
+ * One artist's repertoire: their own songs, and songs by others that credit
+ * them ("part", "feat", "participacao" in the title), both sorted by title.
+ */
+export function artistRepertoire(directory: SongDirectory, slug: string): { own: DirectoryEntry[]; featured: DirectoryEntry[] } {
+  const index = directory.artists.indexOf(slug)
+  const name = slug.replace(/-/g, ' ')
+  // Slugs hold only a-z, 0-9 and spaces once dashes are replaced, so the name needs no escaping.
+  const credit = new RegExp(`\\b(part|feat|ft|participacao|com) ${name}\\b`)
+  const own: DirectoryEntry[] = []
+  const featured: DirectoryEntry[] = []
+  for (const song of directory.songs) {
+    if (song[0] === index) own.push(directoryEntry(directory, song))
+    else if (credit.test(song[1].replace(/-/g, ' '))) featured.push(directoryEntry(directory, song))
+  }
+  const byTitle = (a: DirectoryEntry, b: DirectoryEntry) => a.songSlug.localeCompare(b.songSlug)
+  return { own: own.sort(byTitle), featured: featured.sort(byTitle) }
 }
 
 /** The lyrics block: text lines from <br>, a blank line between stanzas. */

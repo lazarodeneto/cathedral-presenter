@@ -3,7 +3,9 @@ import {
   buildDirectory,
   parseSongPage,
   readSitemapPaths,
-  searchDirectory,
+  artistRepertoire,
+  searchArtists,
+  searchSongs,
   titleFromSlug,
   titleLanguage,
 } from '../providers/songs/letrasGospel'
@@ -44,16 +46,34 @@ describe('letrasgospel.net directory', () => {
     ])
   })
 
-  it('searches titles and artists without accents, title starts first', () => {
+  it('searches song titles only, titles that start with the query first', () => {
     const directory = buildDirectory(
       [],
       ['b/coracao-peregrino', 'a/meu-coracao-peregrino', 'coracao-band/outra', 'c/nada-a-ver'],
     )
-    const titles = searchDirectory(directory, 'Coração').map((entry) => entry.title)
-    expect(titles).toEqual(['Coracao Peregrino', 'Meu Coracao Peregrino', 'Outra'])
-    expect(searchDirectory(directory, 'peregrino meu')).toHaveLength(1)
-    expect(searchDirectory(directory, '   ')).toEqual([])
+    const titles = searchSongs(directory, 'Coração').map((entry) => entry.title)
+    expect(titles).toEqual(['Coracao Peregrino', 'Meu Coracao Peregrino'])
+    expect(searchSongs(directory, 'peregrino meu')).toHaveLength(1)
+    expect(searchSongs(directory, '   ')).toEqual([])
     expect(titleFromSlug('coracao-peregrino')).toBe('Coracao Peregrino')
+  })
+
+  it('searches artists separately and lists an artist repertoire with featured songs', () => {
+    const directory = buildDirectory(
+      ['gabriela-rocha', 'gabriel-guedes', 'outra-banda'],
+      [
+        'gabriela-rocha/atos-2',
+        'gabriela-rocha/a-ele',
+        'gabriel-guedes/ele-vem-part-gabriela-rocha',
+        'outra-banda/um-louvor',
+        'outra-banda/gabriela-rochas-song',
+      ],
+    )
+    expect(searchArtists(directory, 'Gabriela Rocha')).toEqual([{ slug: 'gabriela-rocha', name: 'Gabriela Rocha', songCount: 2 }])
+    expect(searchArtists(directory, 'gabri').map((artist) => artist.slug)).toEqual(['gabriela-rocha', 'gabriel-guedes'])
+    const repertoire = artistRepertoire(directory, 'gabriela-rocha')
+    expect(repertoire.own.map((entry) => entry.songSlug)).toEqual(['a-ele', 'atos-2'])
+    expect(repertoire.featured.map((entry) => entry.songSlug)).toEqual(['ele-vem-part-gabriela-rocha'])
   })
 
   it('marks titles as pt-BR unless the words clearly say another language', () => {

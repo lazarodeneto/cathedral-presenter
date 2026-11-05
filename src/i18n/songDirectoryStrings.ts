@@ -4,6 +4,7 @@ type Strings = Record<string, string>
 
 const en: Strings = {
   'songDirectory.open': 'Online directory',
+  'songDirectory.openHint': 'Artists and songs to download',
   'songDirectory.title': 'Online song directory',
   'songDirectory.subtitle': 'Search every artist and song on letrasgospel.net and download the ones you need to this device.',
   'songDirectory.refresh': 'Update catalogue',
@@ -24,10 +25,23 @@ const en: Strings = {
   'songDirectory.downloaded': '{title} added to the library.',
   'songDirectory.downloadFailed': 'Could not download {title}. Try again.',
   'songDirectory.languageGuess': 'Language guessed from the title',
+  'songDirectory.tabSongs': 'Songs',
+  'songDirectory.tabArtists': 'Artists',
+  'songDirectory.searchSongs': 'Search song title',
+  'songDirectory.searchArtists': 'Search artist name',
+  'songDirectory.hintSongs': 'Type a song title.',
+  'songDirectory.hintArtists': 'Type an artist or band name.',
+  'songDirectory.noArtists': 'No artist matches “{query}”.',
+  'songDirectory.songCount': '{count} songs',
+  'songDirectory.back': 'Back',
+  'songDirectory.featured': 'Featured on {count} songs by others',
+  'songDirectory.featuredLabel': 'Featured songs',
+  'songDirectory.artistShortcut': 'See artist {name} · {count} songs',
 }
 
 const pt: Strings = {
   'songDirectory.open': 'Diretório online',
+  'songDirectory.openHint': 'Cantores e louvores para descarregar',
   'songDirectory.title': 'Diretório de músicas online',
   'songDirectory.subtitle': 'Pesquise todos os cantores e louvores do letrasgospel.net e descarregue os que precisar para este dispositivo.',
   'songDirectory.refresh': 'Atualizar catálogo',
@@ -48,6 +62,18 @@ const pt: Strings = {
   'songDirectory.downloaded': '{title} adicionada à biblioteca.',
   'songDirectory.downloadFailed': 'Não foi possível descarregar {title}. Tente novamente.',
   'songDirectory.languageGuess': 'Idioma deduzido pelo título',
+  'songDirectory.tabSongs': 'Músicas',
+  'songDirectory.tabArtists': 'Cantores',
+  'songDirectory.searchSongs': 'Pesquisar título da música',
+  'songDirectory.searchArtists': 'Pesquisar nome do cantor',
+  'songDirectory.hintSongs': 'Escreva o título de uma música.',
+  'songDirectory.hintArtists': 'Escreva o nome de um cantor ou banda.',
+  'songDirectory.noArtists': 'Nenhum cantor corresponde a “{query}”.',
+  'songDirectory.songCount': '{count} músicas',
+  'songDirectory.back': 'Voltar',
+  'songDirectory.featured': 'Participações em {count} músicas de outros cantores',
+  'songDirectory.featuredLabel': 'Participações',
+  'songDirectory.artistShortcut': 'Ver cantor {name} · {count} músicas',
 }
 
 const ptBR: Strings = {
@@ -60,10 +86,14 @@ const ptBR: Strings = {
   'songDirectory.download': 'Baixar',
   'songDirectory.offline': 'Conecte-se à internet para usar o diretório online.',
   'songDirectory.downloadFailed': 'Não foi possível baixar {title}. Tente novamente.',
+  'songDirectory.hintSongs': 'Digite o título de uma música.',
+  'songDirectory.hintArtists': 'Digite o nome de um cantor ou banda.',
+  'songDirectory.openHint': 'Cantores e louvores para baixar',
 }
 
 const es: Strings = {
   'songDirectory.open': 'Directorio en línea',
+  'songDirectory.openHint': 'Artistas y canciones para descargar',
   'songDirectory.title': 'Directorio de canciones en línea',
   'songDirectory.subtitle': 'Busca todos los artistas y canciones de letrasgospel.net y descarga las que necesites en este dispositivo.',
   'songDirectory.refresh': 'Actualizar catálogo',
@@ -84,10 +114,23 @@ const es: Strings = {
   'songDirectory.downloaded': '{title} añadida a la biblioteca.',
   'songDirectory.downloadFailed': 'No se pudo descargar {title}. Inténtalo de nuevo.',
   'songDirectory.languageGuess': 'Idioma deducido del título',
+  'songDirectory.tabSongs': 'Canciones',
+  'songDirectory.tabArtists': 'Artistas',
+  'songDirectory.searchSongs': 'Buscar título de canción',
+  'songDirectory.searchArtists': 'Buscar nombre del artista',
+  'songDirectory.hintSongs': 'Escribe el título de una canción.',
+  'songDirectory.hintArtists': 'Escribe el nombre de un artista o banda.',
+  'songDirectory.noArtists': 'Ningún artista coincide con «{query}».',
+  'songDirectory.songCount': '{count} canciones',
+  'songDirectory.back': 'Volver',
+  'songDirectory.featured': 'Participa en {count} canciones de otros artistas',
+  'songDirectory.featuredLabel': 'Participaciones',
+  'songDirectory.artistShortcut': 'Ver artista {name} · {count} canciones',
 }
 
 const fr: Strings = {
   'songDirectory.open': 'Répertoire en ligne',
+  'songDirectory.openHint': 'Artistes et chants à télécharger',
   'songDirectory.title': 'Répertoire de chants en ligne',
   'songDirectory.subtitle': 'Cherchez tous les artistes et chants de letrasgospel.net et téléchargez ceux dont vous avez besoin sur cet appareil.',
   'songDirectory.refresh': 'Mettre à jour le catalogue',
@@ -108,10 +151,23 @@ const fr: Strings = {
   'songDirectory.downloaded': '{title} ajouté à la bibliothèque.',
   'songDirectory.downloadFailed': 'Impossible de télécharger {title}. Réessayez.',
   'songDirectory.languageGuess': 'Langue déduite du titre',
+  'songDirectory.tabSongs': 'Chants',
+  'songDirectory.tabArtists': 'Artistes',
+  'songDirectory.searchSongs': 'Chercher un titre de chant',
+  'songDirectory.searchArtists': 'Chercher un artiste',
+  'songDirectory.hintSongs': 'Saisissez le titre d’un chant.',
+  'songDirectory.hintArtists': 'Saisissez le nom d’un artiste ou d’un groupe.',
+  'songDirectory.noArtists': 'Aucun artiste ne correspond à « {query} ».',
+  'songDirectory.songCount': '{count} chants',
+  'songDirectory.back': 'Retour',
+  'songDirectory.featured': 'Participe à {count} chants d’autres artistes',
+  'songDirectory.featuredLabel': 'Participations',
+  'songDirectory.artistShortcut': 'Voir l’artiste {name} · {count} chants',
 }
 
 const de: Strings = {
   'songDirectory.open': 'Online-Verzeichnis',
+  'songDirectory.openHint': 'Interpreten und Lieder zum Herunterladen',
   'songDirectory.title': 'Online-Liederverzeichnis',
   'songDirectory.subtitle': 'Durchsuchen Sie alle Interpreten und Lieder von letrasgospel.net und laden Sie die benötigten auf dieses Gerät herunter.',
   'songDirectory.refresh': 'Katalog aktualisieren',
@@ -132,10 +188,23 @@ const de: Strings = {
   'songDirectory.downloaded': '{title} wurde zur Bibliothek hinzugefügt.',
   'songDirectory.downloadFailed': '{title} konnte nicht heruntergeladen werden. Bitte erneut versuchen.',
   'songDirectory.languageGuess': 'Sprache aus dem Titel erkannt',
+  'songDirectory.tabSongs': 'Lieder',
+  'songDirectory.tabArtists': 'Interpreten',
+  'songDirectory.searchSongs': 'Liedtitel suchen',
+  'songDirectory.searchArtists': 'Interpreten suchen',
+  'songDirectory.hintSongs': 'Geben Sie einen Liedtitel ein.',
+  'songDirectory.hintArtists': 'Geben Sie den Namen eines Interpreten oder einer Band ein.',
+  'songDirectory.noArtists': 'Kein Interpret passt zu „{query}“.',
+  'songDirectory.songCount': '{count} Lieder',
+  'songDirectory.back': 'Zurück',
+  'songDirectory.featured': 'Mitwirkung an {count} Liedern anderer Interpreten',
+  'songDirectory.featuredLabel': 'Mitwirkungen',
+  'songDirectory.artistShortcut': 'Interpret {name} anzeigen · {count} Lieder',
 }
 
 const it: Strings = {
   'songDirectory.open': 'Elenco online',
+  'songDirectory.openHint': 'Artisti e canti da scaricare',
   'songDirectory.title': 'Elenco di canti online',
   'songDirectory.subtitle': 'Cerca tutti gli artisti e i canti di letrasgospel.net e scarica quelli che ti servono su questo dispositivo.',
   'songDirectory.refresh': 'Aggiorna catalogo',
@@ -156,6 +225,18 @@ const it: Strings = {
   'songDirectory.downloaded': '{title} aggiunto alla biblioteca.',
   'songDirectory.downloadFailed': 'Impossibile scaricare {title}. Riprova.',
   'songDirectory.languageGuess': 'Lingua dedotta dal titolo',
+  'songDirectory.tabSongs': 'Canti',
+  'songDirectory.tabArtists': 'Artisti',
+  'songDirectory.searchSongs': 'Cerca titolo del canto',
+  'songDirectory.searchArtists': 'Cerca nome dell’artista',
+  'songDirectory.hintSongs': 'Scrivi il titolo di un canto.',
+  'songDirectory.hintArtists': 'Scrivi il nome di un artista o di una band.',
+  'songDirectory.noArtists': 'Nessun artista corrisponde a «{query}».',
+  'songDirectory.songCount': '{count} canti',
+  'songDirectory.back': 'Indietro',
+  'songDirectory.featured': 'Partecipa a {count} canti di altri artisti',
+  'songDirectory.featuredLabel': 'Partecipazioni',
+  'songDirectory.artistShortcut': 'Vedi artista {name} · {count} canti',
 }
 
 export const songDirectoryStrings: Record<Locale, Strings> = {

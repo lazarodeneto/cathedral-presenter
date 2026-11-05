@@ -191,19 +191,54 @@ export function createBibleSlides(options: CreateBibleSlideOptions): Slide[] {
   })
 }
 
+/** Most lyric lines one slide should hold, counting a long line as two. */
+export const MAX_LYRIC_LINES_PER_SLIDE = 4
+/** Characters that fit on one projected line before it wraps. */
+const LYRIC_LINE_WIDTH = 42
+
+function lineWeight(line: string): number {
+  return Math.max(1, Math.ceil(line.length / LYRIC_LINE_WIDTH))
+}
+
+/**
+ * Splits a stanza that is too long for one slide into balanced parts, so
+ * 9 lines become 3 + 3 + 3 rather than 4 + 4 + 1. Long lines count double.
+ */
+export function splitStanza(stanza: string, maxLines = MAX_LYRIC_LINES_PER_SLIDE): string[] {
+  const lines = stanza
+    .replace(/\r\n?/g, '\n')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+  const total = lines.reduce((sum, line) => sum + lineWeight(line), 0)
+  if (total <= maxLines) return lines.length > 0 ? [lines.join('\n')] : []
+  const parts = Math.ceil(total / maxLines)
+  const target = total / parts
+  const chunks: string[][] = [[]]
+  let weight = 0
+  for (const line of lines) {
+    const current = chunks[chunks.length - 1]
+    const next = weight + lineWeight(line)
+    // Start a new slide when this line would pass the balanced share, unless the slide is empty.
+    if (current.length > 0 && next > target + 0.5 && chunks.length < parts) {
+      chunks.push([line])
+      weight = lineWeight(line)
+    } else {
+      current.push(line)
+      weight = next
+    }
+  }
+  return chunks.map((chunk) => chunk.join('\n'))
+}
+
 export function createLyricsSlides(input: {
   title: string
   stanzas: string[]
   reference?: string
   notesForSlide?: (index: number) => string
 }): Slide[] {
-  return input.stanzas.map((stanza, index) => {
-    const text = stanza
-      .replace(/\r\n?/g, '\n')
-      .split('\n')
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .join('\n')
+  const parts = input.stanzas.flatMap((stanza) => splitStanza(stanza))
+  return parts.map((text, index) => {
     const firstParagraph = text.split('\n')[0]?.trim() || input.title
 
     return makeSlide({
