@@ -7,6 +7,8 @@ import {
   ExternalLink,
   Keyboard,
   Monitor,
+  Projector,
+  Radio,
   Palette,
   RotateCcw,
   ShieldCheck,
@@ -29,7 +31,8 @@ import { BibleLibraryPanel } from '../components/settings/BibleLibraryPanel'
 import { ShortcutSettings } from '../components/settings/ShortcutSettings'
 import { ConfirmDialog } from '../components/Modal'
 import { formatNumericDateTime } from '../utils/dates'
-import { OUTPUT_FORMATS, outputFormat, resolutionLabel, type OutputFormatId } from '../utils/outputFormats'
+import { outputFormat } from '../utils/outputFormats'
+import { OutputFormatPicker } from '../components/OutputFormatPicker'
 import { SCREEN_META, ScreenIcon, type ScreenTone } from '../components/ScreenIcon'
 
 type Tab = 'general' | 'bibles' | 'identity' | 'outputs' | 'data' | 'security' | 'shortcuts'
@@ -71,6 +74,12 @@ function Toggle({
   )
 }
 
+/** The two outputs the app offers: the projector in the church, and a window for OBS or a live stream. */
+const OUTPUT_KINDS = [
+  { role: 'audience', icon: Projector, title: 'outputs.church', copy: 'outputs.churchCopy', formatKey: 'outputFormat' },
+  { role: 'broadcast', icon: Radio, title: 'outputs.broadcast', copy: 'outputs.broadcastCopy', formatKey: 'broadcastFormat' },
+] as const
+
 export function SettingsScreen({ initialTab }: { initialTab?: string }) {
   const t = useT()
   const services = useAppStore((state) => state.services)
@@ -88,7 +97,6 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
   )
   const updateSettings = useAppStore((state) => state.updateSettings)
   const setLocale = useAppStore((state) => state.setLocale)
-  const assignMonitorRole = useAppStore((state) => state.assignMonitorRole)
   const reconnectMonitor = useAppStore((state) => state.reconnectMonitor)
   const disconnectMonitor = useAppStore((state) => state.disconnectMonitor)
   const startTestPattern = useAppStore((state) => state.startTestPattern)
@@ -111,7 +119,7 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
   const selectTab = (next: Tab) => navigate(`/settings/${next}`)
 
   const openOutput = (role: MonitorRole) => {
-    if (role === 'disabled' || role === 'broadcast') {
+    if (role === 'disabled') {
       push(t('status.unsupported'), 'error')
       return
     }
@@ -121,7 +129,7 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
   }
 
   const testOutput = (id: string, role: MonitorRole) => {
-    if (role === 'disabled' || role === 'broadcast') {
+    if (role === 'disabled') {
       push(t('status.unsupported'), 'error')
       return
     }
@@ -354,113 +362,74 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
                   <h2>{t('settings.outputsTitle')}</h2>
                   <p>{t('settings.outputsSubtitle')}</p>
                 </div>
-                <button className="btn btn-ghost btn-sm" onClick={() => push(t('settings.outputTestNote'))}>
-                  {t('settings.detect')}
-                </button>
               </div>
               <div className="output-list">
-                {monitors.map((monitor) => (
-                  <article key={monitor.id} className="output-card">
-                    <div className="output-card-head">
-                      <span className="monitor-icon">
-                        <Monitor size={18} />
-                      </span>
-                      <div>
-                        <h3>{monitor.name}</h3>
-                        <p>{monitor.displayName}</p>
-                      </div>
-                      <span className={`badge ${monitor.status === 'ready' ? 'badge-success' : monitor.status === 'disconnected' ? 'badge-warning' : 'badge-quiet'}`}>
-                        <span className={`status-dot status-dot-${monitor.status}`} />
-                        {monitor.status === 'ready'
-                          ? t('common.ready')
-                          : monitor.status === 'disconnected'
-                            ? t('status.disconnected')
-                            : monitor.status === 'unsupported'
-                              ? t('status.unsupported')
-                              : monitor.status}
-                      </span>
-                    </div>
-                    <div className="output-card-grid">
-                      <label className="field compact">
-                        <span>{t('settings.role')}</span>
-                        <select
-                          value={monitor.role}
-                          onChange={(event) =>
-                            assignMonitorRole(monitor.id, event.target.value as MonitorRole)
-                          }
-                        >
-                          <option value="audience">{t('settings.audience')}</option>
-                          <option value="confidence">{t('settings.confidence')}</option>
-                          <option value="broadcast">{t('settings.broadcast')}</option>
-                          <option value="disabled">{t('settings.disabled')}</option>
-                        </select>
-                      </label>
-                      {monitor.role === 'audience' ? (
-                        <label className="field compact">
-                          <span>{t('settings.projectionFormat')}</span>
-                          <select
-                            value={outputFormat(settings.outputFormat).id}
-                            onChange={(event) => updateSettings({ outputFormat: event.target.value as OutputFormatId })}
-                          >
-                            {OUTPUT_FORMATS.map((format) => (
-                              <option key={format.id} value={format.id}>
-                                {format.name} · {resolutionLabel(format)} · {format.ratio}
-                              </option>
-                            ))}
-                          </select>
-                          <small className="field-hint">{t('settings.projectionFormatHint')}</small>
-                        </label>
-                      ) : (
-                        <div className="output-resolution">
-                          <span>{t('settings.resolution')}</span>
-                          <strong>
-                            {monitor.width} × {monitor.height}
-                          </strong>
-                          <small>{monitor.fullscreen ? t('common.fullscreen') : t('common.preview')}</small>
+                {OUTPUT_KINDS.map(({ role, icon: KindIcon, title, copy, formatKey }) => {
+                  const monitor = monitors.find((entry) => entry.role === role)
+                  if (!monitor) return null
+                  const format = outputFormat(settings[formatKey])
+                  const testing = testMonitorId === monitor.id
+                  return (
+                    <article key={role} className={`output-card output-card-${role}`}>
+                      <div className="output-card-head">
+                        <span className="monitor-icon">
+                          <KindIcon size={18} />
+                        </span>
+                        <div>
+                          <h3>{t(title)}</h3>
+                          <p>{t(copy)}</p>
                         </div>
-                      )}
-                    </div>
-                    <div className="output-actions">
-                      <button
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => testOutput(monitor.id, monitor.role)}
-                        disabled={monitor.role === 'disabled' || monitor.role === 'broadcast'}
-                      >
-                        {testMonitorId === monitor.id ? t('settings.stopTest') : t('settings.testPattern')}
-                      </button>
-                      <button
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => openOutput(monitor.role)}
-                        disabled={monitor.role === 'disabled' || monitor.role === 'broadcast'}
-                      >
-                        <ExternalLink size={14} />
-                        {t('settings.openOutput')}
-                      </button>
-                      {monitor.status === 'disconnected' ? (
-                        <button
-                          className="btn btn-ghost btn-sm"
-                          onClick={() => {
-                            reconnectMonitor(monitor.id)
-                            push(t('toast.outputReconnected'), 'success')
-                          }}
-                        >
-                          {t('common.reconnect')}
+                        <span className={`badge ${monitor.status === 'disconnected' ? 'badge-warning' : 'badge-success'}`}>
+                          <span className={`status-dot status-dot-${monitor.status === 'disconnected' ? 'disconnected' : 'ready'}`} />
+                          {monitor.status === 'disconnected' ? t('status.disconnected') : t('common.ready')}
+                        </span>
+                      </div>
+                      <div className="field compact output-format-field">
+                        <span>{t('settings.projectionFormat')}</span>
+                        <OutputFormatPicker
+                          value={format.id}
+                          onChange={(id) => updateSettings({ [formatKey]: id })}
+                          label={`${t('settings.projectionFormat')}: ${t(title)}`}
+                          buttonClassName="output-format-trigger"
+                        />
+                        <small className="field-hint">
+                          {t(role === 'audience' ? 'settings.projectionFormatHint' : 'outputs.broadcastFormatHint')}
+                        </small>
+                      </div>
+                      <div className="output-actions">
+                        <button className="btn btn-secondary btn-sm" onClick={() => testOutput(monitor.id, role)}>
+                          {testing ? t('settings.stopTest') : t('settings.testPattern')}
                         </button>
-                      ) : (
-                        <button
-                          className="btn btn-ghost btn-sm"
-                          onClick={() => {
-                            disconnectMonitor(monitor.id)
-                            push(t('toast.outputDisconnected'), 'info')
-                          }}
-                        >
-                          <WifiOff size={14} />
-                          {t('settings.disconnect')}
+                        <button className="btn btn-ghost btn-sm" onClick={() => openOutput(role)}>
+                          <ExternalLink size={14} />
+                          {t('settings.openOutput')}
                         </button>
-                      )}
-                    </div>
-                  </article>
-                ))}
+                        {monitor.status === 'disconnected' ? (
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => {
+                              reconnectMonitor(monitor.id)
+                              push(t('toast.outputReconnected'), 'success')
+                            }}
+                          >
+                            {t('common.reconnect')}
+                          </button>
+                        ) : (
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => {
+                              disconnectMonitor(monitor.id)
+                              push(t('toast.outputDisconnected'), 'info')
+                            }}
+                          >
+                            <WifiOff size={14} />
+                            {t('settings.disconnect')}
+                          </button>
+                        )}
+                      </div>
+                    </article>
+                  )
+                })}
               </div>
               <div className="setting-footnote">
                 <ShieldCheck size={14} />

@@ -102,6 +102,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   showGrid: false,
   snapToObjects: true,
   outputFormat: 'fhd',
+  broadcastFormat: 'fhd',
 }
 
 export { DEFAULT_BRANDING }
@@ -406,16 +407,16 @@ export const useAppStore = create<AppState>()(
         },
         updateSettings: (patch) =>
           set((state) => {
-            if (!patch.outputFormat || !isOutputFormatId(patch.outputFormat)) {
-              return { settings: { ...state.settings, ...patch } }
-            }
-            // The audience monitor takes the chosen projection resolution.
-            const format = outputFormat(patch.outputFormat)
+            const projection = isOutputFormatId(patch.outputFormat) ? outputFormat(patch.outputFormat) : null
+            const broadcast = isOutputFormatId(patch.broadcastFormat) ? outputFormat(patch.broadcastFormat) : null
+            if (!projection && !broadcast) return { settings: { ...state.settings, ...patch } }
+            // Each output monitor takes the resolution of its chosen format.
             return {
               settings: { ...state.settings, ...patch },
-              monitors: state.monitors.map((monitor) =>
-                monitor.role === 'audience' ? { ...monitor, width: format.width, height: format.height } : monitor,
-              ),
+              monitors: state.monitors.map((monitor) => {
+                const format = monitor.role === 'audience' ? projection : monitor.role === 'broadcast' ? broadcast : null
+                return format ? { ...monitor, width: format.width, height: format.height } : monitor
+              }),
             }
           }),
         saveBranding: (branding) => {
@@ -1683,7 +1684,7 @@ export const useAppStore = create<AppState>()(
                 return {
                   ...monitor,
                   role,
-                  status: role === 'broadcast' ? 'unsupported' : role === 'disabled' ? monitor.status : 'ready',
+                  status: role === 'disabled' ? monitor.status : 'ready',
                 }
               }
               if (role !== 'disabled' && role !== 'broadcast' && monitor.role === role) {
@@ -1698,7 +1699,7 @@ export const useAppStore = create<AppState>()(
               monitor.id === id
                 ? {
                     ...monitor,
-                    status: monitor.role === 'broadcast' ? 'unsupported' : 'ready',
+                    status: 'ready',
                   }
                 : monitor,
             ),

@@ -15,6 +15,7 @@ export function useOutputBridge(enabled = true) {
   const transitionType = useAppStore((state) => state.settings.transition)
   const transitionSeconds = useAppStore((state) => state.settings.transitionDuration)
   const format = useAppStore((state) => state.settings.outputFormat)
+  const broadcastFormat = useAppStore((state) => state.settings.broadcastFormat)
 
   useEffect(() => {
     if (!enabled) return
@@ -28,9 +29,10 @@ export function useOutputBridge(enabled = true) {
         timers,
         defaultTransition: { type: transitionType, durationMs: Math.round(Math.min(3, Math.max(0, transitionSeconds)) * 1000) },
         format,
+        broadcastFormat,
       })
       webOutputProvider.publish(snapshot)
     }, 80)
     return () => window.clearTimeout(handle)
-  }, [service, live, monitors, branding, testMonitorId, timers, transitionType, transitionSeconds, format, enabled])
+  }, [service, live, monitors, branding, testMonitorId, timers, transitionType, transitionSeconds, format, broadcastFormat, enabled])
 }

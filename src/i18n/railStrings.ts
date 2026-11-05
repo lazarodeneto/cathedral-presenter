@@ -25,6 +25,15 @@ const en: Strings = {
   'rundown.dragHint': 'Drag to reorder',
   'settings.projectionFormat': 'Projection format',
   'settings.projectionFormatHint': 'Resolution and proportion of the projector. The editor and the audience output use the same format.',
+  'outputs.church': 'Presentation in the church',
+  'outputs.churchCopy': 'The projector or screens the congregation sees.',
+  'outputs.broadcast': 'Broadcast',
+  'outputs.broadcastCopy': 'A window for OBS or a live stream, with the same slide as the church.',
+  'outputs.broadcastFormatHint': 'Format of the broadcast window. Usually Full HD 16:9 for a live stream, even when the projector uses another format.',
+  'settings.outputsTitle': 'Outputs',
+  'settings.outputsSubtitle': 'Where the slides go: the projector in the church and a window for the broadcast. Choose the format of each.',
+  'sidebar.collapse': 'Collapse menu',
+  'sidebar.expand': 'Expand menu',
 }
 
 const pt: Strings = {
@@ -49,6 +58,15 @@ const pt: Strings = {
   'rundown.dragHint': 'Arraste para reordenar',
   'settings.projectionFormat': 'Formato de projeção',
   'settings.projectionFormatHint': 'Resolução e proporção do projetor. O editor e a saída para o público usam o mesmo formato.',
+  'outputs.church': 'Apresentação na igreja',
+  'outputs.churchCopy': 'Projetor ou ecrãs que a congregação vê.',
+  'outputs.broadcast': 'Transmissão',
+  'outputs.broadcastCopy': 'Janela para o OBS ou transmissão ao vivo, com o mesmo slide da igreja.',
+  'outputs.broadcastFormatHint': 'Formato da janela de transmissão. Normalmente Full HD 16:9 para transmissão ao vivo, mesmo que o projetor use outro formato.',
+  'settings.outputsTitle': 'Saídas',
+  'settings.outputsSubtitle': 'Para onde vão os slides: o projetor da igreja e uma janela para a transmissão. Escolha o formato de cada uma.',
+  'sidebar.collapse': 'Recolher menu',
+  'sidebar.expand': 'Expandir menu',
 }
 
 const ptBR: Strings = {
@@ -57,6 +75,7 @@ const ptBR: Strings = {
   'rail.grid': 'Mostrar uma grade no editor para alinhar os elementos. Nunca aparece na projeção.',
   'rail.snap': 'Ao arrastar, os elementos se alinham às bordas, ao centro e uns aos outros.',
   'rail.deleteSlideHint': 'Remover este slide do item. Você vai precisar confirmar.',
+  'outputs.churchCopy': 'Projetor ou telas que a congregação vê.',
 }
 
 const es: Strings = {
@@ -81,6 +100,15 @@ const es: Strings = {
   'rundown.dragHint': 'Arrastra para reordenar',
   'settings.projectionFormat': 'Formato de proyección',
   'settings.projectionFormatHint': 'Resolución y proporción del proyector. El editor y la salida al público usan el mismo formato.',
+  'outputs.church': 'Presentación en la iglesia',
+  'outputs.churchCopy': 'El proyector o las pantallas que ve la congregación.',
+  'outputs.broadcast': 'Transmisión',
+  'outputs.broadcastCopy': 'Una ventana para OBS o una transmisión en vivo, con la misma diapositiva que la iglesia.',
+  'outputs.broadcastFormatHint': 'Formato de la ventana de transmisión. Normalmente Full HD 16:9 para una transmisión en vivo, aunque el proyector use otro formato.',
+  'settings.outputsTitle': 'Salidas',
+  'settings.outputsSubtitle': 'A dónde van las diapositivas: el proyector de la iglesia y una ventana para la transmisión. Elige el formato de cada una.',
+  'sidebar.collapse': 'Contraer menú',
+  'sidebar.expand': 'Expandir menú',
 }
 
 const fr: Strings = {
@@ -105,6 +133,15 @@ const fr: Strings = {
   'rundown.dragHint': 'Glissez pour réorganiser',
   'settings.projectionFormat': 'Format de projection',
   'settings.projectionFormatHint': 'Résolution et proportion du projecteur. L’éditeur et la sortie public utilisent le même format.',
+  'outputs.church': 'Présentation à l’église',
+  'outputs.churchCopy': 'Le projecteur ou les écrans que voit l’assemblée.',
+  'outputs.broadcast': 'Diffusion',
+  'outputs.broadcastCopy': 'Une fenêtre pour OBS ou un direct, avec la même diapositive que dans l’église.',
+  'outputs.broadcastFormatHint': 'Format de la fenêtre de diffusion. En général Full HD 16:9 pour un direct, même si le projecteur utilise un autre format.',
+  'settings.outputsTitle': 'Sorties',
+  'settings.outputsSubtitle': 'Où vont les diapositives : le projecteur de l’église et une fenêtre pour la diffusion. Choisissez le format de chacune.',
+  'sidebar.collapse': 'Réduire le menu',
+  'sidebar.expand': 'Développer le menu',
 }
 
 const de: Strings = {
@@ -129,6 +166,15 @@ const de: Strings = {
   'rundown.dragHint': 'Zum Umordnen ziehen',
   'settings.projectionFormat': 'Projektionsformat',
   'settings.projectionFormatHint': 'Auflösung und Seitenverhältnis des Projektors. Editor und Publikumsausgabe nutzen dasselbe Format.',
+  'outputs.church': 'Präsentation in der Gemeinde',
+  'outputs.churchCopy': 'Der Projektor oder die Bildschirme, die die Gemeinde sieht.',
+  'outputs.broadcast': 'Übertragung',
+  'outputs.broadcastCopy': 'Ein Fenster für OBS oder einen Livestream mit derselben Folie wie in der Gemeinde.',
+  'outputs.broadcastFormatHint': 'Format des Übertragungsfensters. Für einen Livestream meist Full HD 16:9, auch wenn der Projektor ein anderes Format nutzt.',
+  'settings.outputsTitle': 'Ausgaben',
+  'settings.outputsSubtitle': 'Wohin die Folien gehen: der Projektor in der Gemeinde und ein Fenster für die Übertragung. Wählen Sie jeweils das Format.',
+  'sidebar.collapse': 'Menü einklappen',
+  'sidebar.expand': 'Menü ausklappen',
 }
 
 const it: Strings = {
@@ -153,6 +199,15 @@ const it: Strings = {
   'rundown.dragHint': 'Trascina per riordinare',
   'settings.projectionFormat': 'Formato di proiezione',
   'settings.projectionFormatHint': 'Risoluzione e proporzione del proiettore. L’editor e l’uscita per il pubblico usano lo stesso formato.',
+  'outputs.church': 'Presentazione in chiesa',
+  'outputs.churchCopy': 'Il proiettore o gli schermi che vede la comunità.',
+  'outputs.broadcast': 'Trasmissione',
+  'outputs.broadcastCopy': 'Una finestra per OBS o una diretta, con la stessa diapositiva della chiesa.',
+  'outputs.broadcastFormatHint': 'Formato della finestra di trasmissione. Di solito Full HD 16:9 per una diretta, anche se il proiettore usa un altro formato.',
+  'settings.outputsTitle': 'Uscite',
+  'settings.outputsSubtitle': 'Dove vanno le diapositive: il proiettore della chiesa e una finestra per la trasmissione. Scegli il formato di ciascuna.',
+  'sidebar.collapse': 'Comprimi menu',
+  'sidebar.expand': 'Espandi menu',
 }
 
 export const railStrings: Record<Locale, Strings> = { en, pt, 'pt-BR': ptBR, es, fr, de, it }

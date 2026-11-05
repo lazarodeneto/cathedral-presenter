@@ -15,8 +15,11 @@ export function buildOutputSnapshot(input: {
   defaultTransition?: SlideTransition
   /** Projection format from Settings. */
   format?: OutputFormatId
+  /** Broadcast window format from Settings. */
+  broadcastFormat?: OutputFormatId
 }): OutputSnapshot {
-  const { service, live, monitors, branding, testMonitorId, timers = {}, defaultTransition, format } = input
+  const { service, live, monitors, branding, testMonitorId, timers = {}, defaultTransition, format, broadcastFormat } = input
+  const broadcastMonitor = monitors.find((monitor) => monitor.role === 'broadcast')
   const now = new Date().toISOString()
   const audienceMonitor = monitors.find((monitor) => monitor.role === 'audience')
   const confidenceMonitor = monitors.find((monitor) => monitor.role === 'confidence')
@@ -60,6 +63,11 @@ export function buildOutputSnapshot(input: {
 
   return {
     timers: shownTimers,
+    broadcast: {
+      mode: testMonitor && testRole === 'broadcast' ? 'test' : 'mirror',
+      format: broadcastFormat,
+      monitorName: broadcastMonitor?.name ?? 'Broadcast',
+    },
     audience: {
       mode: audienceMode,
       slide: audienceMode === 'test' ? null : effectiveContext?.slide ?? null,

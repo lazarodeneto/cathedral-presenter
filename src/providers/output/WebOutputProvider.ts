@@ -57,7 +57,8 @@ class WebOutputProvider implements OutputProvider {
     const base = `${window.location.origin}${window.location.pathname}`
     const url = `${base}#/output/${role}`
     // Open the window in the projection proportion, so the preview has no black bars.
-    const ratio = ASPECT_RATIO[outputFormat(this.readSnapshot()?.audience.format).aspect]
+    const snapshot = this.readSnapshot()
+    const ratio = ASPECT_RATIO[outputFormat(role === 'broadcast' ? snapshot?.broadcast?.format : snapshot?.audience.format).aspect]
     const width = 1280
     const height = Math.round(width / ratio)
     const opened = window.open(

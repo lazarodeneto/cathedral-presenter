@@ -557,6 +557,10 @@ export interface AppSettings {
   snapToObjects?: boolean
   /** Projection format (resolution and proportion) for the editor canvas and the audience output. */
   outputFormat?: import('./utils/outputFormats').OutputFormatId
+  /** Left menu: true shows icons only, false keeps labels; missing follows the screen width. */
+  sidebarCollapsed?: boolean
+  /** Format of the broadcast window captured by OBS or a streaming tool. */
+  broadcastFormat?: import('./utils/outputFormats').OutputFormatId
 }
 
 export interface LiveSession {

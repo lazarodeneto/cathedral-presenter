@@ -1,4 +1,5 @@
-import { Play, Sparkles } from 'lucide-react'
+import { PanelLeftClose, PanelLeftOpen, Play, Sparkles } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useT } from '../i18n/useT'
 import { useAppStore } from '../store/useAppStore'
 import { navigate, type RouteName } from '../hooks/useHashRoute'
@@ -18,6 +19,21 @@ const NAV: { name: ScreenName; key: string }[] = [
   { name: 'settings', key: 'nav.settings' },
 ]
 
+/** True while the CSS shows the icon rail on its own (narrow windows, or the editor on mid-size ones). */
+function useAutoRail(editing: boolean): boolean {
+  const query = editing ? '(max-width: 1360px)' : '(max-width: 1180px)'
+  const [matches, setMatches] = useState(() => typeof window !== 'undefined' && window.matchMedia?.(query).matches === true)
+  useEffect(() => {
+    const list = window.matchMedia?.(query)
+    if (!list) return
+    const update = () => setMatches(list.matches)
+    update()
+    list.addEventListener('change', update)
+    return () => list.removeEventListener('change', update)
+  }, [query])
+  return matches
+}
+
 export function Sidebar({ current }: { current: RouteName }) {
   const t = useT()
   const branding = useAppStore((state) => state.branding)
@@ -28,6 +44,10 @@ export function Sidebar({ current }: { current: RouteName }) {
   const isLive = useAppStore((state) => Boolean(state.live))
   const activeService = services.find((service) => service.id === activeServiceId)
   const slideCount = activeService ? flatSlides(activeService).length : 0
+  const collapsedSetting = useAppStore((state) => state.settings.sidebarCollapsed)
+  const updateSettings = useAppStore((state) => state.updateSettings)
+  const autoRail = useAutoRail(current === 'service')
+  const collapsed = collapsedSetting ?? autoRail
 
   const openPresent = () => {
     if (!activeService) {
@@ -124,6 +144,18 @@ export function Sidebar({ current }: { current: RouteName }) {
           </div>
         </div>
       )}
+
+      <button
+        type="button"
+        className="sidebar-toggle"
+        onClick={() => updateSettings({ sidebarCollapsed: !collapsed })}
+        aria-label={t(collapsed ? 'sidebar.expand' : 'sidebar.collapse')}
+        aria-expanded={!collapsed}
+        title={t(collapsed ? 'sidebar.expand' : 'sidebar.collapse')}
+      >
+        {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+        <span>{t(collapsed ? 'sidebar.expand' : 'sidebar.collapse')}</span>
+      </button>
     </aside>
   )
 }

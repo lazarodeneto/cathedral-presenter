@@ -574,6 +574,23 @@ iframe {
   font-size: var(--text-meta);
 }
 
+.sidebar-toggle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 10px;
+  padding: 8px 9px;
+  border-radius: var(--rounded-sm);
+  color: var(--muted);
+  font-size: var(--text-meta);
+  font-weight: 600;
+}
+
+.sidebar-toggle:hover {
+  color: var(--text);
+  background: rgb(var(--wash-rgb) / 0.05);
+}
+
 .sidebar-footer {
   display: flex;
   align-items: center;
@@ -2067,6 +2084,40 @@ dialog.modal::backdrop {
   margin-left: 4px;
   color: var(--muted);
   font-size: var(--text-micro);
+}
+
+.output-format-field .workspace-aspect-picker {
+  width: 100%;
+}
+
+/* Settings: a full-width field-style trigger showing the chosen format. */
+.output-format-trigger {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--rounded-sm);
+  background: rgb(var(--ink-rgb) / 0.32);
+  color: var(--text);
+  text-align: left;
+}
+
+.output-format-trigger:hover,
+.output-format-trigger[aria-expanded='true'] {
+  border-color: rgb(var(--wash-rgb) / 0.3);
+}
+
+.output-format-trigger > svg:last-child {
+  margin-left: auto;
+  color: var(--muted);
+}
+
+.output-format-field .workspace-aspect-menu {
+  width: 100%;
+  max-width: none;
 }
 
 /* A small outline in the format's proportion. */
@@ -11872,7 +11923,9 @@ body.reduced-motion .media-shimmer {
   .sidebar-service,
   .sidebar-service-name,
   .sidebar-footer,
-  .brand-copy {
+  .brand-copy,
+  /* Too narrow for the full menu: the rail stays, so no toggle. */
+  .sidebar-toggle {
     display: none;
   }
 
@@ -11881,35 +11934,77 @@ body.reduced-motion .media-shimmer {
   }
 }
 
+/* Menu collapsed by the operator: the same icon rail at any width. */
+.app-shell.is-nav-collapsed {
+  grid-template-columns: 76px minmax(0, 1fr);
+}
+
+.is-nav-collapsed .sidebar {
+  padding: 15px 9px 12px;
+}
+
+.is-nav-collapsed .sidebar .brand-mark {
+  margin: 0 auto 15px;
+}
+
+.is-nav-collapsed .nav-item {
+  justify-content: center;
+  padding: 0;
+}
+
+.is-nav-collapsed .nav-item span:not(.nav-badge):not(.nav-app-icon),
+.is-nav-collapsed .nav-item .nav-badge,
+.is-nav-collapsed .sidebar-label,
+.is-nav-collapsed .sidebar-service,
+.is-nav-collapsed .sidebar-service-name,
+.is-nav-collapsed .sidebar-footer,
+.is-nav-collapsed .brand-copy,
+.is-nav-collapsed .sidebar-toggle span {
+  display: none;
+}
+
+.is-nav-collapsed .sidebar-spacer {
+  min-height: 10px;
+}
+
+.is-nav-collapsed .sidebar-toggle {
+  justify-content: center;
+}
+
 @media (min-width: 1181px) and (max-width: 1360px) {
-  .app-shell.is-editing {
+  .app-shell.is-editing:not(.is-nav-expanded) {
     grid-template-columns: 76px minmax(0, 1fr);
   }
 
-  .is-editing .sidebar {
+  .is-editing:not(.is-nav-expanded) .sidebar {
     padding: 15px 9px 12px;
   }
 
-  .is-editing .sidebar .brand-mark {
+  .is-editing:not(.is-nav-expanded) .sidebar .brand-mark {
     margin: 0 auto 15px;
   }
 
-  .is-editing .nav-item {
+  .is-editing:not(.is-nav-expanded) .nav-item {
     justify-content: center;
     padding: 0;
   }
 
-  .is-editing .nav-item span:not(.nav-badge):not(.nav-app-icon),
-  .is-editing .nav-item .nav-badge,
-  .is-editing .sidebar-label,
-  .is-editing .sidebar-service,
-  .is-editing .sidebar-service-name,
-  .is-editing .sidebar-footer,
-  .is-editing .brand-copy {
+  .is-editing:not(.is-nav-expanded) .nav-item span:not(.nav-badge):not(.nav-app-icon),
+  .is-editing:not(.is-nav-expanded) .nav-item .nav-badge,
+  .is-editing:not(.is-nav-expanded) .sidebar-label,
+  .is-editing:not(.is-nav-expanded) .sidebar-service,
+  .is-editing:not(.is-nav-expanded) .sidebar-service-name,
+  .is-editing:not(.is-nav-expanded) .sidebar-footer,
+  .is-editing:not(.is-nav-expanded) .brand-copy,
+  .is-editing:not(.is-nav-expanded) .sidebar-toggle span {
     display: none;
   }
 
-  .is-editing .sidebar-spacer {
+  .is-editing:not(.is-nav-expanded) .sidebar-toggle {
+    justify-content: center;
+  }
+
+  .is-editing:not(.is-nav-expanded) .sidebar-spacer {
     min-height: 10px;
   }
 }

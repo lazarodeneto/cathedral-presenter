@@ -81,7 +81,8 @@ import { SlideRenderer } from '../components/SlideRenderer'
 import { AddContentModal } from '../components/AddContentModal'
 import { ConfirmDialog, Modal } from '../components/Modal'
 import { InspectorGroup, InspectorGroupList } from '../components/editor/InspectorGroup'
-import { ASPECT_RATIO, OUTPUT_FORMATS, outputFormat, resolutionLabel } from '../utils/outputFormats'
+import { ASPECT_RATIO, outputFormat, resolutionLabel } from '../utils/outputFormats'
+import { OutputFormatPicker } from '../components/OutputFormatPicker'
 import { CanvasGuidesRail, EditorToolbar, ElementActionRail, RailTooltip } from '../components/editor/EditorToolbar'
 import { EditorMediaDialog, mediaError, type MediaDialogMode } from '../components/editor/EditorMediaDialog'
 import { EditorBackgroundDialog } from '../components/editor/EditorBackgroundDialog'
@@ -273,7 +274,6 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
     if (rundownDrop?.id !== id || rundownDrop.side !== side) setRundownDrop({ id, side })
   }
   const dropClass = (id: string) => (rundownDrop?.id === id ? `drop-${rundownDrop.side}` : '')
-  const [aspectMenuOpen, setAspectMenuOpen] = useState(false)
   const [copiedSlide, setCopiedSlide] = useState<Slide | null>(null)
   // Projection format, saved in Settings: the canvas and the audience output use the same one.
   const projection = outputFormat(useAppStore((state) => state.settings.outputFormat))
@@ -1441,48 +1441,19 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
             onEnd={() => setEndOpen(true)}
             tools={
               <>
-            <div className="workspace-aspect-picker">
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={() => setAspectMenuOpen((open) => !open)}
-                aria-label={t('editor.slideFormat')}
-                aria-haspopup="menu"
-                aria-expanded={aspectMenuOpen}
-              >
-                <Monitor size={14} />
-                <span>
-                  {resolutionLabel(projection)} <small className="workspace-aspect-ratio">{projection.ratio}</small>
-                </span>
-                <ChevronDown size={13} />
-              </button>
-              {aspectMenuOpen && (
-                <div className="workspace-aspect-menu" role="menu" aria-label={t('editor.slideFormat')}>
-                  {OUTPUT_FORMATS.map((format, index) => (
-                    <button
-                      key={format.id}
-                      className={`workspace-aspect-option ${projection.id === format.id ? 'is-active' : ''} ${
-                        index > 0 && OUTPUT_FORMATS[index - 1].ratio !== format.ratio ? 'starts-group' : ''
-                      }`}
-                      role="menuitemradio"
-                      aria-checked={projection.id === format.id}
-                      onClick={() => {
-                        updateSettings({ outputFormat: format.id })
-                        setAspectMenuOpen(false)
-                      }}
-                    >
-                      <span className={`aspect-glyph is-${format.aspect}`} aria-hidden="true" />
-                      <span className="workspace-aspect-copy">
-                        <strong>{format.name}</strong>
-                        <small>
-                          {resolutionLabel(format)} · {format.ratio}
-                        </small>
-                      </span>
-                      {projection.id === format.id && <Check size={13} />}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <OutputFormatPicker
+              value={projection.id}
+              onChange={(id) => updateSettings({ outputFormat: id })}
+              label={t('editor.slideFormat')}
+              trigger={
+                <>
+                  <Monitor size={14} />
+                  <span>
+                    {resolutionLabel(projection)} <small className="workspace-aspect-ratio">{projection.ratio}</small>
+                  </span>
+                </>
+              }
+            />
             <button
               className="btn btn-secondary btn-sm inspector-edit-details-btn"
               onClick={() => setDetailsOpen(true)}

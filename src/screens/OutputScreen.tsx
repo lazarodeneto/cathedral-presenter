@@ -60,12 +60,13 @@ function NoSignal() {
   )
 }
 
-export function OutputScreen({ role }: { role: 'audience' | 'confidence' }) {
+export function OutputScreen({ role }: { role: 'audience' | 'confidence' | 'broadcast' }) {
   const t = useT()
   const [snapshot, setSnapshot] = useState<OutputSnapshot | null>(() => webOutputProvider.readSnapshot())
   const [fullscreen, setFullscreen] = useState(Boolean(document.fullscreenElement))
   const [, setTick] = useState(0)
-  const format = outputFormat(snapshot?.audience.format)
+  // The broadcast window mirrors the audience slide in its own format.
+  const format = outputFormat(role === 'broadcast' ? snapshot?.broadcast?.format : snapshot?.audience.format)
 
   useEffect(() => {
     setSnapshot(webOutputProvider.readSnapshot())
@@ -217,7 +218,10 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' }) {
   }
 
   if (!audience) return <div className="output-window"><NoSignal /></div>
-  const mode = audience.mode
+  const broadcastTest = role === 'broadcast' && snapshot.broadcast?.mode === 'test'
+  // A test pattern meant for the projector is not shown on the broadcast window, and vice versa.
+  const mode = broadcastTest ? 'test' : role === 'broadcast' && audience.mode === 'test' ? 'idle' : audience.mode
+  const outputName = role === 'broadcast' ? snapshot.broadcast?.monitorName ?? audience.monitorName : audience.monitorName
   return (
     <TimerSourceContext.Provider value={snapshot.timers ?? {}}>
       <div
@@ -226,7 +230,7 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' }) {
         data-format={format.id}
       >
         {mode === 'test' ? (
-          <TestPattern label={audience.testMonitorName ?? audience.monitorName} format={format} />
+          <TestPattern label={broadcastTest ? outputName : audience.testMonitorName ?? audience.monitorName} format={format} />
         ) : mode === 'blank' ? (
           // Blank means a black screen for the audience: nothing drawn, the state is named for assistive tech only.
           <div className="output-black" role="img" aria-label={t('output.blank')} />
@@ -262,7 +266,7 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' }) {
         )}
         <OutputChrome
           role={role}
-          monitor={mode === 'test' ? audience.testMonitorName ?? audience.monitorName : audience.monitorName}
+          monitor={role === 'broadcast' ? outputName : mode === 'test' ? audience.testMonitorName ?? audience.monitorName : audience.monitorName}
           fullscreen={fullscreen}
           onFullscreen={toggleFullscreen}
         />
@@ -326,7 +330,7 @@ function OutputChrome({
   fullscreen,
   onFullscreen,
 }: {
-  role: 'audience' | 'confidence'
+  role: 'audience' | 'confidence' | 'broadcast'
   monitor: string | null
   fullscreen: boolean
   onFullscreen: () => void
@@ -336,7 +340,7 @@ function OutputChrome({
     <div className="output-chrome">
       <span className="output-chrome-role">
         <Radio size={13} />
-        {role === 'audience' ? t('output.audience') : t('output.confidence')}
+        {role === 'audience' ? t('output.audience') : role === 'broadcast' ? t('outputs.broadcast') : t('output.confidence')}
         {monitor ? ` · ${monitor}` : ''}
       </span>
       <span className="output-chrome-sim">{t('output.simulated')}</span>
