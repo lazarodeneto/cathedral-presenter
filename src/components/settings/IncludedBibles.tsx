@@ -9,6 +9,12 @@ import {
 import { useT } from '../../i18n/useT'
 import { useAppStore } from '../../store/useAppStore'
 import { useToasts } from '../../store/useToasts'
+import { reloadAfterAdd } from '../../store/appReload'
+
+/** Public-domain Bibles first, then alphabetical by name. */
+const SORTED_CATALOG = [...BIBLE_CATALOG].sort(
+  (a, b) => Number(b.publicDomain) - Number(a.publicDomain) || a.name.localeCompare(b.name, 'pt', { sensitivity: 'base' }),
+)
 
 function useOnline() {
   const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine))
@@ -46,7 +52,11 @@ export function IncludedBibles() {
             onProgress: (done, total) => setLoading({ code: bible.code, done, total }),
           })
       const result = entry ? addCustomBible(entry) : { ok: false as const }
-      push(t(result.ok ? 'settings.includedAdded' : 'settings.includedFailed', { name: bible.name }), result.ok ? 'success' : 'error')
+      if (result.ok) {
+        await reloadAfterAdd(t('settings.includedAdded', { name: bible.name }))
+        return
+      }
+      push(t('settings.includedFailed', { name: bible.name }), 'error')
     } catch (error) {
       const offline = error instanceof BibleDownloadFailure && error.reason === 'offline'
       push(t(offline ? 'settings.includedOffline' : 'settings.includedFailed', { name: bible.name }), 'error')
@@ -71,7 +81,7 @@ export function IncludedBibles() {
         </p>
       </div>
       <ul className="bible-admin-list" aria-label={t('settings.includedTitle')}>
-        {BIBLE_CATALOG.map((bible) => {
+        {SORTED_CATALOG.map((bible) => {
           const id = catalogBibleId(bible)
           const added = customBibles.some((entry) => entry.translation.id === id)
           const busy = loading?.code === bible.code

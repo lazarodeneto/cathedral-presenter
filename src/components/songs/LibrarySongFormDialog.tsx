@@ -22,6 +22,7 @@ import {
   type SongLibraryForm,
 } from '../../utils/songLibrary'
 import { ConfirmDialog, Modal } from '../Modal'
+import { reloadAfterAdd } from '../../store/appReload'
 
 function emptyForm(): SongLibraryForm {
   return { title: '', lyrics: '', author: '', language: '', category: '', tags: '', key: '', notes: '', copyright: '' }
@@ -104,7 +105,9 @@ export function LibrarySongFormDialog({
       push(t('library.updated', { title: result.title }), 'success')
     } else {
       createLibrarySong(result)
-      push(t('library.created', { title: result.title }), 'success')
+      onClose()
+      void reloadAfterAdd(t('library.created', { title: result.title }))
+      return
     }
     onClose()
   }

@@ -24,6 +24,7 @@ import { Modal } from '../components/Modal'
 import { QrComposer } from '../components/editor/QrComposer'
 import { qrElement, type QrVariant } from '../providers/media/mediaWorkflow'
 import { SCREEN_META, ScreenIcon } from '../components/ScreenIcon'
+import { reloadAfterAdd } from '../store/appReload'
 
 function errorMessage(reason: string | undefined, t: (key: string) => string): string {
   switch (reason) {
@@ -121,7 +122,7 @@ export function MediaScreen() {
     setUrlOpen(false)
     setUrlValue('')
     setUrlError('')
-    push(t('media.urlAdded'), 'success')
+    void reloadAfterAdd(t('media.urlAdded'))
   }
 
   const addYoutube = (event: React.FormEvent) => {
@@ -136,7 +137,7 @@ export function MediaScreen() {
     setYoutubeOpen(false)
     setYoutubeValue('')
     setYoutubeError('')
-    push(t('media.urlAdded'), 'success')
+    void reloadAfterAdd(t('media.urlAdded'))
   }
 
   const addAssetToService = (asset: MediaAsset) => {

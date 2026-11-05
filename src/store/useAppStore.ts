@@ -186,6 +186,9 @@ interface AppState {
   moveItem: (serviceId: string, itemId: string, direction: -1 | 1) => void
   /** Move an item next to another item, possibly into a different section. */
   moveItemNextTo: (serviceId: string, itemId: string, targetItemId: string, side: 'before' | 'after') => void
+  /** Moves an item to the end of a section (used when dropping on a section header or an empty section). */
+  moveItemToSection: (serviceId: string, itemId: string, sectionId: string) => void
+  moveSectionNextTo: (serviceId: string, sectionId: string, targetSectionId: string, side: 'before' | 'after') => void
   updateSlide: (
     serviceId: string,
     itemId: string,
@@ -800,6 +803,41 @@ export const useAppStore = create<AppState>()(
                     : { ...section, itemIds: ids }
                 }),
               })),
+              lastSavedAt: now(),
+            }
+          }),
+
+        moveItemToSection: (serviceId, itemId, sectionId) =>
+          set((state) => {
+            const service = findService(state.services, serviceId)
+            if (!service?.sections.some((section) => section.id === sectionId)) return {}
+            if (!service.sections.some((section) => section.itemIds.includes(itemId))) return {}
+            return {
+              services: mapService(state.services, serviceId, (entry) => ({
+                ...entry,
+                sections: entry.sections.map((section) => {
+                  const ids = section.itemIds.filter((id) => id !== itemId)
+                  if (section.id === sectionId) ids.push(itemId)
+                  return ids.length === section.itemIds.length && ids.every((id, i) => id === section.itemIds[i])
+                    ? section
+                    : { ...section, itemIds: ids }
+                }),
+              })),
+              lastSavedAt: now(),
+            }
+          }),
+
+        moveSectionNextTo: (serviceId, sectionId, targetSectionId, side) =>
+          set((state) => {
+            if (sectionId === targetSectionId) return {}
+            const service = findService(state.services, serviceId)
+            const moving = service?.sections.find((section) => section.id === sectionId)
+            if (!service || !moving || !service.sections.some((section) => section.id === targetSectionId)) return {}
+            const sections = service.sections.filter((section) => section.id !== sectionId)
+            const at = sections.findIndex((section) => section.id === targetSectionId)
+            sections.splice(side === 'after' ? at + 1 : at, 0, moving)
+            return {
+              services: mapService(state.services, serviceId, (entry) => ({ ...entry, sections })),
               lastSavedAt: now(),
             }
           }),
@@ -1765,7 +1803,7 @@ function queueBibleTextSync(entries: CustomBibleTranslation[]) {
     })
 }
 
-void loadBibleTexts(useAppStore.getState().customBibles).then((loaded) => {
+const bibleTextsLoaded = loadBibleTexts(useAppStore.getState().customBibles).then((loaded) => {
   if (Object.keys(loaded).length > 0) {
     useAppStore.setState((state) => ({
       customBibles: state.customBibles.map((entry) => {
@@ -1783,6 +1821,12 @@ void loadBibleTexts(useAppStore.getState().customBibles).then((loaded) => {
     if (state.customBibles !== previous.customBibles) queueBibleTextSync(state.customBibles)
   })
 })
+
+/** Resolves once every imported Bible text change so far is saved in IndexedDB. */
+export async function whenBibleTextsSaved(): Promise<void> {
+  await bibleTextsLoaded.catch(() => undefined)
+  await bibleTextSync.catch(() => undefined)
+}
 
 export { flatSlides }
 export type { AppState }
