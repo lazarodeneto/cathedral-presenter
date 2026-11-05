@@ -13833,6 +13833,51 @@ body:not(.output-mode) .btn {
   font-weight: 600;
 }
 
+/* Online song directory (letrasgospel.net) in Songs. */
+.song-directory {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.song-directory .included-bibles-notice {
+  margin-top: 0 !important;
+}
+
+.song-directory-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.song-directory-stats,
+.song-directory-hint {
+  color: var(--muted);
+  font-size: var(--text-meta);
+}
+
+.song-directory-list {
+  max-height: min(52vh, 560px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.song-directory-lang {
+  display: inline-grid;
+  place-items: center;
+  min-width: 46px;
+  height: 30px;
+  padding: 0 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--rounded-sm);
+  color: var(--text-2);
+  font-size: var(--text-micro);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
 /* Included public-domain Bibles in Settings → Bible library. */
 .included-bibles {
   display: flex;

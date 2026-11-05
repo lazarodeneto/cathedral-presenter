@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   ChevronRight,
   Filter,
+  Globe,
   Music4,
   Pencil,
   Plus,
@@ -18,6 +19,7 @@ import { createLibrarySongItem, DEFAULT_LIBRARY_QUERY, querySongLibrary, parseLy
 import { SlideRenderer } from '../components/SlideRenderer'
 import { LibrarySongFormDialog } from '../components/songs/LibrarySongFormDialog'
 import { DeleteLibrarySongDialog } from '../components/songs/DeleteLibrarySongDialog'
+import { SongDirectoryPanel } from '../components/songs/SongDirectoryPanel'
 import { SCREEN_META, ScreenIcon } from '../components/ScreenIcon'
 
 export function SongsScreen() {
@@ -36,6 +38,7 @@ export function SongsScreen() {
   const [createOpen, setCreateOpen] = useState(false)
   const [editing, setEditing] = useState<LibrarySong | null>(null)
   const [deleting, setDeleting] = useState<LibrarySong | null>(null)
+  const [directoryOpen, setDirectoryOpen] = useState(false)
 
   const [sectionId, setSectionId] = useState(
     activeService?.sections.find((section) => section.title.toLowerCase().includes('worship'))?.id ??
@@ -92,6 +95,10 @@ export function SongsScreen() {
           <p>{t('library.subtitle')}</p>
         </div>
         <div className="heading-actions">
+          <button className="btn btn-secondary" onClick={() => setDirectoryOpen(true)}>
+            <Globe size={15} />
+            {t('songDirectory.open')}
+          </button>
           <button className="btn btn-primary" onClick={() => setCreateOpen(true)}>
             <Plus size={15} />
             {t('library.newSong')}
@@ -314,6 +321,7 @@ export function SongsScreen() {
       <LibrarySongFormDialog open={createOpen} onClose={() => setCreateOpen(false)} />
       <LibrarySongFormDialog open={Boolean(editing)} song={editing} onClose={() => setEditing(null)} />
       <DeleteLibrarySongDialog song={deleting} onClose={() => setDeleting(null)} />
+      {directoryOpen ? <SongDirectoryPanel onClose={() => setDirectoryOpen(false)} /> : null}
     </div>
   )
 }

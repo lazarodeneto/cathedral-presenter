@@ -5,6 +5,7 @@ import { editorStrings } from './editorStrings'
 import { templateStrings } from './templateStrings'
 import { reviewStrings } from './reviewStrings'
 import { bibleAdminStrings } from './bibleAdminStrings'
+import { songDirectoryStrings } from './songDirectoryStrings'
 
 type Dict = Record<string, string>
 
@@ -3405,13 +3406,13 @@ const sourceStrings: Record<Locale, Dict> = {
 }
 
 export const dictionaries: Record<Locale, Dict> = {
-  en: { ...en, ...sourceStrings.en, ...bibleAdminStrings.en, ...reviewStrings.en, ...templateStrings.en },
-  pt: { ...en, ...editorStrings.pt, ...pt, ...sourceStrings.pt, ...completionStrings.pt, ...bibleAdminStrings.pt, ...reviewStrings.pt, ...templateStrings.pt },
-  'pt-BR': { ...en, ...editorStrings.pt, ...pt, ...sourceStrings.pt, ...ptBR, ...sourceStrings['pt-BR'], ...completionStrings['pt-BR'], ...bibleAdminStrings['pt-BR'], ...reviewStrings.pt, ...reviewStrings['pt-BR'], ...templateStrings.pt, ...templateStrings['pt-BR'] },
-  es: { ...en, ...editorStrings.es, ...es, ...sourceStrings.es, ...completionStrings.es, ...bibleAdminStrings.es, ...reviewStrings.es, ...templateStrings.es },
-  fr: { ...en, ...editorStrings.fr, ...fr, ...sourceStrings.fr, ...completionStrings.fr, ...bibleAdminStrings.fr, ...reviewStrings.fr, ...templateStrings.fr },
-  de: { ...en, ...editorStrings.de, ...de, ...sourceStrings.de, ...completionStrings.de, ...bibleAdminStrings.de, ...reviewStrings.de, ...templateStrings.de },
-  it: { ...en, ...editorStrings.it, ...it, ...sourceStrings.it, ...completionStrings.it, ...bibleAdminStrings.it, ...reviewStrings.it, ...templateStrings.it },
+  en: { ...en, ...sourceStrings.en, ...bibleAdminStrings.en, ...songDirectoryStrings.en, ...reviewStrings.en, ...templateStrings.en },
+  pt: { ...en, ...editorStrings.pt, ...pt, ...sourceStrings.pt, ...completionStrings.pt, ...bibleAdminStrings.pt, ...songDirectoryStrings.pt, ...reviewStrings.pt, ...templateStrings.pt },
+  'pt-BR': { ...en, ...editorStrings.pt, ...pt, ...sourceStrings.pt, ...ptBR, ...sourceStrings['pt-BR'], ...completionStrings['pt-BR'], ...bibleAdminStrings['pt-BR'], ...songDirectoryStrings['pt-BR'], ...reviewStrings.pt, ...reviewStrings['pt-BR'], ...templateStrings.pt, ...templateStrings['pt-BR'] },
+  es: { ...en, ...editorStrings.es, ...es, ...sourceStrings.es, ...completionStrings.es, ...bibleAdminStrings.es, ...songDirectoryStrings.es, ...reviewStrings.es, ...templateStrings.es },
+  fr: { ...en, ...editorStrings.fr, ...fr, ...sourceStrings.fr, ...completionStrings.fr, ...bibleAdminStrings.fr, ...songDirectoryStrings.fr, ...reviewStrings.fr, ...templateStrings.fr },
+  de: { ...en, ...editorStrings.de, ...de, ...sourceStrings.de, ...completionStrings.de, ...bibleAdminStrings.de, ...songDirectoryStrings.de, ...reviewStrings.de, ...templateStrings.de },
+  it: { ...en, ...editorStrings.it, ...it, ...sourceStrings.it, ...completionStrings.it, ...bibleAdminStrings.it, ...songDirectoryStrings.it, ...reviewStrings.it, ...templateStrings.it },
 }
 
 export function translate(locale: Locale, key: string, vars?: Record<string, string | number>): string {
@@ -3437,7 +3438,7 @@ export const LOCALE_OPTIONS: { value: Locale; label: string; flag: string; short
 
 const languageNameCache = new Map<Locale, Intl.DisplayNames>()
 
-export function languageName(language: Locale, uiLocale: Locale): string {
+export function languageName(language: Locale | string, uiLocale: Locale): string {
   const fallback =
     LOCALE_OPTIONS.find((option) => option.value === language)?.label ?? language
   try {
