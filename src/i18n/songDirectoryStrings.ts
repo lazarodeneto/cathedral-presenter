@@ -4,7 +4,8 @@ type Strings = Record<string, string>
 
 const en: Strings = {
   'songDirectory.open': 'Online directory',
-  'songDirectory.openHint': 'Artists and songs to download',
+  'library.newSongHint': 'Type or paste the lyrics',
+  'songDirectory.openHint': 'Artists and songs',
   'songDirectory.title': 'Online song directory',
   'songDirectory.subtitle': 'Search every artist and song on letrasgospel.net and download the ones you need to this device.',
   'songDirectory.refresh': 'Update catalogue',
@@ -41,7 +42,8 @@ const en: Strings = {
 
 const pt: Strings = {
   'songDirectory.open': 'Diretório online',
-  'songDirectory.openHint': 'Cantores e louvores para descarregar',
+  'library.newSongHint': 'Escreva ou cole a letra',
+  'songDirectory.openHint': 'Cantores e louvores',
   'songDirectory.title': 'Diretório de músicas online',
   'songDirectory.subtitle': 'Pesquise todos os cantores e louvores do letrasgospel.net e descarregue os que precisar para este dispositivo.',
   'songDirectory.refresh': 'Atualizar catálogo',
@@ -88,12 +90,14 @@ const ptBR: Strings = {
   'songDirectory.downloadFailed': 'Não foi possível baixar {title}. Tente novamente.',
   'songDirectory.hintSongs': 'Digite o título de uma música.',
   'songDirectory.hintArtists': 'Digite o nome de um cantor ou banda.',
-  'songDirectory.openHint': 'Cantores e louvores para baixar',
+  'songDirectory.openHint': 'Cantores e louvores',
+  'library.newSongHint': 'Digite ou cole a letra',
 }
 
 const es: Strings = {
   'songDirectory.open': 'Directorio en línea',
-  'songDirectory.openHint': 'Artistas y canciones para descargar',
+  'library.newSongHint': 'Escribe o pega la letra',
+  'songDirectory.openHint': 'Artistas y canciones',
   'songDirectory.title': 'Directorio de canciones en línea',
   'songDirectory.subtitle': 'Busca todos los artistas y canciones de letrasgospel.net y descarga las que necesites en este dispositivo.',
   'songDirectory.refresh': 'Actualizar catálogo',
@@ -130,7 +134,8 @@ const es: Strings = {
 
 const fr: Strings = {
   'songDirectory.open': 'Répertoire en ligne',
-  'songDirectory.openHint': 'Artistes et chants à télécharger',
+  'library.newSongHint': 'Saisissez ou collez les paroles',
+  'songDirectory.openHint': 'Artistes et chants',
   'songDirectory.title': 'Répertoire de chants en ligne',
   'songDirectory.subtitle': 'Cherchez tous les artistes et chants de letrasgospel.net et téléchargez ceux dont vous avez besoin sur cet appareil.',
   'songDirectory.refresh': 'Mettre à jour le catalogue',
@@ -167,7 +172,8 @@ const fr: Strings = {
 
 const de: Strings = {
   'songDirectory.open': 'Online-Verzeichnis',
-  'songDirectory.openHint': 'Interpreten und Lieder zum Herunterladen',
+  'library.newSongHint': 'Liedtext eingeben oder einfügen',
+  'songDirectory.openHint': 'Interpreten und Lieder',
   'songDirectory.title': 'Online-Liederverzeichnis',
   'songDirectory.subtitle': 'Durchsuchen Sie alle Interpreten und Lieder von letrasgospel.net und laden Sie die benötigten auf dieses Gerät herunter.',
   'songDirectory.refresh': 'Katalog aktualisieren',
@@ -204,7 +210,8 @@ const de: Strings = {
 
 const it: Strings = {
   'songDirectory.open': 'Elenco online',
-  'songDirectory.openHint': 'Artisti e canti da scaricare',
+  'library.newSongHint': 'Scrivi o incolla il testo',
+  'songDirectory.openHint': 'Artisti e canti',
   'songDirectory.title': 'Elenco di canti online',
   'songDirectory.subtitle': 'Cerca tutti gli artisti e i canti di letrasgospel.net e scarica quelli che ti servono su questo dispositivo.',
   'songDirectory.refresh': 'Aggiorna catalogo',

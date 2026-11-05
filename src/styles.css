@@ -13858,6 +13858,27 @@ body:not(.output-mode) .btn {
   box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.25), 0 4px 12px rgb(var(--tone-rose-rgb) / 0.3);
 }
 
+.btn-directory.btn-add-song {
+  border-color: rgb(var(--green-rgb) / 0.6);
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgb(255 255 255 / 0.2), transparent 55%),
+    linear-gradient(120deg, #2fa866, #1d7f4c);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.28), 0 8px 22px rgb(var(--green-rgb) / 0.3);
+}
+
+.btn-directory.btn-add-song:hover:not(:disabled) {
+  border-color: rgb(var(--green-rgb) / 0.85);
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgb(255 255 255 / 0.22), transparent 55%),
+    linear-gradient(120deg, #34b56f, #1f8a52);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.32), 0 10px 28px rgb(var(--green-rgb) / 0.42);
+}
+
+.btn-directory.btn-add-song:active:not(:disabled) {
+  background: linear-gradient(120deg, #23864f, #17663c);
+  box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.28), 0 4px 12px rgb(var(--green-rgb) / 0.28);
+}
+
 .songs-screen .heading-actions {
   flex-direction: column;
   align-items: stretch;

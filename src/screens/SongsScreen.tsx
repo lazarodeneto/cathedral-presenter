@@ -104,9 +104,14 @@ export function SongsScreen() {
               <small>{t('songDirectory.openHint')}</small>
             </span>
           </button>
-          <button className="btn btn-primary" onClick={() => setCreateOpen(true)}>
-            <Plus size={15} />
-            {t('library.newSong')}
+          <button className="btn btn-directory btn-add-song" onClick={() => setCreateOpen(true)}>
+            <span className="btn-directory-icon" aria-hidden="true">
+              <Plus size={16} />
+            </span>
+            <span className="btn-directory-copy">
+              <strong>{t('library.newSong')}</strong>
+              <small>{t('library.newSongHint')}</small>
+            </span>
           </button>
         </div>
       </div>
