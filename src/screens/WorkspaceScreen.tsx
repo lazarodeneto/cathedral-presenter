@@ -77,7 +77,7 @@ import { webOutputProvider } from '../providers/output/WebOutputProvider'
 import { SlideRenderer } from '../components/SlideRenderer'
 import { AddContentModal } from '../components/AddContentModal'
 import { ConfirmDialog, Modal } from '../components/Modal'
-import { CanvasGuidesRail, EditorToolbar, ElementActionRail } from '../components/editor/EditorToolbar'
+import { CanvasGuidesRail, EditorToolbar, ElementActionRail, RailTooltip } from '../components/editor/EditorToolbar'
 import { EditorMediaDialog, mediaError, type MediaDialogMode } from '../components/editor/EditorMediaDialog'
 import { EditorBackgroundDialog } from '../components/editor/EditorBackgroundDialog'
 import { LOGO_ERROR_KEYS, processLogoFile } from '../utils/logo'
@@ -1116,8 +1116,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   <button
                     className="editor-tool slide-delete-btn"
                     disabled={!activeSlide || !activeItem}
-                    title={t('editor.delete')}
-                    aria-label={t('editor.delete')}
+                    aria-label={t('rail.deleteSlide')}
+                    aria-description={t('rail.deleteSlideHint')}
                     onClick={() => {
                       if (activeItem && activeSlide) {
                         setConfirm({ kind: 'slide', itemId: activeItem.id, slideId: activeSlide.id })
@@ -1125,6 +1125,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     }}
                   >
                     <Trash2 size={16} />
+                    <RailTooltip title={t('rail.deleteSlide')} hint={t('rail.deleteSlideHint')} />
                   </button>
                 </div>
               </div>

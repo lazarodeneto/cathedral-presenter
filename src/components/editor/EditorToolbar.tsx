@@ -24,6 +24,16 @@ import type { SlideElement } from '../../types'
 import { useT } from '../../i18n/useT'
 import type { MediaDialogMode } from './EditorMediaDialog'
 
+/** Tooltip beside a canvas-rail button: what it is, and what it does. Shown on hover and keyboard focus. */
+export function RailTooltip({ title, hint }: { title: string; hint: string }) {
+  return (
+    <span className="rail-tooltip" role="tooltip">
+      <strong>{title}</strong>
+      <small>{hint}</small>
+    </span>
+  )
+}
+
 function ToolButton({
   icon,
   label,
@@ -33,6 +43,7 @@ function ToolButton({
   title,
   compact,
   pressed,
+  hint,
 }: {
   icon: React.ReactNode
   label: string
@@ -43,19 +54,23 @@ function ToolButton({
   compact?: boolean
   /** Makes the button an on/off toggle. */
   pressed?: boolean
+  /** Explanation shown in the hover tooltip of compact rail buttons. */
+  hint?: string
 }) {
   return (
     <button
       className={`editor-tool ${active ? 'is-active' : ''} ${compact ? 'is-compact' : ''}`}
       onClick={onClick}
       disabled={disabled}
-      title={title ?? label}
+      title={hint ? undefined : (title ?? label)}
       aria-label={label}
+      aria-description={hint}
       aria-pressed={pressed}
       type="button"
     >
       {icon}
       {!compact && <span>{label}</span>}
+      {hint && <RailTooltip title={title ?? label} hint={hint} />}
     </button>
   )
 }
@@ -144,12 +159,14 @@ export function ElementActionRail({
       <ToolButton
         icon={<Plus size={16} />}
         label={t('editor.addContent')}
+        hint={t('rail.addContent')}
         onClick={onAddContent}
         compact
       />
       <ToolButton
         icon={<Square size={14} />}
         label={t('editor.addSlide')}
+        hint={t('rail.addSlide')}
         onClick={onAddSlide}
         compact
       />
@@ -158,6 +175,7 @@ export function ElementActionRail({
         <ToolButton
           icon={<ImagePlus size={16} />}
           label={t('editor.useAsBackground')}
+          hint={t('rail.useAsBackground')}
           onClick={onFillBackground}
           compact
         />
@@ -165,6 +183,7 @@ export function ElementActionRail({
       <ToolButton
         icon={selectedElement?.visible ? <Eye size={16} /> : <EyeOff size={16} />}
         label={t(selectedElement?.visible ? 'common.hide' : 'common.show')}
+        hint={selectedElement ? t(selectedElement.visible ? 'rail.hide' : 'rail.show') : `${t('rail.hide')} ${t('rail.needsSelection')}`}
         onClick={onToggleVisible}
         disabled={!selectedElement}
         compact
@@ -172,6 +191,7 @@ export function ElementActionRail({
       <ToolButton
         icon={<Copy size={16} />}
         label={t('editor.duplicateElement')}
+        hint={selectedElement ? t('rail.duplicate') : `${t('rail.duplicate')} ${t('rail.needsSelection')}`}
         onClick={onDuplicate}
         disabled={!selectedElement}
         compact
@@ -179,6 +199,7 @@ export function ElementActionRail({
       <ToolButton
         icon={<Trash2 size={16} />}
         label={t('editor.deleteElement')}
+        hint={selectedElement ? t('rail.deleteElement') : `${t('rail.deleteElement')} ${t('rail.needsSelection')}`}
         onClick={onDelete}
         disabled={!selectedElement}
         compact
@@ -206,6 +227,7 @@ export function CanvasGuidesRail({
         icon={<Grid3x3 size={16} />}
         label={t('editor.grid')}
         title={`${t('editor.grid')}: ${t(showGrid ? 'common.on' : 'common.off')}`}
+        hint={t('rail.grid')}
         onClick={onToggleGrid}
         active={showGrid}
         pressed={showGrid}
@@ -215,6 +237,7 @@ export function CanvasGuidesRail({
         icon={<Magnet size={16} />}
         label={t('editor.snap')}
         title={`${t('editor.snap')}: ${t(snapToObjects ? 'common.on' : 'common.off')}`}
+        hint={t('rail.snap')}
         onClick={onToggleSnap}
         active={snapToObjects}
         pressed={snapToObjects}
