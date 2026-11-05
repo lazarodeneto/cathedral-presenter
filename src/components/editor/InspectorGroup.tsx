@@ -1,5 +1,5 @@
 import { Children, createContext, isValidElement, useContext, useState, type ReactElement, type ReactNode } from 'react'
-import { ChevronDown, ChevronRight, GripVertical, type LucideIcon } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, GripVertical, type LucideIcon } from 'lucide-react'
 
 const CLOSED_KEY = 'church-presenter:inspector-groups'
 const ORDER_KEY = 'church-presenter:inspector-order'
@@ -29,7 +29,12 @@ interface DragContext {
   over: (id: string, side: 'before' | 'after') => void
   finish: (id: string) => void
   cancel: () => void
+  /** Keyboard and touch twin of dragging: one step up or down. */
+  move: (id: string, direction: -1 | 1) => void
+  position: (id: string) => { first: boolean; last: boolean }
   hint: string
+  moveUpLabel: string
+  moveDownLabel: string
 }
 
 const GroupDrag = createContext<DragContext | null>(null)
@@ -39,7 +44,17 @@ const GroupDrag = createContext<DragContext | null>(null)
  * them into, remembered on this device. Groups missing from the saved order
  * keep their place at the end.
  */
-export function InspectorGroupList({ children, dragHint }: { children: ReactNode; dragHint: string }) {
+export function InspectorGroupList({
+  children,
+  dragHint,
+  moveUpLabel,
+  moveDownLabel,
+}: {
+  children: ReactNode
+  dragHint: string
+  moveUpLabel: string
+  moveDownLabel: string
+}) {
   const [order, setOrder] = useState(() => readList(ORDER_KEY))
   const [dragging, setDragging] = useState<string | null>(null)
   const [drop, setDrop] = useState<DragContext['drop']>(null)
@@ -53,21 +68,36 @@ export function InspectorGroupList({ children, dragHint }: { children: ReactNode
   }
   const sorted = [...groups].sort((a, b) => rank(a.props.id) - rank(b.props.id))
 
+  const ids = sorted.map((group) => group.props.id)
+  const saveOrder = (next: string[]) => {
+    setOrder(next)
+    writeList(ORDER_KEY, next)
+  }
   const context: DragContext = {
     dragging,
     drop,
     hint: dragHint,
+    moveUpLabel,
+    moveDownLabel,
+    position: (id) => ({ first: ids[0] === id, last: ids[ids.length - 1] === id }),
+    move: (id, direction) => {
+      const at = ids.indexOf(id)
+      const to = at + direction
+      if (at < 0 || to < 0 || to >= ids.length) return
+      const next = [...ids]
+      ;[next[at], next[to]] = [next[to], next[at]]
+      saveOrder(next)
+    },
     start: (id) => setDragging(id),
     over: (id, side) => {
       if (drop?.id !== id || drop.side !== side) setDrop({ id, side })
     },
     finish: (target) => {
       if (dragging && drop && dragging !== target) {
-        const ids = sorted.map((group) => group.props.id).filter((id) => id !== dragging)
-        const at = ids.indexOf(target)
-        ids.splice(drop.side === 'after' ? at + 1 : at, 0, dragging)
-        setOrder(ids)
-        writeList(ORDER_KEY, ids)
+        const next = ids.filter((id) => id !== dragging)
+        const at = next.indexOf(target)
+        next.splice(drop.side === 'after' ? at + 1 : at, 0, dragging)
+        saveOrder(next)
       }
       setDragging(null)
       setDrop(null)
@@ -143,12 +173,51 @@ export function InspectorGroup({
             <GripVertical size={13} />
           </span>
         ) : null}
-        <button type="button" className="inspector-group-toggle" aria-expanded={open} aria-controls={bodyId} onClick={toggle}>
+        <button
+          type="button"
+          className="inspector-group-toggle"
+          aria-expanded={open}
+          aria-controls={bodyId}
+          aria-keyshortcuts={drag ? 'Alt+ArrowUp Alt+ArrowDown' : undefined}
+          onClick={toggle}
+          onKeyDown={(event) => {
+            if (!drag || !event.altKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) return
+            event.preventDefault()
+            drag.move(id, event.key === 'ArrowUp' ? -1 : 1)
+            // Keep focus on this header after it moves.
+            const button = event.currentTarget
+            requestAnimationFrame(() => button.focus())
+          }}
+        >
           {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           <Icon size={14} className="inspector-group-icon" />
           <span className="inspector-group-title">{title}</span>
           {meta ? <span className="inspector-group-meta">{meta}</span> : null}
         </button>
+        {drag ? (
+          <span className="inspector-group-move">
+            <button
+              type="button"
+              className="icon-btn icon-btn-xs"
+              disabled={drag.position(id).first}
+              onClick={() => drag.move(id, -1)}
+              aria-label={`${drag.moveUpLabel}: ${title}`}
+              title={drag.moveUpLabel}
+            >
+              <ArrowUp size={12} />
+            </button>
+            <button
+              type="button"
+              className="icon-btn icon-btn-xs"
+              disabled={drag.position(id).last}
+              onClick={() => drag.move(id, 1)}
+              aria-label={`${drag.moveDownLabel}: ${title}`}
+              title={drag.moveDownLabel}
+            >
+              <ArrowDown size={12} />
+            </button>
+          </span>
+        ) : null}
       </div>
       {open ? (
         <div className="inspector-group-body" id={bodyId}>

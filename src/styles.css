@@ -6879,6 +6879,51 @@ dialog.modal::backdrop {
   opacity: 0.45;
 }
 
+.inspector-group-move {
+  display: flex;
+  flex: none;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.inspector-group-head:hover .inspector-group-move,
+.inspector-group-head:focus-within .inspector-group-move {
+  opacity: 1;
+}
+
+.rundown-slide-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.rundown-slide-row > .rundown-slide {
+  min-width: 0;
+  flex: 1;
+}
+
+.rundown-slide-move {
+  display: flex;
+  flex: none;
+}
+
+/* Reorder buttons stay reachable by keyboard, and always visible on touch screens. */
+.rundown-section-head:focus-within .section-actions {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .section-actions,
+  .rundown-actions,
+  .inspector-group-move {
+    opacity: 1;
+  }
+
+  .inspector-group-grip {
+    display: none;
+  }
+}
+
 /* Drop markers shared by the inspector groups and the service sequence. */
 .inspector-group.drop-before,
 .rundown-item-wrap.drop-before,
@@ -16549,15 +16594,35 @@ body:not(.output-mode) .backup-panel > div:nth-child(2) {
     min-width: 0;
   }
 
-  /* Rail: element actions, grid/snap and delete slide share one centred row. */
+  /* Rail: element actions, grid/snap and delete slide share one centred row,
+     wrapping as whole groups when the captioned add buttons make it too wide. */
   body:not(.output-mode) .canvas-rail-column {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
+    justify-content: safe center;
     align-items: stretch;
-    gap: 6px;
+    gap: 4px;
+  }
+
+  /* Narrower captioned add buttons so the whole rail fits one row on a phone. */
+  body:not(.output-mode) .editor-element-actions .editor-tool.has-caption {
+    width: 38px;
+    min-width: 38px;
+  }
+
+  body:not(.output-mode) .editor-element-actions .rail-divider {
+    margin: 4px 2px;
+  }
+
+  /* 36px wide, 40px tall: above the WCAG 2.2 minimum, and the full rail fits a 375px phone. */
+  body:not(.output-mode) .canvas-rail-column .editor-element-actions .editor-tool:not(.has-caption),
+  body:not(.output-mode) .canvas-rail-column .slide-delete-btn {
+    width: 36px;
+    min-width: 36px;
+    padding: 0;
   }
 
   body:not(.output-mode) .canvas-rail-column .slide-delete-btn {
-    width: 40px;
+    width: 36px;
     height: auto;
     min-height: 40px;
   }

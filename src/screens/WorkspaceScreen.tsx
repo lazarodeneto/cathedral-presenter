@@ -274,6 +274,28 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
     if (rundownDrop?.id !== id || rundownDrop.side !== side) setRundownDrop({ id, side })
   }
   const dropClass = (id: string) => (rundownDrop?.id === id ? `drop-${rundownDrop.side}` : '')
+  // Every drag in the sequence has a keyboard and touch twin: buttons, and Alt+↑ / Alt+↓.
+  const moveSectionBy = (sectionId: string, direction: -1 | 1) => {
+    if (!service) return
+    const index = service.sections.findIndex((section) => section.id === sectionId)
+    const target = service.sections[index + direction]
+    if (index < 0 || !target) return
+    moveSectionNextTo(service.id, sectionId, target.id, direction < 0 ? 'before' : 'after')
+  }
+  const moveSlideBy = (itemId: string, slideId: string, direction: -1 | 1) => {
+    const item = service?.items.find((entry) => entry.id === itemId)
+    if (!service || !item) return
+    const index = item.slides.findIndex((slide) => slide.id === slideId)
+    const to = index + direction
+    if (index < 0 || to < 0 || to >= item.slides.length) return
+    moveSlide(service.id, itemId, slideId, to)
+  }
+  const altArrow = (event: React.KeyboardEvent, move: (direction: -1 | 1) => void) => {
+    if (!event.altKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) return
+    event.preventDefault()
+    event.stopPropagation()
+    move(event.key === 'ArrowUp' ? -1 : 1)
+  }
   const [copiedSlide, setCopiedSlide] = useState<Slide | null>(null)
   // Projection format, saved in Settings: the canvas and the audience output use the same one.
   const projection = outputFormat(useAppStore((state) => state.settings.outputFormat))
@@ -761,7 +783,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
             </button>
           </div>
           <div className="rundown-scroll">
-            {service.sections.map((section) => {
+            {service.sections.map((section, sectionIndex) => {
               const isCollapsed = collapsed.has(section.id)
               return (
                 <div
@@ -800,6 +822,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   >
                     <button
                       className="section-collapse"
+                      aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"
+                      onKeyDown={(event) => altArrow(event, (direction) => moveSectionBy(section.id, direction))}
                       onClick={() => {
                         const next = new Set(collapsed)
                         if (next.has(section.id)) next.delete(section.id)
@@ -812,6 +836,24 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                       <small className="rundown-count">{section.itemIds.length}</small>
                     </button>
                     <div className="section-actions">
+                      <button
+                        className="icon-btn icon-btn-xs"
+                        onClick={() => moveSectionBy(section.id, -1)}
+                        disabled={sectionIndex === 0}
+                        aria-label={`${t('common.moveUp')}: ${section.title}`}
+                        title={t('common.moveUp')}
+                      >
+                        <ArrowUp size={12} />
+                      </button>
+                      <button
+                        className="icon-btn icon-btn-xs"
+                        onClick={() => moveSectionBy(section.id, 1)}
+                        disabled={sectionIndex === service.sections.length - 1}
+                        aria-label={`${t('common.moveDown')}: ${section.title}`}
+                        title={t('common.moveDown')}
+                      >
+                        <ArrowDown size={12} />
+                      </button>
                       <button
                         className="icon-btn icon-btn-xs"
                         onClick={() => openAdd(section.id)}
@@ -871,6 +913,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                               type="button"
                               className="rundown-item-main"
                               aria-current={selected ? 'true' : undefined}
+                              aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"
+                              onKeyDown={(event) => altArrow(event, (direction) => moveItem(service.id, item.id, direction))}
                               onClick={() => { selectItem(item.id); setMobileRundown(false) }}
                             >
                               <span className="rundown-type tone-chip" data-tone={ITEM_TONES[item.type] ?? 'wash'} aria-hidden="true">
@@ -916,12 +960,14 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                           {selected && (
                             <div className="rundown-slides">
                               {item.slides.map((slide, index) => (
+                                <div key={slide.id} className="rundown-slide-row">
                                 <button
-                                  key={slide.id}
                                   className={`rundown-slide ${slide.id === activeSlide?.id ? 'is-active' : ''} ${live?.currentSlideId === slide.id ? 'is-live' : ''} ${
                                     rundownDrag?.kind === 'slide' && rundownDrag.id === slide.id ? 'is-dragging' : ''
                                   } ${dropClass(slide.id)}`}
                                   draggable
+                                  aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"
+                                  onKeyDown={(event) => altArrow(event, (direction) => moveSlideBy(item.id, slide.id, direction))}
                                   onDragStart={(event) => {
                                     // Slides move within their item; keep the item itself from starting a drag.
                                     event.stopPropagation()
@@ -974,6 +1020,31 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                                     )
                                   })()}
                                 </button>
+                                {slide.id === activeSlide?.id && item.slides.length > 1 && (
+                                  <span className="rundown-slide-move">
+                                    <button
+                                      type="button"
+                                      className="icon-btn icon-btn-xs"
+                                      disabled={index === 0}
+                                      onClick={() => moveSlideBy(item.id, slide.id, -1)}
+                                      aria-label={`${t('common.moveUp')}: ${t('common.slide')} ${index + 1}`}
+                                      title={t('common.moveUp')}
+                                    >
+                                      <ArrowUp size={12} />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="icon-btn icon-btn-xs"
+                                      disabled={index === item.slides.length - 1}
+                                      onClick={() => moveSlideBy(item.id, slide.id, 1)}
+                                      aria-label={`${t('common.moveDown')}: ${t('common.slide')} ${index + 1}`}
+                                      title={t('common.moveDown')}
+                                    >
+                                      <ArrowDown size={12} />
+                                    </button>
+                                  </span>
+                                )}
+                                </div>
                               ))}
                             </div>
                           )}
@@ -1952,7 +2023,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   <span className="badge badge-quiet">{t(`culto.origin.${itemOrigin(activeItem)}`)}</span>
                   <span>{t(`culto.originNote.${itemOrigin(activeItem) === 'here' ? 'here' : 'copy'}`)}</span>
                 </p>
-                <InspectorGroupList dragHint={t('rundown.dragHint')}>
+                <InspectorGroupList dragHint={t('rundown.dragHint')} moveUpLabel={t('common.moveUp')} moveDownLabel={t('common.moveDown')}>
                 <InspectorGroup id="content" icon={FileText} title={t('inspector.content')}>
                 {activeSlide.bible ? (
                   <>
