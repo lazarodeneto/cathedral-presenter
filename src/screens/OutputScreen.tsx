@@ -11,10 +11,11 @@ import { SHORTCUT_ACTIONS } from '../shortcuts/actions'
 import { BrandMark } from '../components/BrandMark'
 import { applyTheme, DEFAULT_BRANDING, normalizeBranding } from '../utils/branding'
 import { elapsedLabel } from '../utils/dates'
+import { ASPECT_RATIO, outputFormat, resolutionLabel, type OutputFormat } from '../utils/outputFormats'
 
 const FALLBACK_BRANDING: Branding = DEFAULT_BRANDING
 
-function TestPattern({ label }: { label: string }) {
+function TestPattern({ label, format }: { label: string; format: OutputFormat }) {
   const t = useT()
   return (
     <div className="test-pattern">
@@ -29,7 +30,9 @@ function TestPattern({ label }: { label: string }) {
       <div className="test-center">
         <span className="test-crosshair" />
       </div>
-      <small className="test-corner">16:9 · 1920 × 1080</small>
+      <small className="test-corner">
+        {format.name} · {resolutionLabel(format)} · {format.ratio}
+      </small>
       <small className="test-corner test-corner-right">{t('output.testPattern')}</small>
     </div>
   )
@@ -62,6 +65,7 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' }) {
   const [snapshot, setSnapshot] = useState<OutputSnapshot | null>(() => webOutputProvider.readSnapshot())
   const [fullscreen, setFullscreen] = useState(Boolean(document.fullscreenElement))
   const [, setTick] = useState(0)
+  const format = outputFormat(snapshot?.audience.format)
 
   useEffect(() => {
     setSnapshot(webOutputProvider.readSnapshot())
@@ -134,7 +138,7 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' }) {
       <TimerSourceContext.Provider value={snapshot.timers ?? {}}>
         <div className="output-window output-confidence">
           {isTest ? (
-            <TestPattern label={confidence.testMonitorName ?? confidence.monitorName} />
+            <TestPattern label={confidence.testMonitorName ?? confidence.monitorName} format={format} />
           ) : mode === 'live' || mode === 'ended' ? (
             <div className="stage-output">
               <header className="stage-output-head">
@@ -166,7 +170,7 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' }) {
                         <span>{confidence.sectionTitle} · {confidence.itemTitle}</span>
                       </div>
                       <div className="stage-frame">
-                        <SlideRenderer slide={confidence.current} branding={confidence.branding} />
+                        <SlideRenderer slide={confidence.current} branding={confidence.branding} aspectRatio={format.aspect} />
                         {confidence.current.notes && (
                           <span className="stage-notes-pill">{confidence.current.notes}</span>
                         )}
@@ -178,7 +182,7 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' }) {
                       </div>
                       <div className="stage-frame">
                         {confidence.next ? (
-                          <SlideRenderer slide={confidence.next} branding={confidence.branding} />
+                          <SlideRenderer slide={confidence.next} branding={confidence.branding} aspectRatio={format.aspect} />
                         ) : (
                           <div className="stage-frame-empty">{t('live.ended')}</div>
                         )}
@@ -216,9 +220,13 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' }) {
   const mode = audience.mode
   return (
     <TimerSourceContext.Provider value={snapshot.timers ?? {}}>
-      <div className={`output-window output-audience ${mode === 'blank' ? 'is-blank' : ''}`}>
+      <div
+        className={`output-window output-audience ${mode === 'blank' ? 'is-blank' : ''}`}
+        style={{ '--output-ratio': ASPECT_RATIO[format.aspect] } as React.CSSProperties}
+        data-format={format.id}
+      >
         {mode === 'test' ? (
-          <TestPattern label={audience.testMonitorName ?? audience.monitorName} />
+          <TestPattern label={audience.testMonitorName ?? audience.monitorName} format={format} />
         ) : mode === 'blank' ? (
           // Blank means a black screen for the audience: nothing drawn, the state is named for assistive tech only.
           <div className="output-black" role="img" aria-label={t('output.blank')} />
@@ -231,6 +239,7 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' }) {
                 <SlideRenderer
                   slide={slide}
                   branding={audience.branding}
+                  aspectRatio={format.aspect}
                   message={audience.message}
                   messageVisible={audience.messageVisible}
                 />

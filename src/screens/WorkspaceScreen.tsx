@@ -81,6 +81,7 @@ import { SlideRenderer } from '../components/SlideRenderer'
 import { AddContentModal } from '../components/AddContentModal'
 import { ConfirmDialog, Modal } from '../components/Modal'
 import { InspectorGroup, InspectorGroupList } from '../components/editor/InspectorGroup'
+import { ASPECT_RATIO, OUTPUT_FORMATS, outputFormat, resolutionLabel } from '../utils/outputFormats'
 import { CanvasGuidesRail, EditorToolbar, ElementActionRail, RailTooltip } from '../components/editor/EditorToolbar'
 import { EditorMediaDialog, mediaError, type MediaDialogMode } from '../components/editor/EditorMediaDialog'
 import { EditorBackgroundDialog } from '../components/editor/EditorBackgroundDialog'
@@ -274,7 +275,9 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   const dropClass = (id: string) => (rundownDrop?.id === id ? `drop-${rundownDrop.side}` : '')
   const [aspectMenuOpen, setAspectMenuOpen] = useState(false)
   const [copiedSlide, setCopiedSlide] = useState<Slide | null>(null)
-  const [slideAspectRatio, setSlideAspectRatio] = useState<'wide' | 'classic'>('wide')
+  // Projection format, saved in Settings: the canvas and the audience output use the same one.
+  const projection = outputFormat(useAppStore((state) => state.settings.outputFormat))
+  const slideAspectRatio = projection.aspect
   const [sectionInputOpen, setSectionInputOpen] = useState(false)
   const [sectionTitle, setSectionTitle] = useState('')
   const [confirm, setConfirm] = useState<
@@ -311,7 +314,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   const canvasAreaRef = useRef<HTMLDivElement>(null)
   const canvasRailRef = useRef<HTMLDivElement>(null)
   // The canvas fills its area at the exact slide format: 16:9 (1920 × 1080) or 4:3.
-  const canvasFit = useContainFit(canvasAreaRef, slideAspectRatio === 'wide' ? 1920 / 1080 : 4 / 3, canvasRailRef, 2)
+  const canvasFit = useContainFit(canvasAreaRef, ASPECT_RATIO[slideAspectRatio], canvasRailRef, 2)
   // Which way the slide strip can still scroll, so the arrows show only when useful.
   const [thumbScroll, setThumbScroll] = useState({ left: false, right: false })
   const updateThumbScroll = useCallback(() => {
@@ -663,7 +666,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
     const size = 11
     // height% must compensate for the canvas aspect ratio so square/circle render as square/circle.
     // Percentages are relative to canvas width and height independently; canvas is 1920:1080 (wide) or 4:3 (classic).
-    const [aw, ah] = slideAspectRatio === 'wide' ? [1920, 1080] : [4, 3]
+    const [aw, ah] = [projection.width, projection.height]
     const height = Math.round(size * aw / ah * 10) / 10
     const makeLogo = () => makeElement('image', {
       source: logoUrl,
@@ -1447,27 +1450,34 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                 aria-expanded={aspectMenuOpen}
               >
                 <Monitor size={14} />
-                <span>{slideAspectRatio === 'wide' ? '1920 × 1080' : '4:3'}</span>
+                <span>
+                  {resolutionLabel(projection)} <small className="workspace-aspect-ratio">{projection.ratio}</small>
+                </span>
                 <ChevronDown size={13} />
               </button>
               {aspectMenuOpen && (
                 <div className="workspace-aspect-menu" role="menu" aria-label={t('editor.slideFormat')}>
-                  {([
-                    ['wide', '1920 × 1080'],
-                    ['classic', '4:3'],
-                  ] as const).map(([value, label]) => (
+                  {OUTPUT_FORMATS.map((format, index) => (
                     <button
-                      key={value}
-                      className={`workspace-aspect-option ${slideAspectRatio === value ? 'is-active' : ''}`}
+                      key={format.id}
+                      className={`workspace-aspect-option ${projection.id === format.id ? 'is-active' : ''} ${
+                        index > 0 && OUTPUT_FORMATS[index - 1].ratio !== format.ratio ? 'starts-group' : ''
+                      }`}
                       role="menuitemradio"
-                      aria-checked={slideAspectRatio === value}
+                      aria-checked={projection.id === format.id}
                       onClick={() => {
-                        setSlideAspectRatio(value)
+                        updateSettings({ outputFormat: format.id })
                         setAspectMenuOpen(false)
                       }}
                     >
-                      <span>{label}</span>
-                      {slideAspectRatio === value && <Check size={13} />}
+                      <span className={`aspect-glyph is-${format.aspect}`} aria-hidden="true" />
+                      <span className="workspace-aspect-copy">
+                        <strong>{format.name}</strong>
+                        <small>
+                          {resolutionLabel(format)} · {format.ratio}
+                        </small>
+                      </span>
+                      {projection.id === format.id && <Check size={13} />}
                     </button>
                   ))}
                 </div>
@@ -1490,6 +1500,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
               <SlideRenderer
                 slide={live?.blank ? { ...liveCurrentSlide.slide, elements: [] } : liveCurrentSlide.slide}
                 branding={branding}
+                aspectRatio={slideAspectRatio}
                 compact
                 message={live?.message ?? undefined}
                 messageVisible={Boolean(live?.messageVisible && live.message && !live.blank)}

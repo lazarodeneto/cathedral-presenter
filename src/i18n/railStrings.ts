@@ -23,6 +23,8 @@ const en: Strings = {
   'inspector.designHint': 'Edit the whole slide: text, style, background, transition and notes.',
   'inspector.elementHint': 'Edit the selected element on the slide.',
   'rundown.dragHint': 'Drag to reorder',
+  'settings.projectionFormat': 'Projection format',
+  'settings.projectionFormatHint': 'Resolution and proportion of the projector. The editor and the audience output use the same format.',
 }
 
 const pt: Strings = {
@@ -45,6 +47,8 @@ const pt: Strings = {
   'inspector.designHint': 'Editar o slide inteiro: texto, estilo, fundo, transição e notas.',
   'inspector.elementHint': 'Editar o elemento selecionado no slide.',
   'rundown.dragHint': 'Arraste para reordenar',
+  'settings.projectionFormat': 'Formato de projeção',
+  'settings.projectionFormatHint': 'Resolução e proporção do projetor. O editor e a saída para o público usam o mesmo formato.',
 }
 
 const ptBR: Strings = {
@@ -75,6 +79,8 @@ const es: Strings = {
   'inspector.designHint': 'Edita toda la diapositiva: texto, estilo, fondo, transición y notas.',
   'inspector.elementHint': 'Edita el elemento seleccionado en la diapositiva.',
   'rundown.dragHint': 'Arrastra para reordenar',
+  'settings.projectionFormat': 'Formato de proyección',
+  'settings.projectionFormatHint': 'Resolución y proporción del proyector. El editor y la salida al público usan el mismo formato.',
 }
 
 const fr: Strings = {
@@ -97,6 +103,8 @@ const fr: Strings = {
   'inspector.designHint': 'Modifier toute la diapositive : texte, style, fond, transition et notes.',
   'inspector.elementHint': 'Modifier l’élément sélectionné sur la diapositive.',
   'rundown.dragHint': 'Glissez pour réorganiser',
+  'settings.projectionFormat': 'Format de projection',
+  'settings.projectionFormatHint': 'Résolution et proportion du projecteur. L’éditeur et la sortie public utilisent le même format.',
 }
 
 const de: Strings = {
@@ -119,6 +127,8 @@ const de: Strings = {
   'inspector.designHint': 'Die ganze Folie bearbeiten: Text, Stil, Hintergrund, Übergang und Notizen.',
   'inspector.elementHint': 'Das ausgewählte Element auf der Folie bearbeiten.',
   'rundown.dragHint': 'Zum Umordnen ziehen',
+  'settings.projectionFormat': 'Projektionsformat',
+  'settings.projectionFormatHint': 'Auflösung und Seitenverhältnis des Projektors. Editor und Publikumsausgabe nutzen dasselbe Format.',
 }
 
 const it: Strings = {
@@ -141,6 +151,8 @@ const it: Strings = {
   'inspector.designHint': 'Modifica tutta la diapositiva: testo, stile, sfondo, transizione e note.',
   'inspector.elementHint': 'Modifica l’elemento selezionato sulla diapositiva.',
   'rundown.dragHint': 'Trascina per riordinare',
+  'settings.projectionFormat': 'Formato di proiezione',
+  'settings.projectionFormatHint': 'Risoluzione e proporzione del proiettore. L’editor e l’uscita per il pubblico usano lo stesso formato.',
 }
 
 export const railStrings: Record<Locale, Strings> = { en, pt, 'pt-BR': ptBR, es, fr, de, it }

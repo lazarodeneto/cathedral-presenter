@@ -555,6 +555,8 @@ export interface AppSettings {
   showGrid?: boolean
   /** Editor canvas: snap elements to the canvas, other elements and the grid. On when missing. */
   snapToObjects?: boolean
+  /** Projection format (resolution and proportion) for the editor canvas and the audience output. */
+  outputFormat?: import('./utils/outputFormats').OutputFormatId
 }
 
 export interface LiveSession {
@@ -587,6 +589,8 @@ export interface AudienceOutputState {
   isFrozen?: boolean
   /** How the audience screen moves into `slide`: the slide's own transition, else the service default. */
   transition?: SlideTransition
+  /** Projection format chosen in the editor or Settings; the output letterboxes to it. */
+  format?: import('./utils/outputFormats').OutputFormatId
   updatedAt: string
 }
 

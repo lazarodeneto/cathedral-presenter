@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { isOutputFormatId, outputFormat } from '../utils/outputFormats'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import type {
   AppSettings,
@@ -100,6 +101,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   defaultSectionTitle: 'Message',
   showGrid: false,
   snapToObjects: true,
+  outputFormat: 'fhd',
 }
 
 export { DEFAULT_BRANDING }
@@ -403,7 +405,19 @@ export const useAppStore = create<AppState>()(
           set((state) => ({ settings: { ...state.settings, locale } }))
         },
         updateSettings: (patch) =>
-          set((state) => ({ settings: { ...state.settings, ...patch } })),
+          set((state) => {
+            if (!patch.outputFormat || !isOutputFormatId(patch.outputFormat)) {
+              return { settings: { ...state.settings, ...patch } }
+            }
+            // The audience monitor takes the chosen projection resolution.
+            const format = outputFormat(patch.outputFormat)
+            return {
+              settings: { ...state.settings, ...patch },
+              monitors: state.monitors.map((monitor) =>
+                monitor.role === 'audience' ? { ...monitor, width: format.width, height: format.height } : monitor,
+              ),
+            }
+          }),
         saveBranding: (branding) => {
           const saved = normalizeBranding(branding)
           set((state) => ({

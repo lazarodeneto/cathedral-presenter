@@ -29,6 +29,7 @@ import { BibleLibraryPanel } from '../components/settings/BibleLibraryPanel'
 import { ShortcutSettings } from '../components/settings/ShortcutSettings'
 import { ConfirmDialog } from '../components/Modal'
 import { formatNumericDateTime } from '../utils/dates'
+import { OUTPUT_FORMATS, outputFormat, resolutionLabel, type OutputFormatId } from '../utils/outputFormats'
 import { SCREEN_META, ScreenIcon, type ScreenTone } from '../components/ScreenIcon'
 
 type Tab = 'general' | 'bibles' | 'identity' | 'outputs' | 'data' | 'security' | 'shortcuts'
@@ -394,13 +395,30 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
                           <option value="disabled">{t('settings.disabled')}</option>
                         </select>
                       </label>
-                      <div className="output-resolution">
-                        <span>{t('settings.resolution')}</span>
-                        <strong>
-                          {monitor.width} × {monitor.height}
-                        </strong>
-                        <small>{monitor.fullscreen ? t('common.fullscreen') : t('common.preview')}</small>
-                      </div>
+                      {monitor.role === 'audience' ? (
+                        <label className="field compact">
+                          <span>{t('settings.projectionFormat')}</span>
+                          <select
+                            value={outputFormat(settings.outputFormat).id}
+                            onChange={(event) => updateSettings({ outputFormat: event.target.value as OutputFormatId })}
+                          >
+                            {OUTPUT_FORMATS.map((format) => (
+                              <option key={format.id} value={format.id}>
+                                {format.name} · {resolutionLabel(format)} · {format.ratio}
+                              </option>
+                            ))}
+                          </select>
+                          <small className="field-hint">{t('settings.projectionFormatHint')}</small>
+                        </label>
+                      ) : (
+                        <div className="output-resolution">
+                          <span>{t('settings.resolution')}</span>
+                          <strong>
+                            {monitor.width} × {monitor.height}
+                          </strong>
+                          <small>{monitor.fullscreen ? t('common.fullscreen') : t('common.preview')}</small>
+                        </div>
+                      )}
                     </div>
                     <div className="output-actions">
                       <button

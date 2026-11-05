@@ -1,3 +1,4 @@
+import type { SlideAspect } from '../utils/outputFormats'
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react'
 import * as QRCode from 'qrcode'
 import { TriangleAlert } from 'lucide-react'
@@ -247,7 +248,7 @@ export interface SlideRendererProps {
   message?: string | null
   messageVisible?: boolean
   songFooter?: { title: string; author?: string }
-  aspectRatio?: 'wide' | 'classic'
+  aspectRatio?: SlideAspect
   /** Editor only: draw the alignment grid over the canvas. */
   showGrid?: boolean
   /** Editor only: snap dragged and resized elements to the canvas, other elements and the grid. */

@@ -1,3 +1,4 @@
+import { DEFAULT_OUTPUT_FORMAT_ID, isOutputFormatId } from '../utils/outputFormats'
 import type { StateStorage } from 'zustand/middleware'
 import type { Branding, LibrarySong, MediaAsset, Monitor } from '../types'
 import { LOCALES } from '../types'
@@ -243,6 +244,7 @@ export function mergeWorkspace(persisted: unknown, current: AppState): AppState 
         translationIds,
       ),
       highlightWeekday: validHighlightWeekday(settings.highlightWeekday),
+      outputFormat: isOutputFormatId(settings.outputFormat) ? settings.outputFormat : DEFAULT_OUTPUT_FORMAT_ID,
     },
     monitors: sanitizeMonitors(value.monitors, current.monitors),
     mediaLibrary: sanitizeMediaLibrary(value.mediaLibrary, current.mediaLibrary),

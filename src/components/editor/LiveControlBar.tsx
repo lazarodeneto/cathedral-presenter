@@ -19,6 +19,7 @@ import { SlideRenderer } from '../SlideRenderer'
 import { slideLabel } from '../../utils/slides'
 import { Modal } from '../Modal'
 import { useDialogFocus } from '../../hooks/useDialogFocus'
+import { outputFormat } from '../../utils/outputFormats'
 import type { ReactNode } from 'react'
 
 export function LiveControlBar() {
@@ -26,6 +27,7 @@ export function LiveControlBar() {
   const live = useAppStore((state) => state.live)
   const services = useAppStore((state) => state.services)
   const branding = useAppStore((state) => state.branding)
+  const aspect = outputFormat(useAppStore((state) => state.settings.outputFormat)).aspect
   const nextLive = useAppStore((state) => state.nextLive)
   const prevLive = useAppStore((state) => state.prevLive)
   const jumpLive = useAppStore((state) => state.jumpLive)
@@ -216,7 +218,7 @@ export function LiveControlBar() {
                 >
                   <span className="jump-number">{entry.index + 1}</span>
                   <span className="jump-thumb">
-                    <SlideRenderer slide={entry.slide} branding={branding} compact thumbnail />
+                    <SlideRenderer slide={entry.slide} branding={branding} aspectRatio={aspect} compact thumbnail />
                   </span>
                   <span className="jump-copy">
                     <strong>{slideLabel(entry.slide, entry.item.title)}</strong>
