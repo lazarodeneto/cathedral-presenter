@@ -1366,8 +1366,8 @@ export const useAppStore = create<AppState>()(
         showScriptureLive: (slide) => {
           const state = get()
           if (!state.live) return false
-          // A new verse replaces the frozen picture too: the operator chose it on purpose.
-          set({ live: { ...state.live, scripture: slide, blank: false, frozen: false, frozenSlideId: null } })
+          // Frozen stays frozen: the audience keeps the frozen picture while the operator moves on.
+          set({ live: { ...state.live, scripture: slide } })
           return true
         },
         clearScriptureLive: () =>
@@ -1382,6 +1382,8 @@ export const useAppStore = create<AppState>()(
                     ...state.live,
                     frozen: !state.live.frozen,
                     frozenSlideId: state.live.frozen ? null : state.live.currentSlideId,
+                    // A verse from Bible Mode freezes too, not the service slide under it.
+                    frozenScripture: state.live.frozen ? null : state.live.scripture ?? null,
                   },
                 }
               : {},

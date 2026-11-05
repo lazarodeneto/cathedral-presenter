@@ -579,6 +579,8 @@ export interface LiveSession {
    * the audience screen until the operator moves to a service slide again.
    */
   scripture?: Slide | null
+  /** The Bible Mode verse that was on screen when Freeze was pressed. */
+  frozenScripture?: Slide | null
 }
 
 export interface Toast {

@@ -48,6 +48,19 @@ describe('Bible Mode', () => {
     expect(snapshot().audience.slide?.id).toBe(flatSlides(service)[1].slide.id)
   })
 
+  it('freezes the verse on screen while the operator picks the next one', () => {
+    const state = useAppStore.getState()
+    const service = state.services.find((entry) => flatSlides(entry).length > 1 && entry.status !== 'archived')!
+    state.startLive(service.id, flatSlides(service)[0].slide.id)
+    const first = verseSlide()
+    useAppStore.getState().showScriptureLive(first)
+    useAppStore.getState().toggleFreeze()
+    useAppStore.getState().showScriptureLive(verseSlide())
+    expect(snapshot().audience.slide?.id).toBe(first.id)
+    useAppStore.getState().toggleFreeze()
+    expect(snapshot().audience.slide?.id).not.toBe(first.id)
+  })
+
   it('does nothing when no service is live', () => {
     expect(useAppStore.getState().showScriptureLive(verseSlide())).toBe(false)
   })

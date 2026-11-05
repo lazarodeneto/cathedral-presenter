@@ -19650,3 +19650,20 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
   border-color: var(--green);
   box-shadow: 0 0 0 2px rgb(var(--green-rgb) / 0.35);
 }
+
+/* Bible Mode: the live controls under the preview (Black, Freeze, Alert; Previous / Next step verses). */
+body:not(.output-mode) .live-control-actions.is-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.bm-live-controls {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--rounded-md);
+  background: rgb(var(--ink-rgb) / 0.25);
+}
+
+.bm-live-controls .live-control-actions {
+  margin-top: 0;
+  border-top: 0;
+}

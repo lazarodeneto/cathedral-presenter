@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowLeft, Eraser, EyeOff, Languages, MonitorPlay, Radio } from 'lucide-react'
+import { ArrowLeft, Eraser, Languages, MonitorPlay, Radio } from 'lucide-react'
 import type { BibleBookCatalogEntry, BibleVerse } from '../types'
 import { useT } from '../i18n/useT'
 import { useAppStore } from '../store/useAppStore'
@@ -15,6 +15,7 @@ import { outputFormat } from '../utils/outputFormats'
 import { flatSlides } from '../store/serviceUtils'
 import { SlideRenderer } from '../components/SlideRenderer'
 import { SCREEN_META } from '../components/ScreenIcon'
+import { LiveControlBar } from '../components/editor/LiveControlBar'
 
 interface Pick {
   bookIndex: number
@@ -41,7 +42,6 @@ export function BibleModeScreen() {
   const startLive = useAppStore((state) => state.startLive)
   const showScriptureLive = useAppStore((state) => state.showScriptureLive)
   const clearScriptureLive = useAppStore((state) => state.clearScriptureLive)
-  const toggleBlank = useAppStore((state) => state.toggleBlank)
   const recordRecentPassage = useAppStore((state) => state.recordRecentPassage)
   const customBibles = useAppStore((state) => state.customBibles)
   const hiddenBibleIds = useAppStore((state) => state.hiddenBibleIds)
@@ -180,6 +180,14 @@ export function BibleModeScreen() {
     verseListRef.current?.querySelector(`[data-verse="${pick.verse}"]`)?.scrollIntoView({ block: 'nearest' })
   }, [pick.verse])
 
+  // Previous / Next in the live controls step through the verses of the chapter.
+  const verseNumbers = verses.map((verse) => verse.verse)
+  const verseAt = pick.verse === null ? -1 : verseNumbers.indexOf(pick.verse)
+  const stepVerse = (direction: -1 | 1) => {
+    const next = verseNumbers[verseAt < 0 ? 0 : verseAt + direction]
+    if (next !== undefined) project(next)
+  }
+
   const available = new Set(catalog.map((entry) => entry.id))
   const bookLabel = book ? bookName(book.id, translation?.language ?? locale) : ''
   const reference =
@@ -255,15 +263,6 @@ export function BibleModeScreen() {
               <button type="button" className="btn btn-ghost btn-sm" disabled={!live.scripture} onClick={clearScriptureLive}>
                 <Eraser size={14} />
                 {t('biblemode.clear')}
-              </button>
-              <button
-                type="button"
-                className={`btn btn-ghost btn-sm ${live.blank ? 'is-on' : ''}`}
-                aria-pressed={live.blank}
-                onClick={toggleBlank}
-              >
-                <EyeOff size={14} />
-                {t('biblemode.blank')}
               </button>
             </>
           )}
@@ -365,6 +364,19 @@ export function BibleModeScreen() {
               )}
             </div>
             <p className="bm-hint">{t(live ? 'biblemode.keys' : 'biblemode.notLive')}</p>
+            {live && (
+              <div className="bm-live-controls">
+                <LiveControlBar
+                  showJump={false}
+                  navigation={{
+                    onPrevious: () => stepVerse(-1),
+                    onNext: () => stepVerse(1),
+                    previousDisabled: verseNumbers.length === 0 || verseAt <= 0,
+                    nextDisabled: verseNumbers.length === 0 || verseAt >= verseNumbers.length - 1,
+                  }}
+                />
+              </div>
+            )}
           </div>
           {verses.length > 0 && (
             <ol className="bm-verses" ref={verseListRef}>

@@ -32,8 +32,8 @@ export function buildOutputSnapshot(input: {
       ? slideContext(service, live.frozenSlideId)
       : null
   const effectiveContext = frozenContext ?? currentContext
-  // A verse from Bible Mode is on screen instead of the service slide (unless frozen).
-  const scripture = !frozenContext ? live?.scripture ?? null : null
+  // A verse from Bible Mode is on screen instead of the service slide; when frozen, the verse frozen with it.
+  const scripture = live?.frozen ? live.frozenScripture ?? null : live?.scripture ?? null
   const currentIndex = currentContext?.index ?? -1
   const next = currentIndex >= 0 ? slides[currentIndex + 1] ?? null : slides[0] ?? null
   const position =
