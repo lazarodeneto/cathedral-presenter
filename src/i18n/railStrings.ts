@@ -37,6 +37,7 @@ const en: Strings = {
   'sidebar.reset': 'Reset layout',
   'sidebar.resetHint': 'Put the menu, panels and inspector back to their default layout. Your services and content are not changed.',
   'sidebar.resetDone': 'Layout reset to default.',
+  'editor.boxPosition': 'Position',
 }
 
 const pt: Strings = {
@@ -73,6 +74,7 @@ const pt: Strings = {
   'sidebar.reset': 'Repor layout',
   'sidebar.resetHint': 'Repor o menu, os painéis e o inspetor no layout padrão. Os cultos e o conteúdo não mudam.',
   'sidebar.resetDone': 'Layout reposto no padrão.',
+  'editor.boxPosition': 'Posição',
 }
 
 const ptBR: Strings = {
@@ -121,6 +123,7 @@ const es: Strings = {
   'sidebar.reset': 'Restablecer diseño',
   'sidebar.resetHint': 'Devuelve el menú, los paneles y el inspector a su diseño predeterminado. Tus cultos y contenidos no cambian.',
   'sidebar.resetDone': 'Diseño restablecido.',
+  'editor.boxPosition': 'Posición',
 }
 
 const fr: Strings = {
@@ -157,6 +160,7 @@ const fr: Strings = {
   'sidebar.reset': 'Réinitialiser la disposition',
   'sidebar.resetHint': 'Remettre le menu, les panneaux et l’inspecteur dans leur disposition par défaut. Vos cultes et contenus ne changent pas.',
   'sidebar.resetDone': 'Disposition réinitialisée.',
+  'editor.boxPosition': 'Position',
 }
 
 const de: Strings = {
@@ -193,6 +197,7 @@ const de: Strings = {
   'sidebar.reset': 'Layout zurücksetzen',
   'sidebar.resetHint': 'Menü, Bereiche und Inspektor auf das Standardlayout zurücksetzen. Gottesdienste und Inhalte bleiben unverändert.',
   'sidebar.resetDone': 'Layout zurückgesetzt.',
+  'editor.boxPosition': 'Position',
 }
 
 const it: Strings = {
@@ -229,6 +234,7 @@ const it: Strings = {
   'sidebar.reset': 'Ripristina layout',
   'sidebar.resetHint': 'Riporta menu, pannelli e ispettore al layout predefinito. I culti e i contenuti non cambiano.',
   'sidebar.resetDone': 'Layout ripristinato.',
+  'editor.boxPosition': 'Posizione',
 }
 
 export const railStrings: Record<Locale, Strings> = { en, pt, 'pt-BR': ptBR, es, fr, de, it }

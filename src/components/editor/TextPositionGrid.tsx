@@ -31,7 +31,7 @@ const ICONS: Record<`${VerticalAlign}-${TextAlign}`, LucideIcon> = {
 }
 
 /**
- * Where the slide text sits, as one 3×3 choice: the same grid as the message
+ * Where the slide text, or a selected box, sits, as one 3×3 choice: the same grid as the message
  * box position, so a single click sets both the horizontal alignment and the
  * vertical position.
  */
@@ -41,8 +41,9 @@ export function TextPositionGrid({
   onChange,
   label,
 }: {
-  align: TextAlign
-  vertical: VerticalAlign
+  /** Null when the current position matches no cell (e.g. a box dragged freely). */
+  align: TextAlign | null
+  vertical: VerticalAlign | null
   onChange: (align: TextAlign, vertical: VerticalAlign) => void
   label: string
 }) {

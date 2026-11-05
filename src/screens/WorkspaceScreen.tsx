@@ -12,6 +12,7 @@ import {
   BookOpenText,
   Heading,
   Palette,
+  Move,
   Paintbrush,
   MousePointer2,
   FileText,
@@ -25,11 +26,8 @@ import {
   Scissors,
   SlidersHorizontal,
   ZoomIn,
-  AlignCenterHorizontal,
-  AlignEndHorizontal,
   AlignLeft,
   AlignRight,
-  AlignStartHorizontal,
   ArrowDown,
   Archive,
   ArrowLeft,
@@ -192,6 +190,14 @@ function ElementIcon({ type }: { type: ElementType }) {
   if (type === 'qr') return <QrCode size={13} />
   if (type === 'embed') return <Video size={13} />
   return <Type size={13} />
+}
+
+/** Which of the 9 grid places a box is at now, per axis; null when it sits elsewhere. */
+function boxPlacement(element: { x: number; y: number; width: number; height: number }) {
+  const near = (a: number, b: number) => Math.abs(a - b) < 0.6
+  const align = near(element.x, 4) ? 'left' : near(element.x + element.width / 2, 50) ? 'center' : near(element.x + element.width, 96) ? 'right' : null
+  const vertical = near(element.y, 4) ? 'top' : near(element.y + element.height / 2, 50) ? 'middle' : near(element.y + element.height, 96) ? 'bottom' : null
+  return { align, vertical } as const
 }
 
 export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceId?: string; presentOnOpen?: boolean }) {
@@ -722,13 +728,13 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
     push(t('editor.logoAddedAll', { count: added }), 'success')
   }
 
-  const alignSelected = (axis: 'horizontal' | 'vertical', value: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => {
+  /** Moves the selected box to one of 9 places inside the 4% safe margin. */
+  const placeSelected = (align: 'left' | 'center' | 'right', vertical: 'top' | 'middle' | 'bottom') => {
     if (!selectedElement || !activeItem || !activeSlide) return
-    const patch =
-      axis === 'horizontal'
-        ? { x: value === 'left' ? 4 : value === 'center' ? 50 - selectedElement.width / 2 : 96 - selectedElement.width }
-        : { y: value === 'top' ? 4 : value === 'middle' ? 50 - selectedElement.height / 2 : 96 - selectedElement.height }
-    updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, patch)
+    updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, {
+      x: align === 'left' ? 4 : align === 'center' ? 50 - selectedElement.width / 2 : 96 - selectedElement.width,
+      y: vertical === 'top' ? 4 : vertical === 'middle' ? 50 - selectedElement.height / 2 : 96 - selectedElement.height,
+    })
   }
 
   const toggleLive = () => {
@@ -1876,32 +1882,14 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     </label>
                   </>
                 )}
-                <div className="inspector-label">
-                  <FieldTitle icon={AlignCenter}>{t('editor.alignment')}</FieldTitle>
-                </div>
-                <div className="align-row">
-                  {(['left', 'center', 'right'] as const).map((align) => (
-                    <button
-                      key={align}
-                      className="icon-toggle"
-                      onClick={() => alignSelected('horizontal', align)}
-                      aria-label={t(`editor.${align}`)}
-                    >
-                      {align === 'left' ? <AlignLeft size={15} /> : align === 'center' ? <AlignCenter size={15} /> : <AlignRight size={15} />}
-                    </button>
-                  ))}
-                  <span className="align-divider" />
-                  {(['top', 'middle', 'bottom'] as const).map((align) => (
-                    <button
-                      key={align}
-                      className="icon-toggle"
-                      onClick={() => alignSelected('vertical', align)}
-                      title={t(`editor.${align}`)}
-                      aria-label={t(`editor.${align}`)}
-                    >
-                      {align === 'top' ? <AlignStartHorizontal size={15} /> : align === 'middle' ? <AlignCenterHorizontal size={15} /> : <AlignEndHorizontal size={15} />}
-                    </button>
-                  ))}
+                <div className="field">
+                  <FieldTitle icon={Move}>{t('editor.boxPosition')}</FieldTitle>
+                  <TextPositionGrid
+                    align={boxPlacement(selectedElement).align}
+                    vertical={boxPlacement(selectedElement).vertical}
+                    label={t('editor.boxPosition')}
+                    onChange={(align, vertical) => placeSelected(align, vertical)}
+                  />
                 </div>
                 {(selectedElement.type === 'image' || selectedElement.type === 'video') && (
                   <>
@@ -2147,11 +2135,11 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                 </InspectorGroup>
                 <InspectorGroup id="text" icon={Type} title={t('inspector.typography')}>
                 <div className="field">
-                  <FieldTitle icon={AlignCenter}>{t('editor.alignment')}</FieldTitle>
+                  <FieldTitle icon={Move}>{t('editor.boxPosition')}</FieldTitle>
                   <TextPositionGrid
                     align={activeSlide.textAlign}
                     vertical={activeSlide.textVerticalAlign ?? 'middle'}
-                    label={t('editor.alignment')}
+                    label={t('editor.boxPosition')}
                     onChange={(textAlign, textVerticalAlign) =>
                       updateSlide(service.id, activeItem.id, activeSlide.id, { textAlign, textVerticalAlign })
                     }
