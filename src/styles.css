@@ -20206,11 +20206,8 @@ body:not(.output-mode) .bible-screen :is(.bible-selector-grid > :nth-child(n + 4
 
 /* Visible, decorative motion behind the welcome copy. */
 .login-atmosphere { position: absolute; inset: 0; overflow: hidden; z-index: -1; pointer-events: none; }
-.login-atmosphere i { position: absolute; bottom: -20px; width: 4px; height: 4px; border-radius: 50%; background: #d8ceff; box-shadow: 0 0 12px 3px rgb(var(--violet-rgb) / .35); animation: login-particle-rise 12s linear infinite; }
-.login-atmosphere i:nth-child(3n) { width: 2px; height: 2px; }
 .login-beam { position: absolute; top: -40%; left: 10%; width: 28%; height: 160%; background: linear-gradient(90deg, transparent, rgb(var(--violet-rgb) / .14), transparent); transform-origin: top center; animation: login-beam-sway 9s ease-in-out infinite alternate; }
 .login-beam-second { left: 60%; width: 18%; animation-delay: -5s; animation-duration: 12s; }
-@keyframes login-particle-rise { 0% { transform: translate3d(0, 0, 0); opacity: 0; } 12% { opacity: .8; } 80% { opacity: .6; } 100% { transform: translate3d(55px, -100vh, 0); opacity: 0; } }
 @keyframes login-beam-sway { from { transform: rotate(-24deg); opacity: .4; } to { transform: rotate(22deg); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .login-atmosphere { display: none; } }
 .reduced-motion .login-atmosphere { display: none; }
