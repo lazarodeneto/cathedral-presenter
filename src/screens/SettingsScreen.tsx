@@ -30,7 +30,7 @@ import { useAppStore } from '../store/useAppStore'
 import { useToasts } from '../store/useToasts'
 import { useT } from '../i18n/useT'
 import { navigate } from '../hooks/useHashRoute'
-import { buildBackup, parseBackup } from '../security/backup'
+import { buildBackup, parseBackup, type ParsedBackup } from '../security/backup'
 import { webOutputProvider } from '../providers/output/WebOutputProvider'
 import { BrandingPanel } from '../components/branding/BrandingPanel'
 import { BibleLibraryPanel } from '../components/settings/BibleLibraryPanel'
@@ -92,6 +92,9 @@ const OUTPUT_KINDS = [
 export function SettingsScreen({ initialTab }: { initialTab?: string }) {
   const t = useT()
   const services = useAppStore((state) => state.services)
+  const live = useAppStore((state) => state.live)
+  const [importPreview, setImportPreview] = useState<ParsedBackup | null>(null)
+  const [importing, setImporting] = useState(false)
   const settings = useAppStore((state) => state.settings)
   const branding = useAppStore((state) => state.branding)
   const monitors = useAppStore((state) => state.monitors)
@@ -205,10 +208,12 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
   }
 
   const importFromFile = async (file: File) => {
+    if (useAppStore.getState().live || importing) return
     if (file.size > (file.name.toLowerCase().endsWith('.zip') ? 2 * 1024 * 1024 * 1024 : 12 * 1024 * 1024)) {
       push(t('settings.importTooLarge'), 'error')
       return
     }
+    setImporting(true)
     try {
       const parsed = file.name.toLowerCase().endsWith('.zip') ? await (async () => {
         const response = await fetch('/api/media/packages/import', { method: 'POST', headers: { 'Content-Type': 'application/zip', 'X-Cathedral-Media': '1' }, body: file })
@@ -216,12 +221,10 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
         if (!response.ok || !result.parsed) throw new Error(result.reason)
         return result.parsed as import('../security/backup').ParsedBackup
       })() : parseBackup(await file.text())
-      importBackup(parsed)
-      push(t('settings.importSuccess'), 'success')
-      navigate('/home')
+      setImportPreview(parsed)
     } catch (error) {
       push(importErrorMessage(error), 'error')
-    }
+    } finally { setImporting(false) }
   }
 
   return (
@@ -500,15 +503,15 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
               <WorkspaceRecovery />
               <ControllerPairing />
               <div className="data-actions">
-                <button className="btn btn-secondary" onClick={() => importInput.current?.click()}>
+                <button className="btn btn-secondary" disabled={Boolean(live) || importing} title={live ? t('workspace.stopLive') : undefined} onClick={() => importInput.current?.click()}>
                   <Upload size={15} />
                   {t('settings.importBackup')}
                 </button>
-                <button className="btn btn-ghost" onClick={() => setConfirm('reset')}>
+                <button className="btn btn-ghost" disabled={Boolean(live)} onClick={() => setConfirm('reset')}>
                   <RotateCcw size={15} />
                   {t('settings.resetDemo')}
                 </button>
-                <button className="btn btn-ghost danger-text" onClick={() => setConfirm('clear')}>
+                <button className="btn btn-ghost danger-text" disabled={Boolean(live)} onClick={() => setConfirm('clear')}>
                   <Trash2 size={15} />
                   {t('settings.clearData')}
                 </button>
@@ -604,6 +607,19 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
         </div>
       </div>
 
+      <ConfirmDialog
+        open={Boolean(importPreview)}
+        title={t('settings.restorePreview')}
+        copy={t('settings.restoreSummary', { services: importPreview?.services.length ?? 0, media: importPreview?.media?.length ?? 0, songs: importPreview?.librarySongs?.length ?? 0 })}
+        confirmLabel={t('settings.importBackup')}
+        onClose={() => setImportPreview(null)}
+        onConfirm={() => {
+          if (!importPreview || useAppStore.getState().live) { push(t('workspace.stopLive'), 'error'); return }
+          importBackup(importPreview)
+          push(t('settings.importSuccess'), 'success')
+          navigate('/home')
+        }}
+      />
       <ConfirmDialog
         open={confirm === 'reset'}
         title={t('settings.resetDemo')}

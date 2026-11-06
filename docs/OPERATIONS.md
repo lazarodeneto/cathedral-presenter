@@ -22,7 +22,7 @@ New files are quarantined, signature-checked and scanned by ClamAV before use. M
 
 ## Backup and recovery
 
-Settings → Data exports a ZIP containing original library media, services, songs, imported Bibles, settings and branding. Remote URLs remain references. Passwords, session cookies, controller keys and Drive secrets are excluded. Restore validates paths, checksums, file signatures and antivirus verdicts, then assigns new media IDs instead of overwriting current files. Individual media entries are limited to 300 MiB; package total is 2 GiB and manifest is 12 MiB. Disk staging needs additional free space.
+Settings → Data exports a ZIP containing original library media, services, songs, imported Bibles, settings and branding. Remote URLs remain references. Passwords, session cookies, controller keys and Drive secrets are excluded. Restore validates paths, checksums, file signatures and antivirus verdicts, then assigns new media IDs instead of overwriting current files. A review shows service/media/song counts before replacing the workspace. Cancel preserves current services; already scanned ZIP media stays cached. Restore/reset/clear controls are disabled while presenting. Individual media entries are limited to 300 MiB; package total is 2 GiB and manifest is 12 MiB. Disk staging needs additional free space.
 
 The backend retains 100 workspace revisions. Stop live presentation before recovery or resolving an editing conflict. Export a separate portable backup to another storage device before a service. Revision history on the same disk is not protection against losing that disk.
 

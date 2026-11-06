@@ -20,3 +20,13 @@ const limits: Record<Locale, string> = {
   it: 'Limiti: ZIP 2 GiB; JSON precedente 12 MiB; singolo file multimediale 300 MiB.',
 }
 for (const locale of Object.keys(limits) as Locale[]) operationsStrings[locale]['settings.importTooLarge'] = limits[locale]
+const restore: Record<Locale, string[]> = {
+ en: ['Review backup', '{services} services · {media} media · {songs} songs. Restoring replaces the current workspace. ZIP media has been scanned and cached; canceling keeps your current services.', 'End live presentation before restoring a backup.'],
+ pt: ['Rever cópia', '{services} cultos · {media} ficheiros · {songs} músicas. Restaurar substitui a biblioteca atual. Os ficheiros ZIP foram analisados e guardados; cancelar preserva os cultos atuais.', 'Termine a apresentação antes de restaurar uma cópia.'],
+ 'pt-BR': ['Revisar backup', '{services} cultos · {media} mídias · {songs} músicas. Restaurar substitui a biblioteca atual. As mídias ZIP foram analisadas e salvas; cancelar preserva os cultos atuais.', 'Encerre a apresentação antes de restaurar um backup.'],
+ es: ['Revisar copia', '{services} cultos · {media} archivos · {songs} canciones. Restaurar reemplaza la biblioteca actual. Los archivos ZIP se han analizado y guardado; cancelar conserva los cultos actuales.', 'Finaliza la presentación antes de restaurar una copia.'],
+ fr: ['Vérifier la sauvegarde', '{services} cultes · {media} médias · {songs} chants. La restauration remplace la bibliothèque actuelle. Les médias ZIP sont analysés et enregistrés ; annuler conserve les cultes actuels.', 'Terminez la présentation avant de restaurer une sauvegarde.'],
+ de: ['Sicherung prüfen', '{services} Gottesdienste · {media} Medien · {songs} Lieder. Wiederherstellen ersetzt die aktuelle Bibliothek. ZIP-Medien wurden geprüft und gespeichert; Abbrechen erhält die aktuellen Gottesdienste.', 'Vor dem Wiederherstellen die Präsentation beenden.'],
+ it: ['Verifica backup', '{services} culti · {media} contenuti · {songs} canti. Il ripristino sostituisce la raccolta attuale. I file ZIP sono stati analizzati e salvati; annullare conserva i culti attuali.', 'Termina la presentazione prima di ripristinare un backup.'],
+}
+for (const locale of Object.keys(restore) as Locale[]) ['settings.restorePreview', 'settings.restoreSummary', 'workspace.stopLive'].forEach((key, i) => { operationsStrings[locale][key] = restore[locale][i] })
