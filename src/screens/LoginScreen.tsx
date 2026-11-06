@@ -17,6 +17,7 @@ export function LoginScreen() {
   return (
     <main className="login-page">
       <section className="login-story" aria-label={branding.appTitle}>
+        <div className="login-atmosphere" aria-hidden="true"><span className="login-beam" /><span className="login-beam login-beam-second" />{Array.from({ length: 18 }, (_, index) => <i key={index} style={{ left: `${(index * 37 + 7) % 100}%`, animationDelay: `${-index * 1.7}s`, animationDuration: `${10 + index % 7}s` }} />)}</div>
         <div className="login-brand"><BrandMark branding={branding} size="lg" /><span>{branding.appTitle}</span></div>
         <div><p className="login-eyebrow">{branding.name}</p><h1>{t('auth.intro')}</h1><p>{t('auth.description')}</p></div>
         <p className="login-local">{t('auth.local')}</p>

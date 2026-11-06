@@ -20186,8 +20186,8 @@ body:not(.output-mode) .bible-screen :is(.bible-selector-grid > :nth-child(n + 4
 .login-story::before, .login-story::after { content: ''; position: absolute; z-index: -1; pointer-events: none; width: 85%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgb(var(--violet-rgb) / .22), transparent 68%); will-change: transform; }
 .login-story::before { left: -35%; top: 10%; animation: login-light-drift 18s ease-in-out infinite alternate; }
 .login-story::after { right: -40%; bottom: -25%; background: radial-gradient(circle, rgb(var(--tone-blue-rgb) / .16), transparent 68%); animation: login-light-drift 24s ease-in-out -9s infinite alternate-reverse; }
-.login-brand, .login-story > div:nth-child(2), .login-local, .login-card { animation: login-enter 800ms ease-out both; }
-.login-story > div:nth-child(2) { animation-delay: 120ms; }
+.login-brand, .login-story > div:not([class]), .login-local, .login-card { animation: login-enter 800ms ease-out both; }
+.login-story > div:not([class]) { animation-delay: 120ms; }
 .login-card { animation-delay: 200ms; }
 .login-local { animation-delay: 300ms; }
 .login-submit, .login-offline { transition: transform 180ms ease, box-shadow 180ms ease; }
@@ -20198,8 +20198,19 @@ body:not(.output-mode) .bible-screen :is(.bible-selector-grid > :nth-child(n + 4
 @keyframes login-light-drift { from { transform: translate3d(0, -5%, 0) scale(.9); } to { transform: translate3d(25%, 20%, 0) scale(1.2); } }
 @keyframes login-enter { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) {
-  .login-story::before, .login-story::after, .login-brand, .login-story > div:nth-child(2), .login-local, .login-card { animation: none; will-change: auto; }
+  .login-story::before, .login-story::after, .login-brand, .login-story > div:not([class]), .login-local, .login-card { animation: none; will-change: auto; }
   .login-submit, .login-offline, .login-submit svg, .login-offline svg { transition: none; transform: none; }
 }
-.reduced-motion .login-story::before, .reduced-motion .login-story::after, .reduced-motion .login-brand, .reduced-motion .login-story > div:nth-child(2), .reduced-motion .login-local, .reduced-motion .login-card { animation: none; will-change: auto; }
+.reduced-motion .login-story::before, .reduced-motion .login-story::after, .reduced-motion .login-brand, .reduced-motion .login-story > div:not([class]), .reduced-motion .login-local, .reduced-motion .login-card { animation: none; will-change: auto; }
 .reduced-motion .login-submit, .reduced-motion .login-offline, .reduced-motion .login-submit svg, .reduced-motion .login-offline svg { transition: none; transform: none; }
+
+/* Visible, decorative motion behind the welcome copy. */
+.login-atmosphere { position: absolute; inset: 0; overflow: hidden; z-index: -1; pointer-events: none; }
+.login-atmosphere i { position: absolute; bottom: -20px; width: 4px; height: 4px; border-radius: 50%; background: #d8ceff; box-shadow: 0 0 12px 3px rgb(var(--violet-rgb) / .35); animation: login-particle-rise 12s linear infinite; }
+.login-atmosphere i:nth-child(3n) { width: 2px; height: 2px; }
+.login-beam { position: absolute; top: -40%; left: 10%; width: 28%; height: 160%; background: linear-gradient(90deg, transparent, rgb(var(--violet-rgb) / .14), transparent); transform-origin: top center; animation: login-beam-sway 9s ease-in-out infinite alternate; }
+.login-beam-second { left: 60%; width: 18%; animation-delay: -5s; animation-duration: 12s; }
+@keyframes login-particle-rise { 0% { transform: translate3d(0, 0, 0); opacity: 0; } 12% { opacity: .8; } 80% { opacity: .6; } 100% { transform: translate3d(55px, -100vh, 0); opacity: 0; } }
+@keyframes login-beam-sway { from { transform: rotate(-24deg); opacity: .4; } to { transform: rotate(22deg); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .login-atmosphere { display: none; } }
+.reduced-motion .login-atmosphere { display: none; }
