@@ -20180,3 +20180,26 @@ body:not(.output-mode) .bible-screen :is(.bible-selector-grid > :nth-child(n + 4
 .login-submit { background: rgb(var(--violet-rgb)); color: #111018; font-weight: 600; margin-top: 16px; }
 .login-offline { margin-top: 24px; border: 1px solid rgb(var(--wash-rgb) / .15); color: var(--text); }
 @media (max-width: 720px) { .login-page { grid-template-columns: 1fr; } .login-story { padding: 28px; gap: 28px; border-right: 0; } .login-local { display: none; } .login-story h1 { font-size: 32px; } }
+
+/* Slow ambient light keeps the entry screen calm and the form stationary. */
+.login-story { position: relative; isolation: isolate; overflow: hidden; }
+.login-story::before, .login-story::after { content: ''; position: absolute; z-index: -1; pointer-events: none; width: 85%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgb(var(--violet-rgb) / .22), transparent 68%); will-change: transform; }
+.login-story::before { left: -35%; top: 10%; animation: login-light-drift 18s ease-in-out infinite alternate; }
+.login-story::after { right: -40%; bottom: -25%; background: radial-gradient(circle, rgb(var(--tone-blue-rgb) / .16), transparent 68%); animation: login-light-drift 24s ease-in-out -9s infinite alternate-reverse; }
+.login-brand, .login-story > div:nth-child(2), .login-local, .login-card { animation: login-enter 800ms ease-out both; }
+.login-story > div:nth-child(2) { animation-delay: 120ms; }
+.login-card { animation-delay: 200ms; }
+.login-local { animation-delay: 300ms; }
+.login-submit, .login-offline { transition: transform 180ms ease, box-shadow 180ms ease; }
+.login-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgb(var(--violet-rgb) / .2); }
+.login-submit:active, .login-offline:active { transform: translateY(0); }
+.login-submit svg, .login-offline svg { transition: transform 180ms ease; }
+.login-submit:hover svg, .login-offline:hover svg { transform: translateX(3px); }
+@keyframes login-light-drift { from { transform: translate3d(0, -5%, 0) scale(.9); } to { transform: translate3d(25%, 20%, 0) scale(1.2); } }
+@keyframes login-enter { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .login-story::before, .login-story::after, .login-brand, .login-story > div:nth-child(2), .login-local, .login-card { animation: none; will-change: auto; }
+  .login-submit, .login-offline, .login-submit svg, .login-offline svg { transition: none; transform: none; }
+}
+.reduced-motion .login-story::before, .reduced-motion .login-story::after, .reduced-motion .login-brand, .reduced-motion .login-story > div:nth-child(2), .reduced-motion .login-local, .reduced-motion .login-card { animation: none; will-change: auto; }
+.reduced-motion .login-submit, .reduced-motion .login-offline, .reduced-motion .login-submit svg, .reduced-motion .login-offline svg { transition: none; transform: none; }
