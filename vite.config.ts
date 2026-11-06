@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { defineConfig } from 'vitest/config'
 import type { Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
+import { accountAuth } from './server/auth'
 import { letrasGospelProxy } from './server/letrasgospelProxy'
 
 const packageJson = JSON.parse(
@@ -37,11 +38,11 @@ function productionCsp(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), productionCsp(), letrasGospelProxy()],
+  plugins: [react(), productionCsp(), letrasGospelProxy(), accountAuth()],
   define: {
     __APP_VERSION__: JSON.stringify(packageJson.version),
   },
-  server: { port: 4173, strictPort: false },
+  server: { port: 4173, strictPort: true, fs: { deny: ['.env', '.env.*', '*.{crt,pem}', '**/.git/**', '**/.data/**'] } },
   build: {
     sourcemap: false,
     rolldownOptions: {

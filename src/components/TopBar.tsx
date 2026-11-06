@@ -1,3 +1,4 @@
+import { AccountMenu } from './AccountMenu'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CalendarDays, Check, ChevronDown, Clock3, Search, TriangleAlert, X } from 'lucide-react'
 import type { Locale } from '../types'
@@ -9,7 +10,6 @@ import { useDialogFocus } from '../hooks/useDialogFocus'
 import { useShortcutHandlers } from '../shortcuts/registry'
 import { useShortcutLabel } from '../shortcuts/useShortcutLabel'
 import { formatClock, formatLongDate, formatToolbarDate } from '../utils/dates'
-import { BrandMark } from './BrandMark'
 import { LocaleFlag } from './LocaleFlag'
 import { SCREEN_META, type ScreenName } from './ScreenIcon'
 
@@ -261,7 +261,6 @@ export function TopBar({ route }: { route: Route }) {
   const t = useT()
   const locale = useAppStore((state) => state.settings.locale)
   const setLocale = useAppStore((state) => state.setLocale)
-  const branding = useAppStore((state) => state.branding)
   const activeService = useAppStore((state) =>
     state.services.find((service) => service.id === state.activeServiceId),
   )
@@ -340,7 +339,6 @@ export function TopBar({ route }: { route: Route }) {
           </button>
         </div>
         <div className="topbar-actions">
-          <button className="btn" onClick={() => navigate('/login')}>{t('auth.signIn')}</button>
           <span
             className="topbar-status"
             title={lastSavedAt ? `${t('status.storageLocal')} · ${formatClock(locale, new Date(lastSavedAt))}` : t('status.storageLocal')}
@@ -354,14 +352,7 @@ export function TopBar({ route }: { route: Route }) {
           </span>
           <span className="topbar-divider" aria-hidden="true" />
           <LanguageMenu locale={locale} onChange={setLocale} />
-          <button
-            className="avatar"
-            onClick={() => navigate('/settings')}
-            aria-label={t('nav.settings')}
-            title={t('nav.settings')}
-          >
-            <BrandMark branding={branding} size="sm" />
-          </button>
+          <AccountMenu />
         </div>
       </header>
       {commandOpen && <CommandPalette onClose={() => setCommandOpen(false)} />}

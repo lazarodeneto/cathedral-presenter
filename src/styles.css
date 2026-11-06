@@ -20225,3 +20225,18 @@ body:not(.output-mode) .bible-screen :is(.bible-selector-grid > :nth-child(n + 4
   .login-story { min-height: 100%; padding: 32px; gap: 32px; }
   .login-panel { padding: 32px 24px; }
 }
+
+/* Account controls share the operator palette and keyboard focus treatment. */
+.account-menu { position: relative; }
+.account-popover { position: absolute; z-index: 100; right: 0; top: calc(100% + 12px); width: min(300px, calc(100vw - 32px)); padding: 16px; border-radius: var(--rounded-lg); background: var(--surface-solid); border: 1px solid var(--text-2); box-shadow: 0 16px 40px rgb(0 0 0 / .35); }
+.account-popover strong, .account-popover p { display: block; overflow-wrap: anywhere; }
+.account-popover p { color: var(--text-2); font-size: 12px; line-height: 1.5; margin: 8px 0 12px; }
+.account-popover button { display: block; width: 100%; min-height: 44px; padding: 10px; text-align: start; border-radius: var(--rounded-sm); }
+.account-popover button:hover { background: rgb(var(--wash-rgb) / .08); }
+.login-card fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.login-card label { display: block; font-size: 13px; margin-top: 16px; }
+.login-card input { display: block; margin-top: 8px; width: 100%; min-height: 48px; border: 1px solid var(--text-2); border-radius: var(--rounded-sm); padding: 12px 14px; color: var(--text); background: var(--surface-well); }
+.login-card fieldset .login-note { margin: 8px 0 0; font-size: 12px; }
+.login-card fieldset:disabled { opacity: .65; }
+.login-switch { width: 100%; min-height: 44px; margin-top: 12px; padding: 8px; color: var(--text-2); text-decoration: underline; text-underline-offset: 4px; }
+.login-error { color: var(--danger-text); line-height: 1.5; margin: 12px 0; }

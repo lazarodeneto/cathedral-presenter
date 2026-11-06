@@ -2,6 +2,14 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { Entry } from '../Entry'
 
+vi.mock('../auth/client', () => ({
+  authClient: {
+    useSession: () => ({ data: null }),
+    signIn: { email: vi.fn() },
+    signUp: { email: vi.fn() },
+  },
+}))
+
 vi.mock('../App', () => ({ default: () => <main>Workspace loaded</main> }))
 beforeEach(() => {
   localStorage.clear()
@@ -9,15 +17,24 @@ beforeEach(() => {
 })
 afterEach(cleanup)
 
-it('restores the saved locale and branding without enabling account credentials', () => {
-  localStorage.setItem('church-presenter:workspace:v1', JSON.stringify({ state: {
-    settings: { locale: 'pt' }, branding: { name: 'Campus Teste', appTitle: 'Apresentador' },
-  } }))
+it('restores the saved locale and branding while offering account sign-in', () => {
+  localStorage.setItem(
+    'church-presenter:workspace:v1',
+    JSON.stringify({
+      state: {
+        settings: { locale: 'pt' },
+        branding: { name: 'Campus Teste', appTitle: 'Apresentador' },
+      },
+    }),
+  )
   render(<Entry />)
-  expect(screen.getByRole('link', { name: 'Continuar neste computador' })).toHaveAttribute('href', '#/home')
-  expect(screen.getByRole('button', { name: 'Entrar' })).toBeDisabled()
+  expect(screen.getByRole('link', { name: 'Continuar neste computador' })).toHaveAttribute(
+    'href',
+    '#/home',
+  )
+  expect(screen.getByRole('button', { name: 'Entrar' })).toBeEnabled()
   expect(screen.getByText('Campus Teste')).toBeInTheDocument()
-  expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+  expect(screen.getByRole('textbox', { name: 'Endereço de email' })).toBeInTheDocument()
 })
 it('recovers from malformed local settings', () => {
   localStorage.setItem('church-presenter:workspace:v1', '{bad')
