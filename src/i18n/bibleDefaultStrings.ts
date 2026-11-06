@@ -41,3 +41,9 @@ export const bibleDefaultStrings: Record<Locale, Record<string, string>> = {
       'Capitolo non trovato in questa traduzione. Scegli un altro capitolo o un’altra traduzione.',
   },
 }
+
+const addBibleLabels: Record<Locale, string> = {
+  en: 'Add a new Bible', pt: 'Adicionar nova Bíblia', 'pt-BR': 'Adicionar nova Bíblia',
+  es: 'Añadir nueva Biblia', fr: 'Ajouter une Bible', de: 'Neue Bibel hinzufügen', it: 'Aggiungi una Bibbia',
+}
+for (const locale of Object.keys(addBibleLabels) as Locale[]) bibleDefaultStrings[locale]['bible.addNew'] = addBibleLabels[locale]

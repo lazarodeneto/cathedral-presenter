@@ -20250,3 +20250,6 @@ body:not(.output-mode) .bible-screen :is(.bible-selector-grid > :nth-child(n + 4
 .hardware-display .output-actions { flex-wrap: wrap; margin-top: 16px; }
 .physical-output .output-chrome { display: none; }
 .physical-output { cursor: none; }
+
+.bible-add-translation { width: 100%; min-height: 44px; margin-top: 10px; gap: 8px; justify-content: flex-start; text-align: start; white-space: normal; }
+.bible-add-translation svg { flex-shrink: 0; }

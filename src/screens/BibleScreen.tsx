@@ -555,6 +555,10 @@ export function BibleScreen() {
                 </button>
               ))}
             </div>
+            <button type="button" className="btn btn-ghost btn-sm bible-add-translation" onClick={() => navigate('/settings/bibles')}>
+              <Plus size={14} aria-hidden="true" />
+              <span>{t('bible.addNew')}</span>
+            </button>
           </div>
           <div className="side-section">
             <span className="eyebrow">{t('bible.recent')}</span>
