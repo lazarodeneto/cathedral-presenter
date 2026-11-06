@@ -309,6 +309,11 @@ export type MonitorRole = 'audience' | 'confidence' | 'broadcast' | 'disabled'
 export type MonitorStatus = 'ready' | 'connecting' | 'disconnected' | 'test' | 'unsupported'
 
 export interface Monitor {
+  /** Operating-system display identifier; absent on browser preview windows. */
+  displayId?: string
+  isOperator?: boolean
+  primary?: boolean
+  outputOpen?: boolean
   id: string
   name: string
   displayName: string

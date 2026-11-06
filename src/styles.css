@@ -20237,3 +20237,16 @@ body:not(.output-mode) .bible-screen :is(.bible-selector-grid > :nth-child(n + 4
   .cinema-scene { object-position: 8% center; opacity: .35; }
   .cinema-shade { background: rgb(6 5 10 / .55); }
 }
+
+.hardware-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 12px; }
+.hardware-toolbar h3 { margin-right: auto; }
+.hardware-browser-note { padding: 16px; margin-bottom: 20px; border: 1px solid var(--line); border-radius: var(--rounded-md); color: var(--text-2); line-height: 1.6; }
+.hardware-display-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 16px; margin: 20px 0; }
+.hardware-display { padding: 20px; border: 1px solid var(--line); border-radius: var(--rounded-lg); background: var(--surface-well); }
+.hardware-display-name { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.hardware-display-name h4 { font-size: 14px; overflow-wrap: anywhere; }
+.hardware-display-name p { font-size: 12px; color: var(--text-2); margin-top: 6px; }
+.hardware-display .field select { min-height: 44px; }
+.hardware-display .output-actions { flex-wrap: wrap; margin-top: 16px; }
+.physical-output .output-chrome { display: none; }
+.physical-output { cursor: none; }

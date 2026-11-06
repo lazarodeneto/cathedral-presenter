@@ -8,6 +8,8 @@ import type {
 } from '../../types'
 
 export interface OutputSnapshot {
+  displays?: Record<string, { name: string; role: MonitorRole; test: boolean; width: number; height: number }>
+
   audience: AudienceOutputState
   confidence: ConfidenceOutputState
   /** Countdown state for timer slides currently on any output, keyed by slide id. */
@@ -30,7 +32,7 @@ export interface OutputProvider {
   readonly id: string
   readonly label: string
   listMonitors(): Promise<Monitor[]>
-  openOutput(role: Exclude<MonitorRole, 'disabled'>): boolean
+  openOutput(role: Exclude<MonitorRole, 'disabled'>): Promise<boolean>
   closeOutput(role: Exclude<MonitorRole, 'disabled'>): void
   publish(snapshot: OutputSnapshot): void
   readSnapshot(): OutputSnapshot | null

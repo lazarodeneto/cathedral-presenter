@@ -1,3 +1,4 @@
+import { reconcilePhysicalDisplays } from './desktop'
 import type { MonitorRole } from '../../types'
 import { ASPECT_RATIO, outputFormat } from '../../utils/outputFormats'
 import type { OutputProvider, OutputSnapshot } from './OutputProvider'
@@ -40,14 +41,24 @@ class WebOutputProvider implements OutputProvider {
     return this.channel
   }
 
-  async listMonitors(): Promise<never[]> {
+  async listMonitors(): Promise<import('../../types').Monitor[]> {
+    if (window.cathedralDesktop) {
+      return reconcilePhysicalDisplays([], await window.cathedralDesktop.listDisplays())
+    }
     // Display enumeration belongs in the desktop shell. The web adapter uses
     // simulated monitors from local settings instead of pretending to detect
     // physical displays.
     return []
   }
 
-  openOutput(role: Exclude<MonitorRole, 'disabled'>): boolean {
+  async openOutput(role: Exclude<MonitorRole, 'disabled'>): Promise<boolean> {
+    if (window.cathedralDesktop) {
+      try {
+        return await window.cathedralDesktop.openRole(role)
+      } catch {
+        return false
+      }
+    }
     if (typeof window === 'undefined') return false
     const existing = this.windows.get(role)
     if (existing && !existing.closed) {
@@ -58,7 +69,11 @@ class WebOutputProvider implements OutputProvider {
     const url = `${base}#/output/${role}`
     // Open the window in the projection proportion, so the preview has no black bars.
     const snapshot = this.readSnapshot()
-    const ratio = ASPECT_RATIO[outputFormat(role === 'broadcast' ? snapshot?.broadcast?.format : snapshot?.audience.format).aspect]
+    const ratio =
+      ASPECT_RATIO[
+        outputFormat(role === 'broadcast' ? snapshot?.broadcast?.format : snapshot?.audience.format)
+          .aspect
+      ]
     const width = 1280
     const height = Math.round(width / ratio)
     const opened = window.open(
@@ -71,6 +86,10 @@ class WebOutputProvider implements OutputProvider {
   }
 
   closeOutput(role: Exclude<MonitorRole, 'disabled'>): void {
+    if (window.cathedralDesktop) {
+      void window.cathedralDesktop.closeRole(role).catch(() => {})
+      return
+    }
     const existing = this.windows.get(role)
     if (existing && !existing.closed) existing.close()
     this.windows.delete(role)

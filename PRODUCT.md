@@ -6,7 +6,7 @@
 
 web
 
-The UI is built with web technology (React + Vite) and is planned to ship as an installable desktop app for macOS and Windows through a Tauri-style shell. The desktop shell is not built yet. Its design language stays web, not native macOS or Windows.
+The UI is built with web technology (React + Vite) and is planned to ship as an installable desktop app for macOS and Windows through a Tauri-style shell. A development Electron shell now detects physical displays and opens assigned fullscreen outputs on macOS and Windows; signed installers are not built yet. Its design language stays web, not native macOS or Windows.
 
 ## Users
 
@@ -104,3 +104,7 @@ Open decisions:
 ## Default Bible library
 
 Every application download includes exactly two complete pt-BR Bibles: **Bíblia Livre (BLIVRE)** and **Tradução Brasileira (TB)**. Both are available immediately offline without adding, signing in, or fetching a remote source. BLIVRE is the primary default and TB the secondary. Retired sample translations are removed from the built-in library. Keep the supplied attribution/license metadata with the full texts. Imported church translations remain optional additions.
+
+## Physical outputs
+
+The development desktop app identifies macOS/Windows and enumerates real OS displays. Reserve the operator screen; each remaining extended display can run Audience, Confidence or Broadcast in its own fullscreen window. Multiple displays may share a role. Close the affected output on disconnection rather than allowing it to move onto the operator screen. Ordinary browsers retain preview-only windows. See `docs/DESKTOP-OUTPUTS.md` for scope and hardware-validation status.

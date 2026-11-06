@@ -1,3 +1,4 @@
+import { HardwareOutputs } from '../components/settings/HardwareOutputs'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   BookOpen,
@@ -122,12 +123,12 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
   // Goes through the router so a tab with unsaved changes (Branding) can ask first.
   const selectTab = (next: Tab) => navigate(`/settings/${next}`)
 
-  const openOutput = (role: MonitorRole) => {
+  const openOutput = async (role: MonitorRole) => {
     if (role === 'disabled') {
       push(t('status.unsupported'), 'error')
       return
     }
-    const opened = webOutputProvider.openOutput(role)
+    const opened = await webOutputProvider.openOutput(role)
     if (!opened) push(t('output.windowBlocked'), 'error')
     else push(t('toast.outputWindowOpened'), 'success')
   }
@@ -363,10 +364,11 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
                 </span>
                 <div>
                   <h2>{t('settings.outputsTitle')}</h2>
-                  <p>{t('settings.outputsSubtitle')}</p>
+                  <p>{t(window.cathedralDesktop ? 'hardware.subtitle' : 'settings.outputsSubtitle')}</p>
                 </div>
               </div>
-              <div className="output-list">
+              <HardwareOutputs />
+              {!window.cathedralDesktop && <div className="output-list">
                 {OUTPUT_KINDS.map(({ role, icon: KindIcon, title, copy, formatKey }) => {
                   const monitor = monitors.find((entry) => entry.role === role)
                   if (!monitor) return null
@@ -433,11 +435,11 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
                     </article>
                   )
                 })}
-              </div>
-              <div className="setting-footnote">
+              </div>}
+              {!window.cathedralDesktop && <div className="setting-footnote">
                 <ShieldCheck size={14} />
                 {t('settings.outputTestNote')} {t('desktop.copy')}
-              </div>
+              </div>}
             </section>
           )}
 

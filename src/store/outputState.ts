@@ -24,7 +24,7 @@ export function buildOutputSnapshot(input: {
   const audienceMonitor = monitors.find((monitor) => monitor.role === 'audience')
   const confidenceMonitor = monitors.find((monitor) => monitor.role === 'confidence')
   const testMonitor = monitors.find((monitor) => monitor.id === testMonitorId)
-  const testRole = testMonitor?.role
+  const testRole = testMonitor?.displayId ? undefined : testMonitor?.role
   const slides = service ? flatSlides(service) : []
   const currentContext = live && service ? slideContext(service, live.currentSlideId) : null
   const frozenContext =
@@ -64,6 +64,7 @@ export function buildOutputSnapshot(input: {
   }
 
   return {
+    displays: Object.fromEntries(monitors.filter((monitor) => monitor.displayId && monitor.status !== 'disconnected').map((monitor) => [monitor.displayId!, { name: monitor.name, role: monitor.role, test: monitor.id === testMonitorId, width: monitor.width, height: monitor.height }])),
     timers: shownTimers,
     broadcast: {
       mode: testMonitor && testRole === 'broadcast' ? 'test' : 'mirror',

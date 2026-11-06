@@ -11,7 +11,12 @@ import { SHORTCUT_ACTIONS } from '../shortcuts/actions'
 import { BrandMark } from '../components/BrandMark'
 import { applyTheme, DEFAULT_BRANDING, normalizeBranding } from '../utils/branding'
 import { elapsedLabel } from '../utils/dates'
-import { ASPECT_RATIO, outputFormat, resolutionLabel, type OutputFormat } from '../utils/outputFormats'
+import {
+  ASPECT_RATIO,
+  outputFormat,
+  resolutionLabel,
+  type OutputFormat,
+} from '../utils/outputFormats'
 
 const FALLBACK_BRANDING: Branding = DEFAULT_BRANDING
 
@@ -20,7 +25,13 @@ function TestPattern({ label, format }: { label: string; format: OutputFormat })
   return (
     <div className="test-pattern">
       <div className="test-bars">
-        <span /><span /><span /><span /><span /><span /><span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
       </div>
       <div className="test-safe-zone">
         <div className="test-mark">CP</div>
@@ -60,13 +71,23 @@ function NoSignal() {
   )
 }
 
-export function OutputScreen({ role }: { role: 'audience' | 'confidence' | 'broadcast' }) {
+export function OutputScreen({
+  role,
+  displayId,
+}: {
+  role: 'audience' | 'confidence' | 'broadcast'
+  displayId?: string
+}) {
   const t = useT()
-  const [snapshot, setSnapshot] = useState<OutputSnapshot | null>(() => webOutputProvider.readSnapshot())
+  const [snapshot, setSnapshot] = useState<OutputSnapshot | null>(() =>
+    webOutputProvider.readSnapshot(),
+  )
   const [fullscreen, setFullscreen] = useState(Boolean(document.fullscreenElement))
   const [, setTick] = useState(0)
   // The broadcast window mirrors the audience slide in its own format.
-  const format = outputFormat(role === 'broadcast' ? snapshot?.broadcast?.format : snapshot?.audience.format)
+  const format = outputFormat(
+    role === 'broadcast' ? snapshot?.broadcast?.format : snapshot?.audience.format,
+  )
 
   useEffect(() => {
     setSnapshot(webOutputProvider.readSnapshot())
@@ -87,11 +108,39 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' | 'broa
     return () => window.clearInterval(timer)
   }, [])
 
+  const target = displayId ? snapshot?.displays?.[displayId] : undefined
   const audience = snapshot?.audience
+    ? {
+        ...snapshot.audience,
+        ...(target
+          ? {
+              monitorName: target.name,
+              mode: target.test && role === 'audience' ? ('test' as const) : snapshot.audience.mode,
+              testMonitorName: target.test ? target.name : undefined,
+            }
+          : {}),
+      }
+    : undefined
   const confidence = snapshot?.confidence
-  const branding = role === 'audience'
-    ? audience?.branding ?? FALLBACK_BRANDING
-    : confidence?.branding ?? FALLBACK_BRANDING
+    ? {
+        ...snapshot.confidence,
+        ...(target
+          ? {
+              monitorName: target.name,
+              mode: target.test ? ('test' as const) : snapshot.confidence.mode,
+              testMonitorName: target.test ? target.name : undefined,
+            }
+          : {}),
+      }
+    : undefined
+  useEffect(() => {
+    document.body.classList.toggle('physical-output', Boolean(displayId))
+    return () => document.body.classList.remove('physical-output')
+  }, [displayId])
+  const branding =
+    role === 'audience'
+      ? (audience?.branding ?? FALLBACK_BRANDING)
+      : (confidence?.branding ?? FALLBACK_BRANDING)
 
   const toggleFullscreen = async () => {
     const entered = await webOutputProvider.requestFullscreen()
@@ -101,19 +150,16 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' | 'broa
   // Presentation keys pressed while an output window has focus are relayed to
   // the operator window, which runs them exactly as if pressed there.
   // Fullscreen applies to this window itself.
-  useShortcutHandlers(
-    'presentation',
-    {
-      ...Object.fromEntries(
-        SHORTCUT_ACTIONS.filter((action) => action.contexts.includes('presentation') && action.id !== 'app.fullscreen').map(
-          (action) => [action.id, () => webOutputProvider.sendCommand(action.id)],
-        ),
-      ),
-      'app.fullscreen': () => {
-        void toggleFullscreen()
-      },
+  useShortcutHandlers('presentation', {
+    ...Object.fromEntries(
+      SHORTCUT_ACTIONS.filter(
+        (action) => action.contexts.includes('presentation') && action.id !== 'app.fullscreen',
+      ).map((action) => [action.id, () => webOutputProvider.sendCommand(action.id)]),
+    ),
+    'app.fullscreen': () => {
+      void toggleFullscreen()
     },
-  )
+  })
 
   // Output windows follow the branding published with each snapshot.
   useEffect(() => {
@@ -126,20 +172,33 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' | 'broa
     return (
       <div className={`output-window output-${role}`}>
         <NoSignal />
-        <OutputChrome role={role} monitor={null} fullscreen={fullscreen} onFullscreen={toggleFullscreen} />
+        <OutputChrome
+          role={role}
+          monitor={null}
+          fullscreen={fullscreen}
+          onFullscreen={toggleFullscreen}
+        />
       </div>
     )
   }
 
   if (role === 'confidence') {
-    if (!confidence) return <div className="output-window"><NoSignal /></div>
+    if (!confidence)
+      return (
+        <div className="output-window">
+          <NoSignal />
+        </div>
+      )
     const mode = confidence.mode
     const isTest = mode === 'test'
     return (
       <TimerSourceContext.Provider value={snapshot.timers ?? {}}>
         <div className="output-window output-confidence">
           {isTest ? (
-            <TestPattern label={confidence.testMonitorName ?? confidence.monitorName} format={format} />
+            <TestPattern
+              label={confidence.testMonitorName ?? confidence.monitorName}
+              format={format}
+            />
           ) : mode === 'live' || mode === 'ended' ? (
             <div className="stage-output">
               <header className="stage-output-head">
@@ -168,10 +227,16 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' | 'broa
                     <section className="stage-current">
                       <div className="stage-label">
                         <span className="eyebrow">{t('live.current')}</span>
-                        <span>{confidence.sectionTitle} · {confidence.itemTitle}</span>
+                        <span>
+                          {confidence.sectionTitle} · {confidence.itemTitle}
+                        </span>
                       </div>
                       <div className="stage-frame">
-                        <SlideRenderer slide={confidence.current} branding={confidence.branding} aspectRatio={format.aspect} />
+                        <SlideRenderer
+                          slide={confidence.current}
+                          branding={confidence.branding}
+                          aspectRatio={format.aspect}
+                        />
                         {confidence.current.notes && (
                           <span className="stage-notes-pill">{confidence.current.notes}</span>
                         )}
@@ -183,7 +248,11 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' | 'broa
                       </div>
                       <div className="stage-frame">
                         {confidence.next ? (
-                          <SlideRenderer slide={confidence.next} branding={confidence.branding} aspectRatio={format.aspect} />
+                          <SlideRenderer
+                            slide={confidence.next}
+                            branding={confidence.branding}
+                            aspectRatio={format.aspect}
+                          />
                         ) : (
                           <div className="stage-frame-empty">{t('live.ended')}</div>
                         )}
@@ -208,7 +277,11 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' | 'broa
           )}
           <OutputChrome
             role={role}
-            monitor={isTest ? confidence.testMonitorName ?? confidence.monitorName : confidence.monitorName}
+            monitor={
+              isTest
+                ? (confidence.testMonitorName ?? confidence.monitorName)
+                : confidence.monitorName
+            }
             fullscreen={fullscreen}
             onFullscreen={toggleFullscreen}
           />
@@ -217,11 +290,24 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' | 'broa
     )
   }
 
-  if (!audience) return <div className="output-window"><NoSignal /></div>
-  const broadcastTest = role === 'broadcast' && snapshot.broadcast?.mode === 'test'
+  if (!audience)
+    return (
+      <div className="output-window">
+        <NoSignal />
+      </div>
+    )
+  const broadcastTest =
+    role === 'broadcast' && (target?.test || snapshot.broadcast?.mode === 'test')
   // A test pattern meant for the projector is not shown on the broadcast window, and vice versa.
-  const mode = broadcastTest ? 'test' : role === 'broadcast' && audience.mode === 'test' ? 'idle' : audience.mode
-  const outputName = role === 'broadcast' ? snapshot.broadcast?.monitorName ?? audience.monitorName : audience.monitorName
+  const mode = broadcastTest
+    ? 'test'
+    : role === 'broadcast' && audience.mode === 'test'
+      ? 'idle'
+      : audience.mode
+  const outputName =
+    role === 'broadcast'
+      ? (target?.name ?? snapshot.broadcast?.monitorName ?? audience.monitorName)
+      : audience.monitorName
   return (
     <TimerSourceContext.Provider value={snapshot.timers ?? {}}>
       <div
@@ -230,7 +316,10 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' | 'broa
         data-format={format.id}
       >
         {mode === 'test' ? (
-          <TestPattern label={broadcastTest ? outputName : audience.testMonitorName ?? audience.monitorName} format={format} />
+          <TestPattern
+            label={broadcastTest ? outputName : (audience.testMonitorName ?? audience.monitorName)}
+            format={format}
+          />
         ) : mode === 'blank' ? (
           // Blank means a black screen for the audience: nothing drawn, the state is named for assistive tech only.
           <div className="output-black" role="img" aria-label={t('output.blank')} />
@@ -266,7 +355,13 @@ export function OutputScreen({ role }: { role: 'audience' | 'confidence' | 'broa
         )}
         <OutputChrome
           role={role}
-          monitor={role === 'broadcast' ? outputName : mode === 'test' ? audience.testMonitorName ?? audience.monitorName : audience.monitorName}
+          monitor={
+            role === 'broadcast'
+              ? outputName
+              : mode === 'test'
+                ? (audience.testMonitorName ?? audience.monitorName)
+                : audience.monitorName
+          }
           fullscreen={fullscreen}
           onFullscreen={toggleFullscreen}
         />
@@ -340,11 +435,19 @@ function OutputChrome({
     <div className="output-chrome">
       <span className="output-chrome-role">
         <Radio size={13} />
-        {role === 'audience' ? t('output.audience') : role === 'broadcast' ? t('outputs.broadcast') : t('output.confidence')}
+        {role === 'audience'
+          ? t('output.audience')
+          : role === 'broadcast'
+            ? t('outputs.broadcast')
+            : t('output.confidence')}
         {monitor ? ` · ${monitor}` : ''}
       </span>
       <span className="output-chrome-sim">{t('output.simulated')}</span>
-      <button className="output-chrome-btn" onClick={onFullscreen} aria-label={fullscreen ? t('output.exitFullscreen') : t('output.fullscreen')}>
+      <button
+        className="output-chrome-btn"
+        onClick={onFullscreen}
+        aria-label={fullscreen ? t('output.exitFullscreen') : t('output.fullscreen')}
+      >
         {fullscreen ? <Minimize2 size={15} /> : <Expand size={15} />}
       </button>
     </div>

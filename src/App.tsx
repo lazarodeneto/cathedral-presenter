@@ -1,3 +1,4 @@
+import { usePhysicalDisplays } from './hooks/usePhysicalDisplays'
 import { lazy, Suspense, useEffect } from 'react'
 import { SCREEN_META, type ScreenName } from './components/ScreenIcon'
 import { navigate, useHashRoute } from './hooks/useHashRoute'
@@ -66,6 +67,7 @@ export default function App() {
   const branding = useAppStore((state) => state.branding)
 
   useOutputBridge(!isOutput)
+  usePhysicalDisplays(!isOutput)
 
   // Keyboard shortcuts: one listener for the whole window, reading the current
   // settings on each key press. Screens register the actions they own.
@@ -189,7 +191,7 @@ export default function App() {
     return (
       <div className="output-root">
         <ErrorBoundary>
-          <OutputScreen role={role} />
+          <OutputScreen role={role} displayId={route.segments[2]} />
         </ErrorBoundary>
       </div>
     )

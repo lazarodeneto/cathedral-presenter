@@ -78,6 +78,7 @@ export function ensureOutputMonitors(monitors: Monitor[]): Monitor[] {
   const next = monitors.map((monitor) =>
     monitor.role === 'broadcast' && monitor.status === 'unsupported' ? { ...monitor, status: 'ready' as const } : monitor,
   )
+  if (next.some((monitor) => !monitor.simulated && monitor.displayId)) return next
   for (const role of ['audience', 'broadcast'] as const) {
     if (next.some((monitor) => monitor.role === role)) continue
     const fallback = DEFAULT_MONITORS.find((monitor) => monitor.role === role)

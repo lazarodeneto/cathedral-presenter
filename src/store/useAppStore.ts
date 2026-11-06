@@ -1714,7 +1714,7 @@ export const useAppStore = create<AppState>()(
         updateMonitor: (id, patch) =>
           set((state) => ({
             monitors: state.monitors.map((monitor) =>
-              monitor.id === id ? { ...monitor, ...patch, simulated: true } : monitor,
+              monitor.id === id ? { ...monitor, ...patch, simulated: monitor.simulated } : monitor,
             ),
           })),
         assignMonitorRole: (id, role) =>
@@ -1727,7 +1727,7 @@ export const useAppStore = create<AppState>()(
                   status: role === 'disabled' ? monitor.status : 'ready',
                 }
               }
-              if (role !== 'disabled' && role !== 'broadcast' && monitor.role === role) {
+              if (monitor.simulated && state.monitors.find((entry) => entry.id === id)?.simulated && role !== 'disabled' && role !== 'broadcast' && monitor.role === role) {
                 return { ...monitor, role: 'disabled' }
               }
               return monitor
