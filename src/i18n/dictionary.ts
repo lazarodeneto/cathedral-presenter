@@ -1,3 +1,4 @@
+import { bibleDefaultStrings } from './bibleDefaultStrings'
 import { LOCALE_OPTIONS } from './localeOptions'
 import { authStrings } from './authStrings'
 import type { Locale } from '../types'
@@ -3420,7 +3421,7 @@ export const dictionaries: Record<Locale, Dict> = {
 }
 
 for (const locale of Object.keys(dictionaries) as Locale[]) {
-  Object.assign(dictionaries[locale], authStrings[locale])
+  Object.assign(dictionaries[locale], authStrings[locale], bibleDefaultStrings[locale])
 }
 
 export function translate(locale: Locale, key: string, vars?: Record<string, string | number>): string {

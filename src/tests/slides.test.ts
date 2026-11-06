@@ -30,7 +30,7 @@ describe('Bible slides', () => {
   it('always puts one verse on each slide, bilingual included', async () => {
     const { createBibleSlides } = await import('../utils/slides')
     const { getLocalPassageSync } = await import('../providers/bible/LocalBibleProvider')
-    const primary = getLocalPassageSync('Psalm 23:1-6', 'web')
+    const primary = getLocalPassageSync('Psalm 23:1-6', 'blivre')
     const secondary = getLocalPassageSync('Psalm 23:1-6', 'blivre')
     expect(primary.verses).toHaveLength(6)
 
@@ -53,7 +53,7 @@ describe('slide labels', () => {
   it('name the exact verse, with translations when there is room', async () => {
     const { createBibleSlides, slideLabel } = await import('../utils/slides')
     const { getLocalPassageSync } = await import('../providers/bible/LocalBibleProvider')
-    const primary = getLocalPassageSync('Psalm 23:1-6', 'web')
+    const primary = getLocalPassageSync('Psalm 23:1-6', 'blivre')
     const secondary = getLocalPassageSync('Psalm 23:1-6', 'blivre')
     const slides = createBibleSlides({ primary, secondary, bilingual: true })
     expect(slides[3].title).toBe(`${primary.verses[3].bookName} 23:4`)

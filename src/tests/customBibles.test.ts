@@ -71,7 +71,7 @@ describe('administrator Bible library', () => {
       reason: 'duplicate',
     })
     expect(
-      useAppStore.getState().addCustomBible(sampleEntry({ id: 'web', name: 'Web copy' })),
+      useAppStore.getState().addCustomBible(sampleEntry({ id: 'blivre', name: 'Web copy' })),
     ).toEqual({ ok: false, reason: 'invalid' })
     expect(
       useAppStore.getState().addCustomBible(
@@ -95,13 +95,13 @@ describe('administrator Bible library', () => {
 
     const state = useAppStore.getState()
     expect(state.customBibles).toEqual([])
-    expect(state.settings.defaultTranslationId).toBe('web')
+    expect(state.settings.defaultTranslationId).toBe('blivre')
     expect(state.recentPassages).toEqual([])
     expect(allBibleTranslations().some((entry) => entry.id === 'custom-pt-br-tst')).toBe(false)
   })
 
   it('never removes bundled Bibles', () => {
-    expect(useAppStore.getState().removeCustomBible('web')).toEqual({
+    expect(useAppStore.getState().removeCustomBible('blivre')).toEqual({
       ok: false,
       reason: 'bundled',
     })
@@ -146,7 +146,7 @@ describe('administrator Bible library', () => {
 
     const parsed = parseBackup(JSON.stringify(backup))
     expect(parsed.bibles?.[0]?.translation.language).toBe('pt-BR')
-    expect(parsed.settings?.defaultTranslationId).toBe('web')
+    expect(parsed.settings?.defaultTranslationId).toBe('blivre')
   })
 })
 

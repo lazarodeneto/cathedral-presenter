@@ -1,8 +1,8 @@
+import { BIBLE_TRANSLATIONS, BIBLE_VERSES } from '../../data/bible'
 import type { BibleBookTexts, CustomBibleTranslation } from '../../types'
 import { CANONICAL_BIBLE_BOOKS } from '../../data/bibleBooks'
 import { BIBLE_CATALOG_SOURCE, catalogBibleId, type CatalogBible } from '../../data/bibleCatalog'
 import { sanitizeSingleLine, sanitizeText } from '../../security/text'
-import { parseBibleTextJson } from '../../utils/bibleImport'
 import { countBibleVerses } from './customBibles'
 
 /**
@@ -119,11 +119,8 @@ export function catalogEntry(bible: CatalogBible, books: BibleBookTexts, meta: R
 
 /** Public-domain Bibles that ship with the app: read from its own files, offline. */
 export async function loadBundledCatalogBible(bible: CatalogBible): Promise<CustomBibleTranslation | null> {
-  if (!bible.bundledFile) return null
-  const response = await fetch(`${import.meta.env.BASE_URL}${bible.bundledFile}`)
-  if (!response.ok) return null
-  const parsed = parseBibleTextJson(await response.text())
-  return parsed.ok ? catalogEntry(bible, parsed.books) : null
+  const translation = BIBLE_TRANSLATIONS.find((entry) => entry.id === catalogBibleId(bible))
+  return translation ? { translation, books: BIBLE_VERSES[translation.id] } : null
 }
 
 /**

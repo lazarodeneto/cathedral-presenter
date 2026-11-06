@@ -1,3 +1,4 @@
+import { BIBLE_TRANSLATIONS } from '../../data/bible'
 import { useEffect, useState } from 'react'
 import { CheckCircle2, Copyright, Download, LoaderCircle, LockOpen, TriangleAlert } from 'lucide-react'
 import { BIBLE_CATALOG, BIBLE_CATALOG_SOURCE, catalogBibleId, type CatalogBible } from '../../data/bibleCatalog'
@@ -83,7 +84,7 @@ export function IncludedBibles() {
       <ul className="bible-admin-list" aria-label={t('settings.includedTitle')}>
         {SORTED_CATALOG.map((bible) => {
           const id = catalogBibleId(bible)
-          const added = customBibles.some((entry) => entry.translation.id === id)
+          const added = BIBLE_TRANSLATIONS.some((entry) => entry.id === id) || customBibles.some((entry) => entry.translation.id === id)
           const busy = loading?.code === bible.code
           const needsNetwork = !bible.bundledFile
           const details = [bible.year, bible.publisher].filter(Boolean).join(' · ')

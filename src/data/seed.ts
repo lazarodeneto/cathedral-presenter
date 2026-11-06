@@ -72,8 +72,8 @@ function buildSundayService(): SeedService {
   const holyHoly = song('holy-holy-holy')
   const doxology = song('doxology')
 
-  const psalmPrimary = getLocalPassageSync('Psalm 23:1-6', 'web')
-  const psalmSecondary = getLocalPassageSync('Psalm 23:1-6', 'blivre')
+  const psalmPrimary = getLocalPassageSync('Psalm 23:1-6', 'blivre')
+  const psalmSecondary = getLocalPassageSync('Psalm 23:1-6', 'tb')
   const psalmSlides = createBibleSlides({
     primary: psalmPrimary,
     secondary: psalmSecondary,
@@ -243,9 +243,9 @@ function buildPastService(): SeedService {
     metadata: { provider: 'Local service content' },
   }
   const songItem = song('come-thou-fount')
-  const johnPassage = getLocalPassageSync('John 3:16', 'web')
+  const johnPassage = getLocalPassageSync('John 3:16', 'blivre')
   const scripture = createBibleItem(
-    'John 3:16 · WEB',
+    'John 3:16 · BLIVRE',
     createBibleSlides({ primary: johnPassage, bilingual: false }),
     johnPassage,
   )
@@ -295,9 +295,9 @@ function buildMidweekService(): SeedService {
     slides: [titleSlide('The Sermon on the Mount', 'Wednesday Bible Study · 7:00 PM', 'violet')],
     metadata: { provider: 'Local service content' },
   }
-  const passage = getLocalPassageSync('Matthew 5:1-12', 'web')
+  const passage = getLocalPassageSync('Matthew 5:1-12', 'blivre')
   const scripture = createBibleItem(
-    'Matthew 5:1–12 · WEB',
+    'Matthew 5:1–12 · BLIVRE',
     createBibleSlides({ primary: passage, bilingual: false }),
     passage,
   )
@@ -349,9 +349,9 @@ function buildChristmasService(): SeedService {
     metadata: { provider: 'Local service content' },
   }
   const songItem = song('holy-holy-holy')
-  const passage = getLocalPassageSync('Isaiah 40:31', 'web')
+  const passage = getLocalPassageSync('Isaiah 40:31', 'blivre')
   const scripture = createBibleItem(
-    'Isaiah 40:31 · WEB',
+    'Isaiah 40:31 · BLIVRE',
     createBibleSlides({ primary: passage, bilingual: false }),
     passage,
   )
@@ -416,9 +416,9 @@ function buildYouthService(): SeedService {
     slides: [titleSlide('Psalms for the Anxious', 'Youth Night · October 16', 'copper')],
     metadata: { provider: 'Local service content' },
   }
-  const passage = getLocalPassageSync('Philippians 4:6-7', 'web')
+  const passage = getLocalPassageSync('Philippians 4:6-7', 'blivre')
   const scripture = createBibleItem(
-    'Philippians 4:6–7 · WEB',
+    'Philippians 4:6–7 · BLIVRE',
     createBibleSlides({ primary: passage, bilingual: false }),
     passage,
   )
@@ -460,9 +460,9 @@ function buildNewBelieversService(): SeedService {
     slides: [titleSlide('Starting with Grace', 'New Believers Class · November 8', 'golden')],
     metadata: { provider: 'Local service content' },
   }
-  const passage = getLocalPassageSync('Romans 8:28', 'web')
+  const passage = getLocalPassageSync('Romans 8:28', 'blivre')
   const scripture = createBibleItem(
-    'Romans 8:28 · WEB',
+    'Romans 8:28 · BLIVRE',
     createBibleSlides({ primary: passage, bilingual: false }),
     passage,
   )

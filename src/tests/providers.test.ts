@@ -33,7 +33,7 @@ describe('bundled Bible provider', () => {
     const catalog = await localBibleProvider.getBookCatalog('blivre', 'pt-BR')
     const john = catalog.find((book) => book.id === 'john')
     expect(john?.name).toBe('João')
-    expect(john?.chapters).toContainEqual({ number: 3, firstVerse: 16, lastVerse: 16 })
+    expect(john?.chapters).toContainEqual({ number: 3, firstVerse: 1, lastVerse: 36 })
 
     const result = await localBibleProvider.search('John 3:16', 'blivre')
     expect(result.mode).toBe('reference')
@@ -42,7 +42,7 @@ describe('bundled Bible provider', () => {
   })
 
   it('returns a localized message for missing chapters and keywords', async () => {
-    const chapter = await localBibleProvider.search('John 5', 'blivre')
+    const chapter = await localBibleProvider.search('John 99', 'blivre')
     expect(chapter.messageKey).toBe('bible.chapterNotBundled')
 
     const keyword = await localBibleProvider.search('zzzzzz', 'blivre')

@@ -89,8 +89,8 @@ export interface RecentPassage {
 export const DEFAULT_SETTINGS: AppSettings = {
   locale: 'pt-BR',
   highlightWeekday: null,
-  defaultTranslationId: 'web',
-  secondaryTranslationId: 'blivre',
+  defaultTranslationId: 'blivre',
+  secondaryTranslationId: 'tb',
   reducedTransparency: false,
   glassOpacity: 0.8,
   reducedMotion: false,
@@ -134,6 +134,8 @@ interface AppState {
   recentPassages: RecentPassage[]
   recentSongs: string[]
   librarySongs: LibrarySong[]
+  /** Version of the installed default library migration. */
+  bibleDefaultsVersion: number
   /** Administrator-imported Bibles. Every entry carries its own language. */
   customBibles: CustomBibleTranslation[]
   /** Bundled Bible translation ids hidden by the administrator. */
@@ -393,15 +395,16 @@ export const useAppStore = create<AppState>()(
         mediaLibrary: [],
         mediaTags: [],
         recentPassages: [
-          { reference: 'Psalm 23:1-6', translationId: 'web' },
-          { reference: 'John 3:16', translationId: 'web' },
-          { reference: 'Romans 8:28', translationId: 'web' },
-          { reference: '1 Corinthians 13:4-7', translationId: 'web' },
-          { reference: 'Matthew 5:1-12', translationId: 'web' },
+          { reference: 'Psalm 23:1-6', translationId: 'blivre' },
+          { reference: 'John 3:16', translationId: 'blivre' },
+          { reference: 'Romans 8:28', translationId: 'blivre' },
+          { reference: '1 Corinthians 13:4-7', translationId: 'blivre' },
+          { reference: 'Matthew 5:1-12', translationId: 'blivre' },
           { reference: 'Salmos 23:1-6', translationId: 'blivre' },
         ],
         recentSongs: ['amazing-grace', 'holy-holy-holy', 'come-thou-fount'],
         librarySongs: [],
+        bibleDefaultsVersion: 2,
         customBibles: [],
         hiddenBibleIds: [],
         archivedBibleIds: [],
@@ -1560,11 +1563,11 @@ export const useAppStore = create<AppState>()(
               ...current.settings,
               defaultTranslationId:
                 current.settings.defaultTranslationId === translationId
-                  ? 'web'
+                  ? 'blivre'
                   : current.settings.defaultTranslationId,
               secondaryTranslationId:
                 current.settings.secondaryTranslationId === translationId
-                  ? 'blivre'
+                  ? 'tb'
                   : current.settings.secondaryTranslationId,
             },
             lastSavedAt: now(),
@@ -1588,7 +1591,7 @@ export const useAppStore = create<AppState>()(
           const resetTranslation =
             state.settings.defaultTranslationId === translationId ||
             state.settings.secondaryTranslationId === translationId
-          const fallbackId = allBibleTranslations().find(isVisible)?.id ?? 'web'
+          const fallbackId = allBibleTranslations().find(isVisible)?.id ?? 'blivre'
           set((current) => ({
             hiddenBibleIds: [...current.hiddenBibleIds, translationId],
             recentPassages: current.recentPassages.filter(
@@ -1632,7 +1635,7 @@ export const useAppStore = create<AppState>()(
           const resetTranslation =
             state.settings.defaultTranslationId === translationId ||
             state.settings.secondaryTranslationId === translationId
-          const fallbackId = allBibleTranslations().find(isVisible)?.id ?? 'web'
+          const fallbackId = allBibleTranslations().find(isVisible)?.id ?? 'blivre'
           set((current) => ({
             archivedBibleIds: [...current.archivedBibleIds, translationId],
             hiddenBibleIds: current.hiddenBibleIds.filter((id) => id !== translationId),
@@ -1685,7 +1688,7 @@ export const useAppStore = create<AppState>()(
               !state.deletedBibleIds.includes(t.id) &&
               t.id !== translationId,
           )
-          const fallbackId = visible?.id ?? 'web'
+          const fallbackId = visible?.id ?? 'blivre'
           set((current) => ({
             deletedBibleIds: [...current.deletedBibleIds, translationId],
             hiddenBibleIds: current.hiddenBibleIds.filter((id) => id !== translationId),

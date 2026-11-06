@@ -1,3 +1,4 @@
+import { LEGACY_INCLUDED_BIBLE_IDS } from '../data/bible'
 import type { BibleBookTexts, CustomBibleTranslation } from '../types'
 
 /**
@@ -29,7 +30,10 @@ function openDb(): Promise<IDBDatabase | null> {
   return dbPromise
 }
 
-function run<T>(mode: IDBTransactionMode, action: (store: IDBObjectStore) => IDBRequest<T>): Promise<T | undefined> {
+function run<T>(
+  mode: IDBTransactionMode,
+  action: (store: IDBObjectStore) => IDBRequest<T>,
+): Promise<T | undefined> {
   return openDb().then(
     (db) =>
       new Promise((resolve) => {
@@ -81,7 +85,15 @@ export async function syncBibleTexts(entries: CustomBibleTranslation[]): Promise
 }
 
 /** Loads stored text for entries that arrived without it. Entries IndexedDB lacks stay as they are. */
-export async function loadBibleTexts(entries: CustomBibleTranslation[]): Promise<Record<string, BibleBookTexts>> {
+export async function loadBibleTexts(
+  entries: CustomBibleTranslation[],
+): Promise<Record<string, BibleBookTexts>> {
+  // Retired app-supplied copies are replaced by the bundled full-text defaults.
+  // Never clear the store: independently imported church translations must survive.
+  for (const id of LEGACY_INCLUDED_BIBLE_IDS) {
+    stored.delete(id)
+    await run('readwrite', (store) => store.delete(id))
+  }
   const loaded: Record<string, BibleBookTexts> = {}
   for (const entry of entries) {
     const { id } = entry.translation

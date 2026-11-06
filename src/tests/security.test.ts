@@ -27,7 +27,7 @@ import type { AppSettings, Branding } from '../types'
 
 const settings: AppSettings = {
   locale: 'en',
-  defaultTranslationId: 'web',
+  defaultTranslationId: 'blivre',
   secondaryTranslationId: 'blivre',
   reducedTransparency: false,
   reducedMotion: false,

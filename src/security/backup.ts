@@ -425,10 +425,10 @@ function normalizeSettings(value: unknown, translationIds: Set<string>): AppSett
   if (!record) return null
   return {
     locale: allowed<Locale>(record.locale, LOCALES, 'en'),
-    defaultTranslationId: validTranslationId(record.defaultTranslationId, 'web', translationIds),
+    defaultTranslationId: validTranslationId(record.defaultTranslationId, 'blivre', translationIds),
     secondaryTranslationId: validTranslationId(
       record.secondaryTranslationId,
-      'blivre',
+      'tb',
       translationIds,
     ),
     reducedTransparency: bool(record.reducedTransparency),

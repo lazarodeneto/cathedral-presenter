@@ -100,10 +100,10 @@ export function BibleScreen() {
   )
   const [query, setQuery] = useState('Psalm 23:1-6')
   const [translationId, setTranslationId] = useState(() =>
-    validTranslationId(translations, settings.defaultTranslationId, 'web'),
+    validTranslationId(translations, settings.defaultTranslationId, 'blivre'),
   )
   const [secondaryId, setSecondaryId] = useState(() =>
-    validTranslationId(translations, settings.secondaryTranslationId, 'blivre'),
+    validTranslationId(translations, settings.secondaryTranslationId, 'tb'),
   )
   const [bilingual, setBilingual] = useState(true)
   const [results, setResults] = useState<BiblePassage[]>([])
@@ -132,8 +132,8 @@ export function BibleScreen() {
   const secondaryProvider = resolveBibleProvider(secondaryId)
 
   useEffect(() => {
-    const nextPrimary = validTranslationId(translations, settings.defaultTranslationId, 'web')
-    const nextSecondary = validTranslationId(translations, settings.secondaryTranslationId, 'blivre')
+    const nextPrimary = validTranslationId(translations, settings.defaultTranslationId, 'blivre')
+    const nextSecondary = validTranslationId(translations, settings.secondaryTranslationId, 'tb')
     setTranslationId((current) =>
       translations.some((translation) => translation.id === current) ? current : nextPrimary,
     )

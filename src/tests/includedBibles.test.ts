@@ -6,14 +6,14 @@ import { BIBLE_CATALOG } from '../data/bibleCatalog'
 import { loadBundledCatalogBible } from '../providers/bible/githubBibles'
 import { parseBibleTextJson } from '../utils/bibleImport'
 
-const read = (file: string) => readFileSync(resolve(__dirname, '../../public', file), 'utf8')
+const read = (file: string) => readFileSync(resolve(__dirname, '../..', file), 'utf8')
 
 describe('included public-domain Bibles', () => {
   afterEach(() => vi.unstubAllGlobals())
 
-  it('ships only public-domain translations', () => {
-    expect(INCLUDED_BIBLES.map((bible) => bible.abbreviation)).toEqual(['TB', 'BLIVRE', 'ALM1911'])
-    expect(INCLUDED_BIBLES.every((bible) => bible.licenseType === 'public-domain')).toBe(true)
+  it('ships exactly the two complete Portuguese defaults', () => {
+    expect(INCLUDED_BIBLES.map((bible) => bible.abbreviation)).toEqual(['BLIVRE', 'TB'])
+    expect(INCLUDED_BIBLES.every((bible) => bible.language === 'pt-BR')).toBe(true)
   })
 
   it.each(INCLUDED_BIBLES)('$abbreviation parses as a complete 66-book Bible', (bible) => {
@@ -29,7 +29,7 @@ describe('included public-domain Bibles', () => {
     const bible = BIBLE_CATALOG.find((entry) => entry.code === 'TB')!
     vi.stubGlobal('fetch', vi.fn(async () => new Response(read(bible.bundledFile!))))
     const entry = await loadBundledCatalogBible(bible)
-    expect(entry?.translation).toMatchObject({ id: 'included-pt-br-tb', abbreviation: 'TB', licenseType: 'public-domain', year: 2010 })
+    expect(entry?.translation).toMatchObject({ id: 'tb', abbreviation: 'TB', licenseType: 'public-domain', year: 2010 })
     expect(entry?.translation.verseCount).toBeGreaterThan(31_000)
   })
 })

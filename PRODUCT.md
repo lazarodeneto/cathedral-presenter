@@ -52,7 +52,7 @@ What it does differently:
 Built (browser prototype, `src/`):
 
 - Service rundown with sections, calendar, and one-action service duplication.
-- Bible and song libraries behind provider adapters, with local sample data.
+- Bible and song libraries behind provider adapters, with complete bundled Scripture and local song data.
 - Bilingual Scripture slides.
 - Slide editor: text, image, video, URL media, YouTube embed, QR (URL, text, event, contact), shapes, backgrounds, layers, crop, alignment, opacity, visibility, and drag-and-drop upload.
 - Live Service: Previous/Next, recent-slide history, quick jump, blank, message popup, and current/next preview.
@@ -84,7 +84,7 @@ Open decisions:
 
 - Screen references: `assets/reference/church-presenter-*.png` (home, workspace, add-slide, slide-editor, bible-library, live-service). Reviewed in `docs/10-reference-screen-review.md`.
 - Product and planning docs: `docs/00`–`docs/10`, plus `prompts/`.
-- Sample content: the fictional "Grace Community Church" seed service, public-domain hymns, and open Bible excerpts in `src/data/`.
+- Sample content: the fictional "Grace Community Church" seed service, public-domain hymns, and the two complete pt-BR Bible defaults (Bíblia Livre and Tradução Brasileira) in `src/data/bibles/`.
 - Absent: real users, testimonials, usage data, church partners, pricing, and licence agreements. Do not fabricate any of them.
 
 ## Product Principles
@@ -100,3 +100,7 @@ Open decisions:
 - **Operator UI:** WCAG 2.2 AA. This covers contrast in a dim booth, visible focus, full keyboard operation, and state not shown by color alone.
 - **Projected output:** text must read from the back of the room. Use projection-scale type sizes, strong contrast against backgrounds and media, and keep content inside the 16:9 safe area. Long verses and lyrics must adapt rather than overflow.
 - Seven UI locales, with Portuguese and English primary for bilingual Scripture.
+
+## Default Bible library
+
+Every application download includes exactly two complete pt-BR Bibles: **Bíblia Livre (BLIVRE)** and **Tradução Brasileira (TB)**. Both are available immediately offline without adding, signing in, or fetching a remote source. BLIVRE is the primary default and TB the secondary. Retired sample translations are removed from the built-in library. Keep the supplied attribution/license metadata with the full texts. Imported church translations remain optional additions.

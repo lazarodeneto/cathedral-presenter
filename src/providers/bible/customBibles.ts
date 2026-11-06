@@ -1,3 +1,4 @@
+import { LEGACY_INCLUDED_BIBLE_IDS } from '../../data/bible'
 import { BIBLE_BOOKS, BIBLE_TRANSLATIONS, BIBLE_VERSES } from '../../data/bible'
 import { LOCALES } from '../../types'
 import type {
@@ -173,7 +174,7 @@ export function normalizeCustomBible(
 
   const requestedId =
     typeof translation.id === 'string' ? sanitizeSingleLine(translation.id, 140) : ''
-  if (!TRANSLATION_ID_PATTERN.test(requestedId) || isBundledBibleTranslation(requestedId)) {
+  if (!TRANSLATION_ID_PATTERN.test(requestedId) || isBundledBibleTranslation(requestedId) || LEGACY_INCLUDED_BIBLE_IDS.has(requestedId)) {
     return null
   }
   const id = uniqueId(existingIds, requestedId)

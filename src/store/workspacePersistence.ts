@@ -198,6 +198,7 @@ export function partializeWorkspace(state: AppState) {
     recentPassages: state.recentPassages,
     recentSongs: state.recentSongs,
     librarySongs: state.librarySongs,
+    bibleDefaultsVersion: 2,
     customBibles: state.customBibles.map((entry) =>
       isBibleTextStored(entry.translation.id, entry.books) ? { ...entry, books: {} } : entry,
     ),
@@ -213,7 +214,14 @@ export function mergeWorkspace(persisted: unknown, current: AppState): AppState 
   if (!value || !Array.isArray(value.services)) return current
   const customBibles = sanitizeCustomBibleTranslations(value.customBibles, { textStoredElsewhere: true })
   const translationIds = translationIdsFor(customBibles)
+  const upgradingBibles = value.bibleDefaultsVersion !== 2
+  const defaultAliases: Record<string, string> = { 'included-pt-br-blivre': 'blivre', 'included-pt-br-tb': 'tb' }
   const settings = { ...current.settings, ...(value.settings ?? {}) }
+  if (upgradingBibles) {
+    settings.defaultTranslationId = defaultAliases[settings.defaultTranslationId] ?? settings.defaultTranslationId
+    settings.secondaryTranslationId = defaultAliases[settings.secondaryTranslationId] ?? settings.secondaryTranslationId
+    if (!customBibles.some((entry) => entry.translation.id === settings.secondaryTranslationId)) settings.secondaryTranslationId = 'tb'
+  }
   const churchId =
     typeof value.churchId === 'string' && value.churchId ? value.churchId : current.churchId
   const storedProfiles =
@@ -257,10 +265,10 @@ export function mergeWorkspace(persisted: unknown, current: AppState): AppState 
       ...settings,
       locale: LOCALES.includes(settings.locale) ? settings.locale : current.settings.locale,
       shortcutOverrides: normalizeOverrides(settings.shortcutOverrides),
-      defaultTranslationId: validTranslationId(settings.defaultTranslationId, 'web', translationIds),
+      defaultTranslationId: validTranslationId(settings.defaultTranslationId, 'blivre', translationIds),
       secondaryTranslationId: validTranslationId(
         settings.secondaryTranslationId,
-        'blivre',
+        'tb',
         translationIds,
       ),
       highlightWeekday: validHighlightWeekday(settings.highlightWeekday),
@@ -274,10 +282,11 @@ export function mergeWorkspace(persisted: unknown, current: AppState): AppState 
     recentPassages: sanitizeRecentPassages(value.recentPassages, current.recentPassages, translationIds),
     recentSongs: sanitizeRecentSongs(value.recentSongs, current.recentSongs),
     librarySongs: sanitizeLibrarySongs(value.librarySongs, current.librarySongs),
+    bibleDefaultsVersion: 2,
     customBibles,
-    hiddenBibleIds: sanitizeHiddenBibleIds(value.hiddenBibleIds),
-    archivedBibleIds: sanitizeHiddenBibleIds(value.archivedBibleIds),
-    deletedBibleIds: sanitizeHiddenBibleIds(value.deletedBibleIds),
+    hiddenBibleIds: upgradingBibles ? [] : sanitizeHiddenBibleIds(value.hiddenBibleIds),
+    archivedBibleIds: upgradingBibles ? [] : sanitizeHiddenBibleIds(value.archivedBibleIds),
+    deletedBibleIds: upgradingBibles ? [] : sanitizeHiddenBibleIds(value.deletedBibleIds),
     live: null,
     testMonitorId: null,
     timers: {},

@@ -77,7 +77,7 @@ function buildPassage(
   if (verses.length === 0) {
     throw new BibleProviderError(
       'not-found',
-      'That passage is not in the bundled sample. Try Psalm 23, John 3, Romans 8, 1 Corinthians 13, Matthew 5, Isaiah 40, or Philippians 4.',
+      'Passage not found in this translation.',
     )
   }
   const first = verses[0]
@@ -177,7 +177,7 @@ export class LocalBibleProvider implements BibleProvider {
   async getChapter(translationId: string, bookId: string, chapter: number): Promise<BibleVerse[]> {
     const translation = translationOf(translationId)
     const bounds = fullChapterBounds(translationId, bookId, chapter)
-    if (!bounds) throw new BibleProviderError('not-found', 'Chapter not found in local sample')
+    if (!bounds) throw new BibleProviderError('not-found', 'Chapter not found in this translation')
     return buildPassage(translation, bookId, chapter, bounds.start, bounds.end).verses
   }
 
@@ -250,7 +250,7 @@ export class LocalBibleProvider implements BibleProvider {
       parsed.startVerse !== null
         ? { start: parsed.startVerse, end: parsed.endVerse ?? parsed.startVerse }
         : fullChapterBounds(translationId, parsed.bookId, parsed.chapter)
-    if (!bounds) throw new BibleProviderError('empty', 'Passage not found in local sample.')
+    if (!bounds) throw new BibleProviderError('empty', 'Passage not found in this translation.')
     return buildPassage(translation, parsed.bookId, parsed.chapter, bounds.start, bounds.end)
   }
 
@@ -271,7 +271,7 @@ export function getLocalPassageSync(reference: string, translationId: string): B
     parsed.startVerse !== null
       ? { start: parsed.startVerse, end: parsed.endVerse ?? parsed.startVerse }
       : fullChapterBounds(translationId, parsed.bookId, parsed.chapter)
-  if (!bounds) throw new BibleProviderError('empty', 'Passage not found in local sample.')
+  if (!bounds) throw new BibleProviderError('empty', 'Passage not found in this translation.')
   return buildPassage(translation, parsed.bookId, parsed.chapter, bounds.start, bounds.end)
 }
 

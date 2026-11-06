@@ -2,8 +2,8 @@ import type { Locale } from '../types'
 
 /**
  * The Portuguese Bibles of github.com/damarals/biblias (Bíblia, Sigla, Ano,
- * Editora as listed there). Public-domain ones also ship with the app in
- * `public/bibles/` and add offline; the rest are downloaded from the
+ * Editora as listed there). The two complete defaults ship with the app in
+ * `src/data/bibles/`; the rest are downloaded from the
  * repository when an administrator adds them, then stored on this device.
  */
 export interface CatalogBible {
@@ -36,9 +36,9 @@ export const BIBLE_CATALOG: CatalogBible[] = [
   { code: 'NTLH', name: 'Nova Tradução na Linguagem de Hoje', year: 1988, publisher: 'SBB', language: 'pt-BR', publicDomain: false },
   { code: 'NVI', name: 'Nova Versão Internacional', year: null, publisher: 'Biblica', language: 'pt-BR', publicDomain: false },
   { code: 'NVT', name: 'Nova Versão Transformadora', year: 2016, publisher: 'Mundo Cristão', language: 'pt-BR', publicDomain: false },
-  { code: 'TB', name: 'Tradução Brasileira', year: 2010, publisher: 'SBB', language: 'pt-BR', publicDomain: true, bundledFile: 'bibles/TB.json' },
-  { code: 'BLIVRE', name: 'Bíblia Livre', year: 2018, publisher: null, language: 'pt-BR', publicDomain: true, bundledFile: 'bibles/BLIVRE.json' },
-  { code: 'ALM1911', name: 'Almeida 1911', year: 1911, publisher: null, language: 'pt', publicDomain: true, bundledFile: 'bibles/ALM1911.json' },
+  { code: 'TB', name: 'Tradução Brasileira', year: 2010, publisher: 'SBB', language: 'pt-BR', publicDomain: true, bundledFile: 'src/data/bibles/TB.json' },
+  { code: 'BLIVRE', name: 'Bíblia Livre', year: 2018, publisher: null, language: 'pt-BR', publicDomain: false, bundledFile: 'src/data/bibles/BLIVRE.json' },
+  { code: 'ALM1911', name: 'Almeida 1911', year: 1911, publisher: null, language: 'pt', publicDomain: true },
   { code: 'OL', name: 'O Livro', year: 2000, publisher: 'Biblica', language: 'pt', publicDomain: false },
   { code: 'MENS', name: 'A Mensagem', year: 2016, publisher: 'Editora Vida', language: 'pt-BR', publicDomain: false },
   { code: 'VFL', name: 'Versão Fácil de Ler', year: 2017, publisher: 'Bible League International', language: 'pt-BR', publicDomain: false },
@@ -46,6 +46,6 @@ export const BIBLE_CATALOG: CatalogBible[] = [
 
 /** Library id for a catalogue Bible. Public-domain ones keep the ids they had as "included" Bibles. */
 export function catalogBibleId(bible: CatalogBible): string {
-  const legacy: Record<string, string> = { TB: 'included-pt-br-tb', BLIVRE: 'included-pt-br-blivre', ALM1911: 'included-pt-alm1911' }
+  const legacy: Record<string, string> = { TB: 'tb', BLIVRE: 'blivre' }
   return legacy[bible.code] ?? `catalog-${bible.code.toLowerCase()}`
 }

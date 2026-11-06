@@ -9,7 +9,7 @@ import { BIBLE_BOOKS } from '../data/bible'
 import { LOCALES } from '../types'
 
 function verseSlide() {
-  const primary = getVersePassage('web', 'john', 3, 16)
+  const primary = getVersePassage('blivre', 'john', 3, 16)
   if (!primary) throw new Error('John 3:16 missing from the bundled sample')
   return createBibleSlides({ primary, bilingual: false })[0]
 }

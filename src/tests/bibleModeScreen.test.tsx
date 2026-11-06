@@ -18,7 +18,7 @@ describe('Bible Mode live state', () => {
     const state = useAppStore.getState()
     const service = state.services.find((item) => flatSlides(item).length && item.status !== 'archived')!
     state.startLive(service.id, flatSlides(service)[0].slide.id)
-    const passage = getVersePassage('web', 'john', 3, 16)!
+    const passage = getVersePassage('blivre', 'john', 3, 16)!
     useAppStore.getState().showScriptureLive(createBibleSlides({ primary: passage, bilingual: false })[0])
     render(<BibleModeScreen />)
     const verse = await screen.findByRole('button', { name: /(verse|versículo) 16.*(on screen|na tela|no ecrã)/i })
@@ -37,8 +37,8 @@ describe('Bible Mode live state', () => {
     const state = useAppStore.getState()
     const service = state.services.find((item) => flatSlides(item).length && item.status !== 'archived')!
     state.startLive(service.id, flatSlides(service)[0].slide.id)
-    const first = createBibleSlides({ primary: getVersePassage('web', 'john', 3, 16)!, bilingual: false })[0]
-    const second = createBibleSlides({ primary: getVersePassage('web', 'john', 3, 17)!, bilingual: false })[0]
+    const first = createBibleSlides({ primary: getVersePassage('blivre', 'john', 3, 16)!, bilingual: false })[0]
+    const second = createBibleSlides({ primary: getVersePassage('blivre', 'john', 3, 17)!, bilingual: false })[0]
     useAppStore.getState().showScriptureLive(first)
     useAppStore.getState().toggleFreeze()
     useAppStore.getState().showScriptureLive(second)
@@ -52,7 +52,7 @@ describe('Bible Mode live state', () => {
     const state = useAppStore.getState()
     const service = state.services.find((item) => flatSlides(item).length && item.status !== 'archived')!
     state.startLive(service.id, flatSlides(service)[0].slide.id)
-    const verse = createBibleSlides({ primary: getVersePassage('web', 'john', 3, 16)!, bilingual: false })[0]
+    const verse = createBibleSlides({ primary: getVersePassage('blivre', 'john', 3, 16)!, bilingual: false })[0]
     useAppStore.getState().showScriptureLive(verse)
     useAppStore.getState().setAudienceMessage('Test alert')
     const { container } = render(<BibleModeScreen />)
@@ -65,7 +65,7 @@ describe('Bible Mode live state', () => {
     const state = useAppStore.getState()
     const service = state.services.find((item) => flatSlides(item).length && item.status !== 'archived')!
     state.startLive(service.id, flatSlides(service)[0].slide.id)
-    const verse = createBibleSlides({ primary: getVersePassage('web', 'john', 3, 16)!, bilingual: false })[0]
+    const verse = createBibleSlides({ primary: getVersePassage('blivre', 'john', 3, 16)!, bilingual: false })[0]
     state.showScriptureLive(verse)
     const { container } = render(<BibleModeScreen />)
     const book = await screen.findByRole('button', { name: /^(Romans|Romanos)$/i })

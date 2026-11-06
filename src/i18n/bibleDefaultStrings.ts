@@ -1,0 +1,43 @@
+import type { Locale } from '../types'
+export const bibleDefaultStrings: Record<Locale, Record<string, string>> = {
+  en: {
+    'bible.sampleNote':
+      'Complete offline Bibles · Bíblia Livre and Tradução Brasileira are included.',
+    'bible.chapterNotBundled':
+      'This chapter was not found in this translation. Choose another chapter or translation.',
+  },
+  pt: {
+    'bible.sampleNote': 'Bíblias completas offline · Bíblia Livre e Tradução Brasileira incluídas.',
+    'bible.chapterNotBundled':
+      'Este capítulo não foi encontrado nesta tradução. Escolha outro capítulo ou tradução.',
+  },
+  'pt-BR': {
+    'bible.sampleNote':
+      'Bíblias completas offline · Bíblia Livre e Tradução Brasileira já incluídas.',
+    'bible.chapterNotBundled':
+      'Este capítulo não foi encontrado nesta tradução. Selecione outro capítulo ou tradução.',
+  },
+  es: {
+    'bible.sampleNote':
+      'Biblias completas sin conexión · Bíblia Livre y Tradução Brasileira incluidas.',
+    'bible.chapterNotBundled':
+      'No se encontró este capítulo en esta traducción. Elige otro capítulo o traducción.',
+  },
+  fr: {
+    'bible.sampleNote':
+      'Bibles complètes hors ligne · Bíblia Livre et Tradução Brasileira incluses.',
+    'bible.chapterNotBundled':
+      'Ce chapitre est introuvable dans cette traduction. Choisissez un autre chapitre ou une autre traduction.',
+  },
+  de: {
+    'bible.sampleNote':
+      'Vollständige Offline-Bibeln · Bíblia Livre und Tradução Brasileira enthalten.',
+    'bible.chapterNotBundled':
+      'Dieses Kapitel wurde in dieser Übersetzung nicht gefunden. Wählen Sie ein anderes Kapitel oder eine andere Übersetzung.',
+  },
+  it: {
+    'bible.sampleNote': 'Bibbie complete offline · Bíblia Livre e Tradução Brasileira incluse.',
+    'bible.chapterNotBundled':
+      'Capitolo non trovato in questa traduzione. Scegli un altro capitolo o un’altra traduzione.',
+  },
+}
