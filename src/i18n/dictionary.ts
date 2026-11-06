@@ -1,3 +1,4 @@
+import { authStrings } from './authStrings'
 import type { Locale } from '../types'
 import { intlLocale } from '../utils/dates'
 import { completionStrings } from './completionStrings'
@@ -3417,35 +3418,9 @@ export const dictionaries: Record<Locale, Dict> = {
   it: { ...en, ...editorStrings.it, ...it, ...sourceStrings.it, ...completionStrings.it, ...bibleAdminStrings.it, ...songDirectoryStrings.it, ...mediaTagStrings.it, ...railStrings.it, ...reviewStrings.it, ...templateStrings.it },
 }
 
-const authEnglish = {
-  'auth.title': 'Welcome back',
-  'auth.signIn': 'Sign in',
-  'auth.intro': 'A quiet moment before the service.',
-  'auth.description': 'Prepare with care. Present with confidence.',
-  'auth.email': 'Email address',
-  'auth.password': 'Password',
-  'auth.show': 'Show password',
-  'auth.hide': 'Hide password',
-  'auth.offline': 'Continue on this computer',
-  'auth.local': 'Your services and libraries stay on this computer. No account is needed to present offline.',
-  'auth.unavailable': 'Account sign-in is not connected yet. You can continue on this computer.',
-  'auth.note': 'Account sign-in will be available once your church connects an account service.',
-}
-Object.assign(dictionaries.en, authEnglish)
 for (const locale of Object.keys(dictionaries) as Locale[]) {
-  for (const [key, value] of Object.entries(authEnglish)) dictionaries[locale][key] ??= value
+  Object.assign(dictionaries[locale], authStrings[locale])
 }
-for (const locale of ['pt', 'pt-BR'] as Locale[]) Object.assign(dictionaries[locale], {
-  'auth.title': 'Bem-vindo de volta', 'auth.signIn': 'Entrar',
-  'auth.intro': 'Um momento de tranquilidade antes do culto.',
-  'auth.description': 'Prepare com cuidado. Apresente com confiança.',
-  'auth.email': 'Endereço de email', 'auth.password': 'Palavra-passe',
-  'auth.show': 'Mostrar palavra-passe', 'auth.hide': 'Ocultar palavra-passe',
-  'auth.offline': 'Continuar neste computador',
-  'auth.local': 'Os seus cultos e bibliotecas ficam neste computador. Não precisa de conta para apresentar offline.',
-  'auth.unavailable': 'O início de sessão ainda não está ligado. Pode continuar neste computador.',
-  'auth.note': 'O início de sessão ficará disponível quando a igreja ligar um serviço de contas.',
-})
 
 export function translate(locale: Locale, key: string, vars?: Record<string, string | number>): string {
   const dictionary = dictionaries[locale] ?? dictionaries.en

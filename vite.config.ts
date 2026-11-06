@@ -48,7 +48,6 @@ export default defineConfig({
       output: {
         codeSplitting: {
           groups: [
-            { name: 'i18n', test: /\/src\/i18n\// },
             { name: 'vendor', test: /\/node_modules\// },
           ],
         },

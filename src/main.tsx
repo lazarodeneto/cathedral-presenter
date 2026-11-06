@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import App from './App'
+import { Entry } from './Entry'
 import '@fontsource-variable/inter/opsz.css'
 import '@fontsource-variable/inter/opsz-italic.css'
 import '@fontsource-variable/noto-serif'
@@ -13,6 +13,6 @@ if (!root) throw new Error('Root element not found')
 
 createRoot(root).render(
   <StrictMode>
-    <App />
+    <Entry />
   </StrictMode>,
 )
