@@ -1,3 +1,4 @@
+import { BibleReference } from '../components/BibleReference'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowLeft, BookOpen, Eraser, Languages, MonitorPlay, Radio, ScrollText } from 'lucide-react'
 import type { BibleBookCatalogEntry, BibleVerse } from '../types'
@@ -379,11 +380,10 @@ export function BibleModeScreen() {
               )}
             </div>
             <div className="bm-preview-actions">
-              <strong className="bm-reference">
-                {shownBook ? shownBook.toLocaleUpperCase(locale) : t('biblemode.pickBook')}
-                {shownChapter !== null && <> <span className="bm-reference-chapter">{shownChapter}</span></>}
-                {shownVerse !== null && <> {t('biblemode.verseShort')} <span className="bm-reference-verse">{shownVerse}</span></>}
-              </strong>
+              <BibleReference
+                book={shownBook ? shownBook.toLocaleUpperCase(locale) : t('biblemode.pickBook')}
+                chapter={shownChapter} verse={shownVerse} verseLabel={t('biblemode.verseShort')}
+              />
               {live?.scripture && (
                 <button type="button" className="btn btn-ghost btn-sm bm-clear-verse" onClick={clearScriptureLive}>
                   <Eraser size={14} aria-hidden="true" />

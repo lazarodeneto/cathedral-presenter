@@ -1,8 +1,12 @@
+import { SlideRenderer } from '../components/SlideRenderer'
+import { outputFormat } from '../utils/outputFormats'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   BookOpen,
+  BookPlus,
   Check,
   ChevronRight,
+  ChevronLeft,
   Languages,
   Library,
   Loader2,
@@ -105,7 +109,8 @@ export function BibleScreen() {
   const [secondaryId, setSecondaryId] = useState(() =>
     validTranslationId(translations, settings.secondaryTranslationId, 'tb'),
   )
-  const [bilingual, setBilingual] = useState(true)
+  const [bilingual, setBilingual] = useState(false)
+  const [previewIndex, setPreviewIndex] = useState(0)
   const [results, setResults] = useState<BiblePassage[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
@@ -126,6 +131,8 @@ export function BibleScreen() {
       '',
   )
 
+  const branding = useAppStore((state) => state.branding)
+  const previewAspect = outputFormat(settings.outputFormat).aspect
   const provider = resolveBibleProvider(translationId)
   const primaryTranslation = translationById(translations, translationId)
   const secondaryTranslation = translationById(translations, secondaryId)
@@ -276,10 +283,20 @@ export function BibleScreen() {
   const selected = results.find((passage) => passage.id === selectedId) ?? results[0] ?? null
   // Always one verse per slide (see createBibleSlides).
   const slideCount = selected?.verses.length ?? 0
-  const overflow = useMemo(() => {
-    if (!selected) return false
-    return createBibleSlides({ primary: selected, bilingual: false }).some(isLikelyOverflow)
-  }, [selected])
+  const previewSlides = useMemo(() => selected ? createBibleSlides({
+    primary: selected,
+    secondary: secondaryPreview ?? undefined,
+    bilingual,
+  }) : [], [selected, secondaryPreview, bilingual])
+  const previewAt = Math.min(previewIndex, Math.max(0, previewSlides.length - 1))
+  const previewSlide = previewSlides[previewAt]
+  const overflow = previewSlides.some(isLikelyOverflow)
+  useEffect(() => setPreviewIndex(0), [selected?.id])
+  useEffect(() => {
+    if (!bilingual || secondaryId !== translationId) return
+    const other = translations.find((entry) => entry.id !== translationId)
+    if (other) { setSecondaryId(other.id); updateSettings({ secondaryTranslationId: other.id }) }
+  }, [bilingual, secondaryId, translationId, translations, updateSettings])
 
   useEffect(() => {
     let active = true
@@ -555,9 +572,10 @@ export function BibleScreen() {
                 </button>
               ))}
             </div>
-            <button type="button" className="btn btn-ghost btn-sm bible-add-translation" onClick={() => navigate('/settings/bibles')}>
-              <Plus size={14} aria-hidden="true" />
-              <span>{t('bible.addNew')}</span>
+            <button type="button" className="btn btn-secondary bible-add-translation" onClick={() => navigate('/settings/bibles')}>
+              <span className="bible-add-icon"><BookPlus size={17} aria-hidden="true" /></span>
+              <span className="bible-add-label">{t('bible.addNew')}</span>
+              <ChevronRight size={14} aria-hidden="true" />
             </button>
           </div>
           <div className="side-section">
@@ -663,121 +681,41 @@ export function BibleScreen() {
                 </div>
                 <span className="badge badge-amber">{selected.translationAbbreviation}</span>
               </div>
-              <div
-                className="passage-preview"
-                role="region"
-                aria-label={`${t('bible.preview')}: ${selected.reference}`}
-                tabIndex={0}
-              >
-                <div className="passage-block passage-primary">
-                  <span className="translation-tag">
-                    {selected.translationAbbreviation} · {selected.reference}
-                  </span>
-                  {selected.verses.map((verse) => (
-                    <p key={verse.verse}>
-                      <sup>{verse.verse}</sup> {verse.text}
-                    </p>
-                  ))}
+              <div className="bible-stage-preview" role="region" aria-label={`${t('bible.preview')}: ${selected.reference}`} tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+                  event.preventDefault()
+                  event.stopPropagation()
+                  setPreviewIndex((index) => Math.min(previewSlides.length - 1, Math.max(0, index + (event.key === 'ArrowRight' ? 1 : -1))))
+                }}>
+                <div className="bible-stage-frame">
+                  <SlideRenderer slide={previewSlide} branding={branding} aspectRatio={previewAspect} compact />
                 </div>
-                {bilingual && secondaryId !== translationId && (
-                  <div className="passage-block passage-secondary">
-                    <span className="translation-tag">
-                      {secondaryTranslation.abbreviation} ·{' '}
-                      {secondaryPreview?.reference ?? selected.reference}
-                    </span>
-                    {secondaryPreview ? (
-                      secondaryPreview.verses.map((verse) => (
-                        <p key={verse.verse}>
-                          <sup>{verse.verse}</sup> {verse.text}
-                        </p>
-                      ))
-                    ) : (
-                      <p className="muted-note">{t('common.loading')}</p>
-                    )}
-                  </div>
-                )}
-                <div className="license-box">
-                  <span className="eyebrow">{t('bible.licenseSource')}</span>
-                  <strong>{selected.translationName}</strong>
-                  <p>{selected.copyrightNotice}</p>
-                  <span>{selected.licenseType}</span>
+                <div className="bible-stage-navigation">
+                  <button type="button" className="btn btn-ghost" aria-label={t('common.previous')} disabled={previewAt === 0} onClick={() => setPreviewIndex(previewAt - 1)}><ChevronLeft size={18} aria-hidden="true" /></button>
+                  <span aria-live="polite"><strong>{previewAt + 1}</strong><span> / {slideCount}</span></span>
+                  <button type="button" className="btn btn-ghost" aria-label={t('common.next')} disabled={previewAt >= slideCount - 1} onClick={() => setPreviewIndex(previewAt + 1)}><ChevronRight size={18} aria-hidden="true" /></button>
                 </div>
               </div>
-
-              <div className="bible-options">
-                <div className="option-head">
-                  <div className="option-title">
-                    <Languages size={16} />
-                    {t('common.format')}
-                  </div>
-                  <label className="switch-row bible-switch">
-                    <span>{t('bible.bilingualShort')}</span>
-                    <button
-                      className={`switch ${bilingual ? 'is-on' : ''}`}
-                      onClick={() => setBilingual(!bilingual)}
-                      type="button"
-                      role="switch"
-                      aria-checked={bilingual}
-                      aria-label={t('bible.bilingual')}
-                    >
-                      <span />
-                    </button>
-                  </label>
+              <div className="bible-preview-format">
+                <div className="bible-preview-mode" role="group" aria-label={t('bible.format')}>
+                  <button type="button" className={!bilingual ? 'is-active' : ''} aria-pressed={!bilingual} onClick={() => setBilingual(false)}><BookOpen size={15} aria-hidden="true" />{t('bible.oneTranslation')}</button>
+                  <button type="button" className={bilingual ? 'is-active' : ''} aria-pressed={bilingual} disabled={translations.length < 2} onClick={() => setBilingual(true)}><Languages size={15} aria-hidden="true" />{t('bible.twoTranslations')}</button>
                 </div>
-                {bilingual && (
-                  <div className="bible-language-pair">
-                    <label className="bible-language-field bible-language-primary">
-                      <span>{t('bible.primary')}</span>
-                      <span className="bible-select-with-flag">
-                      {LOCALES.includes(primaryTranslation.language) && <LocaleFlag locale={primaryTranslation.language} size={18} />}
-                      <select
-                        value={translationId}
-                        onChange={(event) => {
-                          const nextId = validTranslationId(translations, event.target.value, translationId)
-                          setTranslationId(nextId)
-                          updateSettings({ defaultTranslationId: nextId })
-                        }}
-                      >
-                        {translations.map((translation) => (
-                          <option key={translation.id} value={translation.id}>
-                            {translation.abbreviation} · {translation.name}
-                          </option>
-                        ))}
-                      </select>
-                      </span>
-                    </label>
-                    <label className="bible-language-field bible-language-secondary">
-                      <span>{t('bible.secondary')}</span>
-                      <span className="bible-select-with-flag">
-                      {LOCALES.includes(secondaryTranslation.language) && <LocaleFlag locale={secondaryTranslation.language} size={18} />}
-                      <select
-                        value={secondaryId}
-                        onChange={(event) => {
-                          const nextId = validTranslationId(translations, event.target.value, secondaryId)
-                          setSecondaryId(nextId)
-                          updateSettings({ secondaryTranslationId: nextId })
-                        }}
-                      >
-                        {translations.map((translation) => (
-                          <option key={translation.id} value={translation.id}>
-                            {translation.abbreviation} · {translation.name}
-                          </option>
-                        ))}
-                      </select>
-                      </span>
-                    </label>
-                  </div>
-                )}
-                <p className="bible-format-note">{t('bible.formatVerse')}</p>
-                <div className="bible-option-foot">
-                  {overflow && <span className="inline-warning">{t('bible.overflowNote')}</span>}
-                  <span className="slide-count-note">
-                    {slideCount === 1
-                      ? t('bible.slideCountOne')
-                      : t('bible.slideCount', { count: slideCount })}
-                  </span>
-                </div>
+                <p className="bible-preview-translations">
+                  {LOCALES.includes(primaryTranslation.language) && <LocaleFlag locale={primaryTranslation.language} size={16} />}
+                  <strong>{primaryTranslation.abbreviation}</strong>
+                  {bilingual && <><span>+</span>{LOCALES.includes(secondaryTranslation.language) && <LocaleFlag locale={secondaryTranslation.language} size={16} />}<strong>{secondaryTranslation.abbreviation}</strong></>}
+                  <span className="bible-preview-count">{t('bible.formatVerse')}</span>
+                </p>
+                {overflow && <span className="inline-warning">{t('bible.overflowNote')}</span>}
               </div>
+              <details className="bible-preview-source">
+                <summary>{t('bible.licenseSource')}</summary>
+                <strong>{selected.translationName}</strong>
+                <p>{selected.copyrightNotice}</p>
+                {bilingual && secondaryPreview && <p>{secondaryPreview.copyrightNotice}</p>}
+              </details>
 
               <div className="bible-add">
                 <div className="bible-add-controls">
@@ -799,6 +737,7 @@ export function BibleScreen() {
                   >
                     <Plus size={15} />
                     {t('bible.addToService')}
+                    <span className="bible-add-count">{slideCount}</span>
                   </button>
                 </div>
                 {!activeService && (

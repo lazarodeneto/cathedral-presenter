@@ -19699,7 +19699,6 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
   line-height: 1.1;
 }
 
-.bm-book.is-numbered strong { font-size: 14px; letter-spacing: -0.02em; }
 
 .bm-book small {
   max-width: 100%;
@@ -20253,3 +20252,61 @@ body:not(.output-mode) .bible-screen :is(.bible-selector-grid > :nth-child(n + 4
 
 .bible-add-translation { width: 100%; min-height: 44px; margin-top: 10px; gap: 8px; justify-content: flex-start; text-align: start; white-space: normal; }
 .bible-add-translation svg { flex-shrink: 0; }
+
+/* The supplied film replaces the generated still and camera animation. */
+.login-cinema { background: #000; }
+.cinema-scene { object-position: center center; transform: none; transform-origin: center; }
+.cinema-video { opacity: 0; }
+.cinema-video.has-frame { opacity: 1; }
+.cinema-shade { background: linear-gradient(90deg, rgb(0 0 0 / .18), rgb(0 0 0 / .48) 50%, rgb(0 0 0 / .18)); }
+@media (max-width: 720px) {
+  .cinema-scene { object-position: center center; }
+  .cinema-poster, .cinema-video.has-frame { opacity: .65; }
+  .cinema-shade { background: rgb(0 0 0 / .45); }
+}
+
+/* A clear library-management action, large enough for touch and narrow sidebars. */
+.bible-side .bible-add-translation { display: grid; grid-template-columns: 28px minmax(0, 1fr) 14px; gap: 8px; width: 100%; min-height: 58px; height: auto; margin-top: 14px; padding: 10px; border: 1px solid var(--text-faint); border-radius: var(--rounded-md); background: rgb(var(--wash-rgb) / .06); color: var(--text); }
+.bible-add-icon { width: 28px; height: 30px; display: grid; place-items: center; border-radius: var(--rounded-xs); background: rgb(var(--tone-amber-rgb) / .12); color: rgb(var(--tone-amber-rgb)); }
+.bible-add-label { font-size: 12px; font-weight: 600; line-height: 1.4; text-align: start; }
+.bible-side .bible-add-translation:hover { background: rgb(var(--wash-rgb) / .12); border-color: var(--text-2); }
+.bible-side .bible-add-translation > svg { color: var(--text-2); }
+
+/* Scripture preview uses the same real slide renderer as Bible Mode and output. */
+.bible-screen .bible-preview { overflow-y: auto; overflow-x: hidden; }
+.bible-preview > * { flex-shrink: 0; }
+.bible-preview .panel-header { padding: 16px 16px 12px; }
+.bible-stage-preview { margin: 0 14px; min-width: 0; }
+.bible-stage-frame { overflow: hidden; border: 1px solid var(--line-strong); border-radius: var(--rounded-sm); background: var(--bg-deep); box-shadow: 0 8px 24px rgb(0 0 0 / .2); }
+.bible-stage-frame .slide-canvas { width: 100%; }
+.bible-stage-navigation { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; color: var(--text-2); font-size: 12px; font-variant-numeric: tabular-nums; }
+.bible-stage-navigation .btn { min-width: 44px; min-height: 44px; padding: 8px; }
+.bible-stage-navigation strong { color: var(--text); }
+.bible-preview-format { padding: 12px 16px; border-top: 1px solid var(--line); }
+.bible-preview-mode { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border: 1px solid var(--line-strong); border-radius: var(--rounded-md); background: rgb(var(--ink-rgb) / .25); }
+.bible-preview-mode button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; border-radius: var(--rounded-sm); color: var(--text-2); font-size: 12px; }
+.bible-preview-mode button.is-active { color: var(--text); background: rgb(var(--violet-rgb) / .2); box-shadow: inset 0 0 0 1px rgb(var(--violet-rgb) / .45); }
+.bible-preview-mode button:hover { background: rgb(var(--wash-rgb) / .08); }
+.bible-preview-translations { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 12px; color: var(--text-2); font-size: 11px; line-height: 1.5; }
+.bible-preview-count { margin-left: auto; }
+.bible-preview-source { padding: 0 16px 12px; color: var(--text-2); font-size: 11px; line-height: 1.6; }
+.bible-preview-source summary { min-height: 32px; padding: 6px 0; cursor: pointer; }
+.bible-preview-source p { margin-top: 8px; }
+.bible-preview .bible-add { padding: 14px 16px 16px; }
+.bible-preview .bible-add-controls { display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
+.bible-preview .bible-add-controls .field { width: 100%; }
+.bible-preview .bible-add-controls select { min-height: 40px; }
+.bible-preview .bible-add-controls .btn-primary { width: 100%; min-height: 44px; gap: 8px; }
+.bible-add-count { display: inline-grid; place-items: center; min-width: 24px; height: 24px; margin-left: auto; padding: 0 6px; border-radius: var(--rounded-xs); background: rgb(var(--ink-rgb) / .1); font-size: 12px; font-variant-numeric: tabular-nums; }
+@media (max-width: 820px) { .bible-screen .bible-preview { overflow: visible; } }
+
+/* Localized references remain on one line; all book tiles use the same 17px type. */
+.bm-reference { overflow-wrap: normal; white-space: nowrap; overflow: hidden; }
+.bm-reference-line { display: inline-block; max-width: none; white-space: nowrap; }
+.bm-preview-actions.reference-stacked { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: stretch; }
+.bm-preview-actions.reference-stacked .bm-reference { width: 100%; }
+.bm-preview-actions.reference-stacked > button { justify-self: end; }
+.bible-preview .bible-add { position: sticky; bottom: 0; z-index: 2; background: var(--surface-solid); }
+.bible-preview .panel-header { padding-top: 12px; padding-bottom: 10px; }
+.bible-preview .panel-header h3 { font-size: 16px; }
+.bible-preview-source { padding-bottom: 8px; }

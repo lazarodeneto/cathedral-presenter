@@ -43,7 +43,27 @@ export const bibleDefaultStrings: Record<Locale, Record<string, string>> = {
 }
 
 const addBibleLabels: Record<Locale, string> = {
-  en: 'Add a new Bible', pt: 'Adicionar nova Bíblia', 'pt-BR': 'Adicionar nova Bíblia',
-  es: 'Añadir nueva Biblia', fr: 'Ajouter une Bible', de: 'Neue Bibel hinzufügen', it: 'Aggiungi una Bibbia',
+  en: 'Add a new Bible',
+  pt: 'Adicionar nova Bíblia',
+  'pt-BR': 'Adicionar nova Bíblia',
+  es: 'Añadir nueva Biblia',
+  fr: 'Ajouter une Bible',
+  de: 'Neue Bibel hinzufügen',
+  it: 'Aggiungi una Bibbia',
 }
-for (const locale of Object.keys(addBibleLabels) as Locale[]) bibleDefaultStrings[locale]['bible.addNew'] = addBibleLabels[locale]
+for (const locale of Object.keys(addBibleLabels) as Locale[])
+  bibleDefaultStrings[locale]['bible.addNew'] = addBibleLabels[locale]
+
+const modeLabels: Record<Locale, [string, string]> = {
+  en: ['1 Bible', '2 Bibles'],
+  pt: ['1 Bíblia', '2 Bíblias'],
+  'pt-BR': ['1 Bíblia', '2 Bíblias'],
+  es: ['1 Biblia', '2 Biblias'],
+  fr: ['Une Bible', 'Deux Bibles'],
+  de: ['1 Bibel', '2 Bibeln'],
+  it: ['1 Bibbia', '2 Bibbie'],
+}
+for (const locale of Object.keys(modeLabels) as Locale[]) {
+  bibleDefaultStrings[locale]['bible.oneTranslation'] = modeLabels[locale][0]
+  bibleDefaultStrings[locale]['bible.twoTranslations'] = modeLabels[locale][1]
+}
