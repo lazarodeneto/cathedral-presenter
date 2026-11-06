@@ -1,3 +1,4 @@
+import { WorkspaceGate, WorkspaceNotice } from './components/WorkspaceStorage'
 import { usePhysicalDisplays } from './hooks/usePhysicalDisplays'
 import { lazy, Suspense, useEffect } from 'react'
 import { SCREEN_META, type ScreenName } from './components/ScreenIcon'
@@ -51,13 +52,14 @@ function RouteLoading({ label }: { label: string }) {
   return <div className="route-loading" role="status" aria-label={label} />
 }
 
-export default function App() {
+function App() {
   const route = useHashRoute()
   const t = useT()
   const activeService = useAppStore((state) =>
     state.services.find((service) => service.id === state.activeServiceId),
   )
   const isOutput = route.name === 'output'
+  useEffect(() => { if (!isOutput) window.cathedralDesktop?.reportReady?.() }, [isOutput])
   const isLive = route.name === 'live'
 
   const reducedMotion = useAppStore((state) => state.settings.reducedMotion)
@@ -81,7 +83,15 @@ export default function App() {
   )
   useEffect(() => (isOutput ? undefined : startHistory()), [isOutput])
   // Presentation keys pressed in an output window arrive here.
-  useEffect(() => (isOutput ? undefined : webOutputProvider.onCommand((actionId) => runShortcutAction(actionId))), [isOutput])
+  useEffect(() => (isOutput ? undefined : webOutputProvider.onCommand((actionId) => {
+    const state = useAppStore.getState()
+    if (actionId.startsWith('cue:')) { state.runCue(actionId.slice(4)); return }
+    if (runShortcutAction(actionId)) return
+    if (actionId === 'live.next') state.nextLive()
+    else if (actionId === 'live.prev') state.prevLive()
+    else if (actionId === 'live.blank') state.toggleBlank()
+    else if (actionId === 'live.freeze') state.toggleFreeze()
+  })), [isOutput])
   const saveNow = useAppStore((state) => state.saveNow)
   const push = useToasts((state) => state.push)
   const sidebarCollapsed = useAppStore((state) => state.settings.sidebarCollapsed)
@@ -190,7 +200,7 @@ export default function App() {
     const role = route.id === 'confidence' ? 'confidence' : route.id === 'broadcast' ? 'broadcast' : 'audience'
     return (
       <div className="output-root">
-        <ErrorBoundary>
+        <ErrorBoundary output>
           <OutputScreen role={role} displayId={route.segments[2]} />
         </ErrorBoundary>
       </div>
@@ -247,6 +257,7 @@ export default function App() {
       <Sidebar current={route.name} />
       <div className="app-main">
         <TopBar route={route} />
+        <WorkspaceNotice />
         <main className="app-content">
           <ErrorBoundary key={route.name}>
             <Suspense fallback={<RouteLoading label={t('common.loading')} />}>{screen}</Suspense>
@@ -258,3 +269,5 @@ export default function App() {
     </div>
   )
 }
+
+export default function WorkspaceApp() { return <WorkspaceGate><App /></WorkspaceGate> }

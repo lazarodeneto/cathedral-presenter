@@ -44,11 +44,13 @@ process.on('SIGTERM', stop)
     }
   }
   const electron = require('electron')
+  const desktopEnvironment = { ...process.env }
+  delete desktopEnvironment.ELECTRON_RUN_AS_NODE
   // Development-shell launch; the HTTP/auth server stays in the host Node runtime.
   desktop = spawn(electron, [path.join(__dirname, 'main.cjs')], {
     cwd: root,
     stdio: 'inherit',
-    env: { ...process.env, ELECTRON_RUN_AS_NODE: '' },
+    env: desktopEnvironment,
   })
   desktop.on('exit', (code) => {
     server?.kill()

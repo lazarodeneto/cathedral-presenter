@@ -113,7 +113,7 @@ const BLOCKED_MEDIA_EXTENSIONS = new Set([
 
 export function validateMediaUrl(
   raw: string,
-  kind: 'image' | 'video',
+  kind: 'image' | 'video' | 'audio',
 ): UrlValidation {
   const checked = validateExternalUrl(raw)
   if (!checked.ok) return checked
@@ -133,7 +133,7 @@ export function validateMediaUrl(
   if (kind === 'image' && videoExtensions.has(extension)) {
     return { ok: false, reason: 'media-kind-mismatch' }
   }
-  if (kind === 'video' && imageExtensions.has(extension)) {
+  if (kind !== 'image' && imageExtensions.has(extension)) {
     return { ok: false, reason: 'media-kind-mismatch' }
   }
   return checked

@@ -52,7 +52,8 @@ describe('Bible library settings panel', () => {
 
     fireEvent.change(screen.getByLabelText('Bible name'), { target: { value: 'Imported Bible' } })
     fireEvent.change(screen.getByLabelText('Abbreviation'), { target: { value: 'IMP' } })
-    fireEvent.change(screen.getByLabelText(/Language/), { target: { value: 'es' } })
+    fireEvent.click(screen.getByRole('button', { name: /Language/ }))
+    fireEvent.click(screen.getByRole('menuitemradio', { name: 'Español ES' }))
 
     const file = new File(
       [JSON.stringify({ john: { 3: { 16: 'Porque de tal manera amó Dios al mundo.' } } })],

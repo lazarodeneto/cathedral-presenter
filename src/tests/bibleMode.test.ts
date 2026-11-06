@@ -83,6 +83,23 @@ describe('Bible Mode', () => {
     expect(useAppStore.getState().showScriptureLive(verseSlide())).toBe(false)
   })
 
+  it('clears a frozen verse to black and waits for an explicit verse or service slide', () => {
+    const state = useAppStore.getState()
+    const service = state.services.find((entry) => flatSlides(entry).length && entry.status !== 'archived')!
+    const slide = flatSlides(service)[0].slide
+    state.startLive(service.id, slide.id)
+    state.showScriptureLive(verseSlide())
+    state.toggleFreeze()
+    state.clearScriptureLive()
+    expect(snapshot().audience.mode).toBe('blank')
+    expect(useAppStore.getState().live).toMatchObject({ scripture: null, frozen: false, modeTransitionPending: true })
+    state.showScriptureLive(verseSlide())
+    expect(snapshot().audience.mode).toBe('live')
+    state.clearScriptureLive()
+    state.jumpLive(slide.id)
+    expect(snapshot().audience).toMatchObject({ mode: 'live', slide: expect.objectContaining({ id: slide.id }) })
+  })
+
   it('blacks out during a mode change until a verse or service slide is explicitly presented', () => {
     const state = useAppStore.getState()
     const service = state.services.find((entry) => flatSlides(entry).length > 1 && entry.status !== 'archived')!

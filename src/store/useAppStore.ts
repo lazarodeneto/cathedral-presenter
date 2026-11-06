@@ -1,3 +1,4 @@
+import { createMediaSession, advanceMediaSession, commandMedia, freezeMedia, type MediaCommand } from '../media/playback'
 import { savePreferredLocale } from '../i18n/preferredLocale'
 import { create } from 'zustand'
 import { isOutputFormatId, outputFormat } from '../utils/outputFormats'
@@ -40,6 +41,8 @@ import { translate } from '../i18n/dictionary'
 import type { ParsedBackup } from '../security/backup'
 import { newId } from '../utils/id'
 import { normalizeMediaTags } from '../utils/mediaTags'
+import { webOutputProvider } from '../providers/output/WebOutputProvider'
+import { buildOutputSnapshot } from './outputState'
 import { DEFAULT_BRANDING, normalizeBranding } from '../utils/branding'
 import { DEFAULT_CHURCH_ID } from '../utils/church'
 import {
@@ -184,7 +187,7 @@ interface AppState {
   applyBackgroundToService: (serviceId: string, background: SlideBackground) => void
   updateServiceMeta: (
     serviceId: string,
-    patch: Partial<Pick<Service, 'title' | 'date' | 'time' | 'eventType' | 'notes' | 'spotifyUrl'>>,
+    patch: Partial<Pick<Service, 'title' | 'date' | 'time' | 'eventType' | 'notes' | 'spotifyUrl' | 'loop'>>,
   ) => void
   addSection: (serviceId: string, title: string) => string
   renameSection: (serviceId: string, sectionId: string, title: string) => void
@@ -240,6 +243,7 @@ interface AppState {
     patch: Partial<NonNullable<SlideItem['metadata']>>,
   ) => void
 
+  runCue: (id: string) => boolean
   startLive: (serviceId: string, slideId: string) => boolean
   endLive: () => void
   nextLive: () => boolean
@@ -251,13 +255,19 @@ interface AppState {
   blankForModeTransition: () => void
   toggleBlank: () => void
   toggleFreeze: () => void
+  setStageMessage: (message: string) => void
+  setLiveBackground: (assetId: string | null) => void
+  clearLiveLayer: (layer: 'text' | 'media') => void
+  startStageCountdown: (seconds: number) => void
   setAudienceMessage: (message: string) => void
   clearAudienceMessage: () => void
   setMessageVisible: (visible: boolean) => void
+  mediaCommand: (elementId: string, command: MediaCommand, value?: number) => void
   timerCommand: (slideId: string, command: TimerCommand) => void
 
   addMedia: (asset: MediaAsset) => void
   setMediaTags: (id: string, tags: string[]) => void
+  renameMedia: (id: string, name: string) => void
   addMediaTag: (tag: string) => void
   removeMedia: (id: string) => void
   recordRecentPassage: (passage: RecentPassage) => void
@@ -1270,6 +1280,20 @@ export const useAppStore = create<AppState>()(
             })),
           })),
 
+        runCue: (id) => {
+          const state = get(), live = state.live, cue = state.settings.cues?.find((c) => c.id === id)
+          if (!live || !cue) return false
+          const service = state.services.find((s) => s.id === live.serviceId)
+          const target = service && flatSlides(service).find((s) => s.slide.id === cue.slideId)
+          const slide = target?.slide
+          const asset = cue.backgroundAssetId ? state.mediaLibrary.find((a) => a.id === cue.backgroundAssetId && a.kind !== 'audio' && a.status === 'ready') : undefined
+          if (!slide || !target || (cue.backgroundAssetId && !asset)) return false
+          const background: SlideElement | null = asset ? { id: 'live-background', type: asset.kind === 'image' ? 'image' : 'video', source: asset.source, text: asset.name, x: 0, y: 0, width: 100, height: 100, opacity: 1, visible: true, zIndex: 0, settings: { playbackMode: 'background', loop: true, muted: true, fit: 'cover' } } : null
+          set({ selectedItemId: target.item.id, selectedSlideId: slide.id, selectedElementId: null, live: { ...live, history: [...live.history, slide.id].slice(-20), currentSlideId: slide.id, slideStartedAt: Date.now(), scripture: null, frozen: false, frozenSlide: null, frozenSlideId: null, frozenScripture: null, frozenAt: undefined, modeTransitionPending: false, blank: false, textHidden: false, mediaHidden: false, background, stageMessage: cue.stageMessage ?? '', media: advanceMediaSession(slide, undefined, background) }, settings: cue.layout ? { ...state.settings, outputProfiles: { ...state.settings.outputProfiles, broadcast: { source: 'live', layout: cue.layout } } } : state.settings, timers: cue.stageSeconds === undefined ? state.timers : { ...state.timers, stage: startTimer(createTimer(cue.stageSeconds), Date.now()) } })
+          const latest = get()
+          void webOutputProvider.takeControl(buildOutputSnapshot({ service, services: latest.services, profiles: latest.settings.outputProfiles, live: latest.live, monitors: latest.monitors, branding: latest.branding, testMonitorId: null, timers: latest.timers, format: latest.settings.outputFormat, broadcastFormat: latest.settings.broadcastFormat }))
+          return true
+        },
         startLive: (serviceId, slideId) => {
           const state = get()
           const service = findService(state.services, serviceId)
@@ -1286,8 +1310,10 @@ export const useAppStore = create<AppState>()(
               isLive: true,
               serviceId,
               currentSlideId: start.slide.id,
+              media: createMediaSession(start.slide),
               history: [start.slide.id],
               startedAt: now(),
+              slideStartedAt: Date.now(),
               blank: false,
               frozen: false,
               frozenSlideId: null,
@@ -1315,14 +1341,18 @@ export const useAppStore = create<AppState>()(
           if (!service) return false
           const slides = flatSlides(service)
           const index = slides.findIndex((entry) => entry.slide.id === state.live?.currentSlideId)
-          if (index < 0 || index >= slides.length - 1) return false
-          const next = slides[index + 1]
+          if (index < 0) return false
+          const next = slides[index + 1] ?? (service.loop ? slides[0] : undefined)
+          if (!next) return false
           set({
             live: {
               ...state.live,
               currentSlideId: next.slide.id,
+              slideStartedAt: Date.now(),
+              media: state.live.frozen ? state.live.media : advanceMediaSession(next.slide, state.live.media, state.live.background),
               blank: state.live.modeTransitionPending ? false : state.live.blank,
               modeTransitionPending: false,
+              textHidden: false, mediaHidden: false,
               history: [...state.live.history, next.slide.id].slice(-20),
               scripture: null,
             },
@@ -1346,8 +1376,11 @@ export const useAppStore = create<AppState>()(
             live: {
               ...state.live,
               currentSlideId: prev.slide.id,
+              slideStartedAt: Date.now(),
+              media: state.live.frozen ? state.live.media : advanceMediaSession(prev.slide, state.live.media, state.live.background),
               blank: state.live.modeTransitionPending ? false : state.live.blank,
               modeTransitionPending: false,
+              textHidden: false, mediaHidden: false,
               history: [...state.live.history, prev.slide.id].slice(-20),
               scripture: null,
             },
@@ -1369,8 +1402,11 @@ export const useAppStore = create<AppState>()(
             live: {
               ...state.live,
               currentSlideId: slideId,
+              slideStartedAt: Date.now(),
+              media: state.live.frozen ? state.live.media : advanceMediaSession(target.slide, state.live.media, state.live.background),
               blank: state.live.modeTransitionPending ? false : state.live.blank,
               modeTransitionPending: false,
+              textHidden: false, mediaHidden: false,
               history: [...state.live.history, slideId].slice(-20),
               scripture: null,
             },
@@ -1384,15 +1420,23 @@ export const useAppStore = create<AppState>()(
           const state = get()
           if (!state.live) return false
           // Frozen stays frozen: the audience keeps the frozen picture while the operator moves on.
-          set({ live: { ...state.live, scripture: slide, blank: state.live.modeTransitionPending ? false : state.live.blank, modeTransitionPending: false } })
+          set({ live: { ...state.live, scripture: slide, media: state.live.frozen ? state.live.media : advanceMediaSession(slide, state.live.media, state.live.background), textHidden: false, mediaHidden: false, blank: state.live.modeTransitionPending ? false : state.live.blank, modeTransitionPending: false } })
           return true
         },
         clearScriptureLive: () =>
-          set((state) => (state.live?.scripture ? { live: { ...state.live, scripture: null } } : {})),
-        blankForModeTransition: () =>
-          set((state) => state.live ? { live: { ...state.live, blank: true, modeTransitionPending: true, frozen: false, frozenSlideId: null, frozenScripture: null, scripture: null } } : {}),
+          get().blankForModeTransition(),
+        blankForModeTransition: () => {
+          if (!get().live) return
+          set((state) => ({ testMonitorId: null, live: { ...state.live!, blank: true, modeTransitionPending: true, frozen: false, frozenSlideId: null, frozenScripture: null, scripture: null } }))
+          const state = get()
+          void webOutputProvider.takeControl(buildOutputSnapshot({
+            service: state.services.find((service) => service.id === state.live?.serviceId) ?? null,
+            live: state.live, monitors: state.monitors, branding: state.branding, testMonitorId: state.testMonitorId,
+            timers: state.timers, format: state.settings.outputFormat, broadcastFormat: state.settings.broadcastFormat,
+          }))
+        },
         toggleBlank: () =>
-          set((state) => (state.live && !state.live.modeTransitionPending ? { live: { ...state.live, blank: !state.live.blank } } : {})),
+          set((state) => (state.live && !state.live.modeTransitionPending ? { live: { ...state.live, blank: !state.live.blank, blankStartedAt: state.live.blank ? undefined : Date.now(), slideStartedAt: state.live.blank ? (state.live.slideStartedAt ?? Date.parse(state.live.startedAt)) + (Date.now() - (state.live.blankStartedAt ?? Date.now())) : state.live.slideStartedAt } } : {})),
         toggleFreeze: () =>
           set((state) =>
             state.live && !state.live.modeTransitionPending
@@ -1400,6 +1444,12 @@ export const useAppStore = create<AppState>()(
                   live: {
                     ...state.live,
                     frozen: !state.live.frozen,
+                    slideStartedAt: state.live.frozen ? (state.live.slideStartedAt ?? Date.parse(state.live.startedAt)) + (Date.now() - (state.live.frozenAt ?? Date.now())) : state.live.slideStartedAt,
+                    frozenAt: state.live.frozen ? undefined : Date.now(),
+                    frozenSlide: state.live.frozen ? null : structuredClone(state.live.scripture ?? flatSlides(state.services.find((s) => s.id === state.live!.serviceId)!).find((e) => e.slide.id === state.live!.currentSlideId)!.slide),
+                    media: state.live.frozen && state.live.media?.slideId !== (state.live.scripture?.id ?? state.live.currentSlideId)
+                      ? createMediaSession(state.live.scripture ?? flatSlides(state.services.find((s) => s.id === state.live!.serviceId)!).find((e) => e.slide.id === state.live!.currentSlideId)!.slide)
+                      : freezeMedia(state.live.media, !state.live.frozen),
                     frozenSlideId: state.live.frozen ? null : state.live.currentSlideId,
                     // A verse from Bible Mode freezes too, not the service slide under it.
                     frozenScripture: state.live.frozen ? null : state.live.scripture ?? null,
@@ -1407,6 +1457,26 @@ export const useAppStore = create<AppState>()(
                 }
               : {},
           ),
+        setStageMessage: (message) => set((state) => state.live ? { live: { ...state.live, stageMessage: sanitizeText(message, 1000) } } : {}),
+        startStageCountdown: (seconds) => set((state) => ({ timers: { ...state.timers, stage: startTimer(createTimer(Math.max(0, Math.min(3600, seconds))), Date.now()) } })),
+        setLiveBackground: (assetId) => {
+          const state = get(), live = state.live
+          if (!live || live.frozen) return
+          const asset = state.mediaLibrary.find((a) => a.id === assetId)
+          if (asset?.kind === 'audio') return
+          if (!asset) { const elements = { ...live.media?.elements }; delete elements['live-background']; set({ live: { ...live, background: null, media: live.media ? { ...live.media, elements } : undefined } }); return }
+          const element: SlideElement = { id: 'live-background', type: asset.kind, source: asset.source, text: asset.name, x: 0, y: 0, width: 100, height: 100, zIndex: 0, visible: true, opacity: 1, settings: { playbackMode: 'background', loop: true, muted: true, fit: 'cover' } }
+          const slide = live.scripture ?? flatSlides(state.services.find((s) => s.id === live.serviceId)!).find((e) => e.slide.id === live.currentSlideId)?.slide
+          if (!slide) return
+          const media = advanceMediaSession(slide, live.media, element)
+          if (element.type === 'video') media.elements[element.id] = createMediaSession({ ...slide, elements: [element] }).elements[element.id]
+          set({ live: { ...live, background: element, media, mediaHidden: false } })
+        },
+        clearLiveLayer: (layer) => set((state) => {
+          if (!state.live || state.live.frozen) return {}
+          if (layer === 'text') return { live: { ...state.live, textHidden: !state.live.textHidden } }
+          return { live: { ...state.live, mediaHidden: !state.live.mediaHidden, media: freezeMedia(state.live.media, !state.live.mediaHidden) } }
+        }),
         setAudienceMessage: (message) =>
           set((state) =>
             state.live
@@ -1428,6 +1498,12 @@ export const useAppStore = create<AppState>()(
             state.live ? { live: { ...state.live, messageVisible: visible } } : {},
           ),
 
+        mediaCommand: (elementId, command, value) => {
+          const state = get(), live = state.live
+          const transport = live?.media?.elements[elementId]
+          if (!live?.media || !transport || live.frozen) return
+          set({ live: { ...live, media: { ...live.media, elements: { ...live.media.elements, [elementId]: commandMedia(transport, command, value) } } } })
+        },
         timerCommand: (slideId, command) => {
           const state = get()
           let config: number | null = null
@@ -1438,6 +1514,7 @@ export const useAppStore = create<AppState>()(
               break
             }
           }
+          if (slideId === 'stage') config = (state.timers.stage?.durationMs ?? 300000) / 1000
           if (config === null) return
           const current = state.timers[slideId] ?? createTimer(config)
           const at = Date.now()
@@ -1459,6 +1536,10 @@ export const useAppStore = create<AppState>()(
         setMediaTags: (id, tags) => set((state) => ({
           mediaLibrary: state.mediaLibrary.map((asset) => asset.id === id ? { ...asset, tags: normalizeMediaTags(tags, 30) } : asset),
         })),
+        renameMedia: (id, name) => {
+          const clean = sanitizeSingleLine(name, 120).trim()
+          if (clean) set((state) => ({ mediaLibrary: state.mediaLibrary.map((asset) => asset.id === id ? { ...asset, name: clean } : asset) }))
+        },
         addMediaTag: (tag) => set((state) => ({ mediaTags: normalizeMediaTags([...state.mediaTags, tag]) })),
         removeMedia: (id) => {
           const state = get()
@@ -1768,6 +1849,7 @@ export const useAppStore = create<AppState>()(
                 : {}),
               monitors: parsed.monitors ?? state.monitors,
               mediaLibrary: parsed.media ?? state.mediaLibrary,
+              librarySongs: parsed.librarySongs ?? state.librarySongs,
               mediaTags: parsed.mediaTags ?? state.mediaTags,
               customBibles: parsed.bibles ?? state.customBibles,
               hiddenBibleIds: parsed.hiddenBibleIds ?? state.hiddenBibleIds,

@@ -8,7 +8,12 @@ import type {
 } from '../../types'
 
 export interface OutputSnapshot {
-  displays?: Record<string, { name: string; role: MonitorRole; test: boolean; width: number; height: number }>
+  frozenAt?: number
+  media?: import('../../media/playback').MediaSession
+  audioDisplayId?: string
+  revision?: string
+  transport?: { publisher: string; sequence: number }
+  displays?: Record<string, { name: string; role: MonitorRole; test: boolean; width: number; height: number; source?: 'live' | 'slide'; slide?: import('../../types').Slide | null; media?: import('../../media/playback').MediaSession; layout?: import('../../types').OutputProfile['layout']; margin?: number }>
 
   audience: AudienceOutputState
   confidence: ConfidenceOutputState
@@ -16,6 +21,7 @@ export interface OutputSnapshot {
   timers?: Record<string, TimerRuntime>
   /** The broadcast window (OBS / live stream) mirrors the audience slide in its own format. */
   broadcast?: {
+    layout?: import('../../types').OutputProfile['layout']
     mode: 'mirror' | 'test'
     format?: OutputFormatId
     monitorName: string

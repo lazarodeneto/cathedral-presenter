@@ -8,6 +8,8 @@ export const IMAGE_MIME_TYPES = [
 
 export const VIDEO_MIME_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'] as const
 
+export const AUDIO_MIME_TYPES = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/flac', 'audio/mp4'] as const
+
 export const MAX_IMAGE_BYTES = 20 * 1024 * 1024
 export const MAX_VIDEO_BYTES = 300 * 1024 * 1024
 export const MAX_INLINE_IMAGE_BYTES = 2.5 * 1024 * 1024
@@ -17,11 +19,12 @@ export const MAX_QR_PAYLOAD = 1200
 
 const ALLOWED_EXTENSIONS = {
   image: ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.avif'],
-  video: ['.mp4', '.webm', '.mov'],
+  video: ['.mp4', '.m4v', '.webm', '.mov'],
+  audio: ['.mp3', '.wav', '.ogg', '.flac', '.m4a'],
 } as const
 
 export type MediaValidation =
-  | { ok: true; kind: 'image' | 'video'; mime: string; extension: string }
+  | { ok: true; kind: 'image' | 'video' | 'audio'; mime: string; extension: string }
   | { ok: false; reason: string }
 
 export function extensionOf(name: string): string {
@@ -73,10 +76,22 @@ export function sniffVideoMime(bytes: Uint8Array): string | null {
   return null
 }
 
+export function sniffAudioMime(b: Uint8Array): string | null {
+  const text = (a: number, z: number) => String.fromCharCode(...b.slice(a, z))
+  if (b.length >= 12 && text(0, 4) === 'RIFF' && text(8, 12) === 'WAVE') return 'audio/wav'
+  if (b.length >= 4 && text(0, 4) === 'fLaC') return 'audio/flac'
+  if (b.length >= 4 && text(0, 4) === 'OggS') return 'audio/ogg'
+  if (b.length >= 3 && (text(0, 3) === 'ID3' || (b[0] === 255 && (b[1] & 224) === 224))) return 'audio/mpeg'
+  if (b.length >= 12 && text(4, 8) === 'ftyp' && /^M4[AB] /.test(text(8, 12))) return 'audio/mp4'
+  return null
+}
+
 export async function validateMediaFile(file: File): Promise<MediaValidation> {
   if (!file || file.size <= 0) return { ok: false, reason: 'empty-file' }
 
-  const declared = file.type.toLowerCase()
+  const aliases: Record<string, string> = { 'audio/mp3': 'audio/mpeg', 'audio/x-wav': 'audio/wav', 'audio/vnd.wave': 'audio/wav', 'audio/x-m4a': 'audio/mp4' }
+  const rawDeclared = aliases[file.type.toLowerCase()] ?? file.type.toLowerCase()
+  const declared = rawDeclared === 'application/octet-stream' ? '' : rawDeclared === 'video/x-m4v' ? 'video/mp4' : rawDeclared
   const extension = extensionOf(file.name)
   const isImage =
     (IMAGE_MIME_TYPES as readonly string[]).includes(declared) ||
@@ -85,12 +100,13 @@ export async function validateMediaFile(file: File): Promise<MediaValidation> {
     (VIDEO_MIME_TYPES as readonly string[]).includes(declared) ||
     (ALLOWED_EXTENSIONS.video as readonly string[]).includes(extension)
 
-  if (!isImage && !isVideo) return { ok: false, reason: 'unsupported-type' }
+  const isAudio = (AUDIO_MIME_TYPES as readonly string[]).includes(declared) || (ALLOWED_EXTENSIONS.audio as readonly string[]).includes(extension)
+  if (!isImage && !isVideo && !isAudio) return { ok: false, reason: 'unsupported-type' }
   if (declared === 'image/svg+xml' || extension === '.svg') {
     return { ok: false, reason: 'svg-rejected' }
   }
 
-  const kind = isImage ? 'image' : 'video'
+  const kind = isImage ? 'image' : isAudio ? 'audio' : 'video'
   const max = kind === 'image' ? MAX_IMAGE_BYTES : MAX_VIDEO_BYTES
   if (file.size > max) return { ok: false, reason: 'file-too-large' }
   if (!(ALLOWED_EXTENSIONS[kind] as readonly string[]).includes(extension)) {
@@ -98,7 +114,7 @@ export async function validateMediaFile(file: File): Promise<MediaValidation> {
   }
 
   const head = new Uint8Array(await file.slice(0, 32).arrayBuffer())
-  const sniffed = kind === 'image' ? sniffImageMime(head) : sniffVideoMime(head)
+  const sniffed = kind === 'image' ? sniffImageMime(head) : kind === 'audio' ? sniffAudioMime(head) : sniffVideoMime(head)
   if (!sniffed) return { ok: false, reason: 'invalid-file-signature' }
   if (declared && declared !== sniffed) {
     return { ok: false, reason: 'mime-mismatch' }

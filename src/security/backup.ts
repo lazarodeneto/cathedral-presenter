@@ -7,6 +7,7 @@ import type {
   CustomBibleTranslation,
   ElementType,
   Locale,
+  LibrarySong,
   MediaAsset,
   Monitor,
   MonitorRole,
@@ -35,6 +36,8 @@ import { normalizeOverrides } from '../shortcuts/bindings'
 import { clampMessageBox, normalizeMessageStyle } from '../utils/messageBox'
 import { sanitizeCustomBibleTranslations } from '../providers/bible/customBibles'
 import { normalizeMediaTags } from '../utils/mediaTags'
+import { validateMediaUrl } from './url'
+import { isCinematicAsset } from '../assets/templateArt'
 
 const SECRET_KEY = /(token|secret|password|passwd|oauth|authorization|credential|api[_-]?key|private[_-]?key)/i
 const ID_PATTERN = /^[A-Za-z0-9_-]{1,140}$/
@@ -69,6 +72,7 @@ export interface BackupData {
   monitors: Monitor[]
   media: Omit<MediaAsset, 'source'>[]
   mediaTags?: string[]
+  librarySongs?: LibrarySong[]
   bibles: CustomBibleTranslation[]
   hiddenBibleIds?: string[]
   archivedBibleIds?: string[]
@@ -82,6 +86,7 @@ export function buildBackup(input: {
   monitors: Monitor[]
   media: MediaAsset[]
   mediaTags?: string[]
+  librarySongs?: LibrarySong[]
   bibles?: CustomBibleTranslation[]
   hiddenBibleIds?: string[]
   archivedBibleIds?: string[]
@@ -101,6 +106,7 @@ export function buildBackup(input: {
     monitors: input.monitors,
     media,
     mediaTags: normalizeMediaTags(input.mediaTags),
+    librarySongs: input.librarySongs ?? [],
     bibles: sanitizeCustomBibleTranslations(input.bibles ?? []),
     hiddenBibleIds: input.hiddenBibleIds ?? [],
     archivedBibleIds: input.archivedBibleIds ?? [],
@@ -110,6 +116,7 @@ export function buildBackup(input: {
 
 export interface ParsedBackup {
   services: Service[]
+  librarySongs?: LibrarySong[] | null
   settings: AppSettings | null
   branding: Branding | null
   monitors: Monitor[] | null
@@ -175,7 +182,7 @@ const SLIDE_KINDS: readonly SlideKind[] = [
   'timer',
 ]
 const CONTENT_TYPES: readonly ContentType[] = ['song', 'bible', 'announcement', 'sermon', 'blank', 'media', 'timer']
-const ELEMENT_TYPES: readonly ElementType[] = ['text', 'image', 'video', 'shape', 'qr', 'embed', 'message']
+const ELEMENT_TYPES: readonly ElementType[] = ['text', 'image', 'video', 'audio', 'shape', 'qr', 'embed', 'message']
 const ALIGNMENTS: readonly TextAlign[] = ['left', 'center', 'right']
 const PRESETS = BACKGROUND_PRESETS.map((preset) => preset.id)
 const MONITOR_ROLES: readonly MonitorRole[] = ['audience', 'confidence', 'broadcast', 'disabled']
@@ -184,12 +191,16 @@ const MONITOR_STATUSES: readonly MonitorStatus[] = ['ready', 'connecting', 'disc
 function normalizeBackground(value: unknown): SlideBackground {
   const record = obj(value)
   const preset = allowed<BackgroundPreset>(record?.preset, PRESETS, 'graphite')
-  const type = record?.type === 'image' && typeof record.source === 'string' && validateImageDataUrl(record.source, 2_500_000) ? 'image' : 'preset'
+  const source = typeof record?.source === 'string' ? record.source : ''
+  const image = validateImageDataUrl(source, 2_500_000) || /^\/api\/media\/files\/[0-9a-f-]{36}$/i.test(source) || (isCinematicAsset(source) && /\.jpg$/.test(source)) || validateMediaUrl(source, 'image').ok
+  const type = record?.type === 'image' && image ? 'image' : 'preset'
   const tone = BACKGROUND_PRESETS.find((entry) => entry.id === preset)?.tone ?? 'dark'
   return {
     type,
     preset,
     source: type === 'image' ? (record?.source as string) : undefined,
+    backgroundPosition: typeof record?.backgroundPosition === 'string' && /^\d{1,3}% \d{1,3}%$/.test(record.backgroundPosition) ? record.backgroundPosition : undefined,
+    backgroundZoom: num(record?.backgroundZoom, 1, 3, 1),
     overlay: num(record?.overlay, 0, 1, 0.35),
     tone,
   }
@@ -213,7 +224,7 @@ function normalizeBlock(value: unknown): ScriptureBlock | null {
   }
 }
 
-const MOTIONS = ['pulse', 'float', 'spin', 'drift', 'sway'] as const
+const MOTIONS = ['pulse', 'float', 'spin', 'drift', 'sway', 'cinematic'] as const
 /** CSS functions that would load or run something from a style value (fill, colour…). */
 const UNSAFE_STYLE = /url\s*\(|image-set\s*\(|expression\s*\(|@import|javascript:/i
 
@@ -234,6 +245,11 @@ function safeElementSettings(settings: Record<string, unknown>): Record<string, 
   }
   if (typeof settings.motion === 'string' && (MOTIONS as readonly string[]).includes(settings.motion)) out.motion = settings.motion
   else delete out.motion
+  if ('playbackMode' in settings) out.playbackMode = allowed(settings.playbackMode, ['foreground', 'background'] as const, 'foreground')
+  if ('volume' in settings) out.volume = num(settings.volume, 0, 1, 1)
+  if ('muted' in settings) out.muted = settings.muted === true
+  if ('loop' in settings) out.loop = settings.loop === true
+  if ('endAction' in settings) out.endAction = allowed(settings.endAction, ['hold', 'next', 'black'] as const, 'hold')
   if ('videoSlot' in settings) out.videoSlot = settings.videoSlot === true
   return out
 }
@@ -255,7 +271,7 @@ function normalizeElement(value: unknown, seen: Set<string>): SlideElement | nul
     visible: bool(record.visible, true),
     text: record.text === undefined ? undefined : str(record.text, 12_000),
     source:
-      typeof record.source === 'string' && /^(https:|blob:|data:image\/(?:png|jpeg|webp|gif|avif);base64,)/.test(record.source)
+      typeof record.source === 'string' && (isCinematicAsset(record.source) || /^(https:|blob:|\/api\/media\/files\/[0-9a-f-]{36}$|data:image\/(?:png|jpeg|webp|gif|avif);base64,)/i.test(record.source))
         ? record.source.slice(0, 5_000_000)
         : undefined,
     settings: {
@@ -289,6 +305,12 @@ function normalizeSlide(value: unknown, seen: Set<string>): Slide | null {
     bible: primary ? { primary, secondary: secondary ?? undefined } : undefined,
     elements,
     background: normalizeBackground(record.background),
+    autoAdvanceSeconds: num(record.autoAdvanceSeconds, 0, 3600, 0),
+    fontFamily: allowed(record.fontFamily, ['sans', 'serif'] as const, 'sans'),
+    fontSize: num(record.fontSize, 16, 200, 64),
+    fontWeight: num(record.fontWeight, 100, 900, 500),
+    contentZ: num(record.contentZ, -1000, 10000, 2),
+    textVerticalAlign: allowed(record.textVerticalAlign, ['top', 'middle', 'bottom'] as const, 'middle'),
     textAlign: allowed<TextAlign>(record.textAlign, ALIGNMENTS, 'center'),
     notes: str(record.notes, 4_000) || undefined,
     transition: normalizeTransition(record.transition),
@@ -397,7 +419,7 @@ function normalizeMedia(value: unknown): MediaAsset[] | null {
   const seen = new Set<string>()
   return value.slice(0, 500).map((entry) => {
     const record = obj(entry) ?? {}
-    const kind = record.kind === 'video' ? 'video' : 'image'
+    const kind = record.kind === 'video' ? 'video' : record.kind === 'audio' ? 'audio' : 'image'
     return {
       id: safeId(record.id, 'media', seen),
       name: oneLine(record.name, 160) || 'Imported media',
@@ -436,6 +458,8 @@ function normalizeSettings(value: unknown, translationIds: Set<string>): AppSett
     reducedMotion: bool(record.reducedMotion),
     shortcutsEnabled: bool(record.shortcutsEnabled, true),
     shortcutOverrides: normalizeOverrides(record.shortcutOverrides),
+    cues: Array.isArray(record.cues) ? record.cues.slice(0, 100).flatMap((entry) => { const c = obj(entry); return c && oneLine(c.name, 80) ? [{ id: oneLine(c.id, 140), name: oneLine(c.name, 80), slideId: oneLine(c.slideId, 140), backgroundAssetId: c.backgroundAssetId === null ? null : oneLine(c.backgroundAssetId, 140), layout: allowed(c.layout, ['full', 'text', 'lower-third', 'stage-lyrics', 'stage-speaker'] as const, 'full'), stageMessage: str(c.stageMessage, 1000), stageSeconds: c.stageSeconds === undefined ? undefined : num(c.stageSeconds, 0, 3600, 300) }] : [] }) : [],
+    outputProfiles: Object.fromEntries(Object.entries(obj(record.outputProfiles) ?? {}).slice(0, 100).map(([id, raw]) => { const p = obj(raw) ?? {}; return [id.slice(0, 140), { source: allowed(p.source, ['live', 'slide'] as const, 'live'), slideId: oneLine(p.slideId, 140), layout: allowed(p.layout, ['full', 'text', 'lower-third', 'stage-lyrics', 'stage-speaker'] as const, 'full'), margin: num(p.margin, 0, 15, 0), updatedAt: num(p.updatedAt, 0, Number.MAX_SAFE_INTEGER, 0) }] })),
     transition: allowed(record.transition, ['fade', 'cut', 'slide', 'zoom'] as const, 'fade'),
     transitionDuration: num(record.transitionDuration, 0.1, 3, 1),
     lastBackupAt: oneLine(record.lastBackupAt, 40) || null,
@@ -493,6 +517,11 @@ export function parseBackup(raw: string): ParsedBackup {
 
   return {
     services,
+    librarySongs: Array.isArray(root.librarySongs) ? root.librarySongs.slice(0, 3000).flatMap((entry) => {
+      const song = obj(entry)
+      if (!song || !oneLine(song.title, 200) || !str(song.lyrics, 60000)) return []
+      return [{ arrangement: Array.isArray(song.arrangement) ? song.arrangement.filter((n): n is number => typeof n === 'number' && Number.isInteger(n) && n > 0 && n <= 200).slice(0, 200) : undefined, id: oneLine(song.id, 140) || newId('song'), title: oneLine(song.title, 200), lyrics: str(song.lyrics, 60000), author: oneLine(song.author, 200), language: allowed(song.language, LOCALES, 'en'), category: oneLine(song.category, 80), tags: normalizeMediaTags(song.tags), key: oneLine(song.key, 24), notes: str(song.notes, 12000), copyright: str(song.copyright, 1000), createdAt: oneLine(song.createdAt, 40), updatedAt: oneLine(song.updatedAt, 40) }]
+    }) : null,
     settings: normalizeSettings(root.settings, translationIds),
     branding,
     monitors: normalizeMonitors(root.monitors),

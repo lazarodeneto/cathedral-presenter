@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { MediaAsset } from '../types'
+import { LOCALES } from '../types'
+import { canonicalMediaTag, mediaTagLabel } from '../i18n/mediaTagLabels'
 import { DEFAULT_MEDIA_TAGS, filterMedia, normalizeMediaTags } from '../utils/mediaTags'
 import { buildBackup, parseBackup } from '../security/backup'
 import { useAppStore } from '../store/useAppStore'
@@ -10,6 +12,17 @@ const video: MediaAsset = { id: 'video1', name: 'Culto', kind: 'video', mime: 'v
 const defaults = { query: '', tags: [] as string[], kind: '', from: '', to: '', sort: 'newest' }
 
 describe('media tags and search', () => {
+  it('translates every standard tag, preserves identities and migrates the old pastor name', () => {
+    for (const locale of LOCALES) for (const tag of DEFAULT_MEDIA_TAGS) {
+      const label = mediaTagLabel(tag, locale)
+      expect(label).toBeTruthy()
+      expect(canonicalMediaTag(label)).toBe(tag)
+    }
+    expect(mediaTagLabel('Oração', 'en')).toBe('Prayer')
+    expect(mediaTagLabel('Natália Machado', 'de')).toBe('Natália Machado')
+    expect(normalizeMediaTags(['Pr. Sidney', 'Pr. Sidney Santos'])).toEqual(['Pr. Sidney Santos'])
+    expect(filterMedia([image], { ...defaults, query: 'worship', tags: ['Worship'] }, 'en')).toEqual([image])
+  })
   it('offers the requested predefined tags and removes duplicate or unsafe input', () => {
     expect(DEFAULT_MEDIA_TAGS).toContain('Pr. Pool Mcartney')
     expect(DEFAULT_MEDIA_TAGS).toContain('Gabriela Rocha')

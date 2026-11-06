@@ -32,7 +32,7 @@ Live Green (what the congregation sees) and Danger red are not customisable. The
 
 ## Saving and church isolation
 
-- Branding is saved locally with the rest of the workspace and restored on reload. The app has no sign-in, so there is no logout step.
+- Branding is saved locally with the rest of the workspace and restored on reload. Sign-out revokes the account session; shared installation presentation content remains available for offline preparation.
 - Branding is stored per church id (`brandingProfiles[churchId]`). Saving and resetting only ever write the active church's entry, so one church's branding cannot overwrite another's. A single install has one church (`church_local`); `switchChurch` exists for future multi-church installs and is covered by tests.
 - Missing or partial data (older saves, hand-edited files, backups) is repaired field by field: invalid values fall back to their defaults, and a stored colour theme that fails the contrast rules is not applied.
 - Backups include the branding and restore it into the active church.

@@ -1,4 +1,7 @@
+import { useMediaPlayback } from '../media/useMediaPlayback'
 import type { SlideAspect } from '../utils/outputFormats'
+import { LocaleFlag } from './LocaleFlag'
+import { ART_DOVE, isCinematicAsset } from '../assets/templateArt'
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react'
 import * as QRCode from 'qrcode'
 import { TriangleAlert } from 'lucide-react'
@@ -104,6 +107,8 @@ function safeSource(source?: string): string | undefined {
   if (!source) return undefined
   if (
     source.startsWith('blob:') ||
+    isCinematicAsset(source) ||
+    /^\/api\/media\/files\/[0-9a-f-]{36}$/i.test(source) ||
     /^data:image\/(?:png|jpe?g|webp|gif|avif);base64,/i.test(source) ||
     /^https:\/\//i.test(source)
   ) {
@@ -130,6 +135,7 @@ function SlideMedia({
 }) {
   const t = useT()
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading')
+  const playback = useMediaPlayback(element)
   const settings = element.settings ?? {}
   const mediaRadius = settings.radius && settings.radius >= 999 ? '50%' : settings.radius
   const missing = !source || settings.missing
@@ -158,7 +164,7 @@ function SlideMedia({
 
   return (
     <span
-      className={`slide-element-media-wrap ${blocked ? 'is-blocked' : ''}`}
+      className={`slide-element-media-wrap ${blocked ? 'is-blocked' : ''}`} data-media-error={blocked || undefined}
       style={{ borderRadius: mediaRadius }}
     >
       {!blocked &&
@@ -178,9 +184,15 @@ function SlideMedia({
             onLoad={() => setState('ready')}
             onError={() => setState('error')}
           />
+        ) : element.type === 'audio' ? (
+          <audio ref={(node) => { playback.ref.current = node }} src={source} controls={interactive} preload="auto" data-media-id={element.id} data-playback-blocked={playback.blocked} onLoadedData={() => setState('ready')} onError={() => setState('error')} />
         ) : (
           <video
+            ref={(node) => { playback.ref.current = node }}
+            data-media-id={element.id}
+            data-playback-blocked={playback.blocked}
             src={source}
+            poster={source === ART_DOVE ? '/media/cinematic/dove-poster.jpg' : undefined}
             className="slide-element-media"
             style={{
               objectFit: settings.fit ?? 'contain',
@@ -189,16 +201,17 @@ function SlideMedia({
               transform: `scale(${cropZoom})`,
               transformOrigin: objectPosition,
             }}
-            autoPlay
             muted
-            loop
+            loop={playback.background}
+            controls={interactive && !playback.background}
+            preload="auto"
             playsInline
             onLoadedData={() => setState('ready')}
             onError={() => setState('error')}
           />
         ))}
-      {!blocked && state === 'loading' && <span className="slide-media-loading" />}
-      {blocked && (
+      {!playback.output && !blocked && state === 'loading' && <span className="slide-media-loading" />}
+      {!playback.output && blocked && (
         <span className={`slide-element-media-state is-${offline ? 'offline' : missing ? 'missing' : 'error'}`}>
           <strong>
             {t(
@@ -259,6 +272,7 @@ const ELEMENT_TYPE_KEYS: Record<string, string> = {
   text: 'editor.text',
   image: 'editor.image',
   video: 'editor.video',
+  audio: 'editor.audio',
   embed: 'editor.youtube',
   qr: 'editor.qr',
   shape: 'editor.shape',
@@ -572,7 +586,7 @@ export function SlideRenderer({
     return (
       <div
         key={element.id}
-        className={`slide-element slide-element-${element.type} ${settings.motion ? `has-motion motion-${settings.motion}` : ''} ${
+        className={`slide-element slide-element-${element.type} ${source === ART_DOVE ? 'is-cinematic-dove' : ''} ${settings.motion ? `has-motion motion-${settings.motion}` : ''} ${
           selectedElementId === element.id ? 'is-selected' : ''
         } ${interactive ? 'is-interactive' : ''}`}
         style={style}
@@ -660,7 +674,7 @@ export function SlideRenderer({
             }}
           />
         )}
-        {(element.type === 'image' || element.type === 'video') && (
+        {(element.type === 'image' || element.type === 'video' || element.type === 'audio') && (
           <SlideMedia element={element} source={source} online={online} interactive={interactive} />
         )}
         {element.type === 'embed' &&
@@ -770,7 +784,7 @@ export function SlideRenderer({
           <div className="scripture-stack" ref={fitRef}>
             <section className="scripture-block scripture-primary">
               <span className="translation-tag">
-                <span className="translation-tag-code">{primary.abbreviation}</span>
+                <span className="translation-tag-code"><LocaleFlag locale={primary.language} size={16} />{primary.abbreviation}</span>
                 <span className="translation-tag-ref">{primary.reference}</span>
               </span>
               <p style={scriptureTextStyle(1)}>{primary.text}</p>
@@ -780,7 +794,7 @@ export function SlideRenderer({
                 <span className="scripture-divider" />
                 <section className="scripture-block scripture-secondary">
                   <span className="translation-tag">
-                <span className="translation-tag-code">{secondary.abbreviation}</span>
+                <span className="translation-tag-code"><LocaleFlag locale={secondary.language} size={16} />{secondary.abbreviation}</span>
                 <span className="translation-tag-ref">{secondary.reference}</span>
               </span>
                   <p style={scriptureTextStyle(0.8)}>{secondary.text}</p>

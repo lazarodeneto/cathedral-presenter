@@ -1,3 +1,4 @@
+import { scanPresentation, importOpenLyrics } from '../../utils/presentationImport'
 import { useEffect, useRef, useState } from 'react'
 import { TriangleAlert, Upload } from 'lucide-react'
 import type { LibrarySong, Locale } from '../../types'
@@ -72,7 +73,7 @@ export function LibrarySongFormDialog({
 
   const fieldError = (field: SongLibraryField, error: SongLibraryError | undefined) => {
     if (!submitted || !error) return null
-    const max = { title: MAX_SONG_TITLE, author: MAX_SONG_AUTHOR, category: MAX_SONG_CATEGORY, key: MAX_SONG_KEY, notes: MAX_SONG_NOTES, copyright: MAX_SONG_COPYRIGHT, lyrics: MAX_SONG_LYRICS }[field]
+    const max = { arrangement: 200, title: MAX_SONG_TITLE, author: MAX_SONG_AUTHOR, category: MAX_SONG_CATEGORY, key: MAX_SONG_KEY, notes: MAX_SONG_NOTES, copyright: MAX_SONG_COPYRIGHT, lyrics: MAX_SONG_LYRICS }[field]
     return <small className="field-error" role="alert">{t(`library.error.${error}`, { max })}</small>
   }
 
@@ -81,17 +82,15 @@ export function LibrarySongFormDialog({
     onClose()
   }
 
-  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const raw = e.target?.result as string
-      const imported = importFromText(raw, file.name)
-      patch({ ...imported as Partial<SongLibraryForm> })
-    }
-    reader.readAsText(file, 'utf-8')
     event.target.value = ''
+    if (!file) return
+    try {
+      await scanPresentation(file)
+      if (file.name.toLowerCase().endsWith('.xml')) patch(formFromLibrarySong(importOpenLyrics(await file.text(), file.name.replace(/\.xml$/i, ''))))
+      else patch({ ...importFromText(await file.text(), file.name) as Partial<SongLibraryForm> })
+    } catch { push(t('control.importFailed'), 'error') }
   }
 
   const submit = (event: React.FormEvent) => {
@@ -182,7 +181,7 @@ export function LibrarySongFormDialog({
               <label className="library-import-btn" aria-label={t('library.importFile')}>
                 <Upload size={13} />
                 {t('library.importFile')}
-                <input type="file" accept=".txt,.md" onChange={handleImport} className="sr-only" />
+                <input type="file" accept=".txt,.md,.xml" onChange={handleImport} className="sr-only" />
               </label>
             </span>
             <textarea
@@ -209,6 +208,7 @@ export function LibrarySongFormDialog({
             {fieldError('notes', errors.notes)}
           </label>
 
+          <label className="field"><span>{t('control.arrangement')}</span><input value={form.arrangement ?? ''} onChange={(e) => patch({ arrangement: e.target.value })} placeholder="1 2 1 3" maxLength={800} aria-invalid={submitted && Boolean(errors.arrangement)} /><small>{t('control.arrangementHint')}</small>{fieldError('arrangement', errors.arrangement)}</label>
           <div className="modal-actions">
             <button type="button" className="btn btn-ghost" onClick={handleClose}>
               {t('common.cancel')}

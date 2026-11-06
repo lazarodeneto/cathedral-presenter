@@ -1,28 +1,18 @@
+import { workspaceStorage } from './server/workspace'
 import { readFileSync } from 'node:fs'
+import { loadEnv } from 'vite'
 import { defineConfig } from 'vitest/config'
 import type { Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { accountAuth } from './server/auth'
 import { letrasGospelProxy } from './server/letrasgospelProxy'
+import { outputRelay } from './server/outputRelay'
+import { mediaLibrary } from './server/mediaLibrary'
+import { PRODUCTION_CSP as CSP, securityHeaders } from './server/securityHeaders'
 
 const packageJson = JSON.parse(
   readFileSync(new URL('./package.json', import.meta.url), 'utf8'),
 ) as { version: string }
-
-const CSP = [
-  "default-src 'self'",
-  "script-src 'self'",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https:",
-  "media-src 'self' data: blob: https:",
-  "font-src 'self' data:",
-  "connect-src 'self' https:",
-  'frame-src https://www.youtube-nocookie.com https://www.youtube.com',
-  "object-src 'none'",
-  "base-uri 'none'",
-  "form-action 'none'",
-  "frame-ancestors 'none'",
-].join('; ')
 
 function productionCsp(): Plugin {
   return {
@@ -40,6 +30,11 @@ function productionCsp(): Plugin {
 export default defineConfig({
   plugins: [
     {
+      name: 'security-response-headers',
+      configureServer(server) { server.middlewares.use((_req, res, next) => { securityHeaders(res, false); next() }) },
+      configurePreviewServer(server) { server.middlewares.use((_req, res, next) => { securityHeaders(res, true); next() }) },
+    },
+    {
       name: 'app-health',
       configureServer(server) {
         server.middlewares.use('/api/app-health', (_req, res) => {
@@ -51,7 +46,10 @@ export default defineConfig({
     react(),
     productionCsp(),
     letrasGospelProxy(),
-    accountAuth(),
+    accountAuth(loadEnv(process.env.NODE_ENV ?? 'development', process.cwd(), '')),
+    outputRelay(),
+    mediaLibrary(loadEnv(process.env.NODE_ENV ?? 'development', process.cwd(), '')),
+    workspaceStorage(),
   ],
   define: {
     __APP_VERSION__: JSON.stringify(packageJson.version),

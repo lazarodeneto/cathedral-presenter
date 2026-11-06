@@ -20,6 +20,8 @@ import { SCREEN_META } from '../components/ScreenIcon'
 import { LiveControlBar } from '../components/editor/LiveControlBar'
 import { SortSelect } from '../components/SortSelect'
 import { LocaleFlag } from '../components/LocaleFlag'
+import { webOutputProvider } from '../providers/output/WebOutputProvider'
+import { useAudienceConnection } from '../hooks/useAudienceConnection'
 
 interface Pick {
   bookIndex: number
@@ -59,6 +61,9 @@ export function BibleModeScreen() {
   )
   const valid = (id: string) => (translations.some((entry) => entry.id === id) ? id : translations[0]?.id ?? id)
   const visibleScripture = !live || live.blank ? null : live.frozen ? live.frozenScripture : live.scripture
+  const audienceConfirmed = useAudienceConnection(visibleScripture?.id)
+  const [connecting, setConnecting] = useState(false)
+  const connectingRef = useRef(false)
   const liveReference = visibleScripture?.bible?.primary?.reference ?? visibleScripture?.reference
   const livePassage = liveReference ? parseLocalReference(liveReference) : null
   const projectedKey = livePassage?.startVerse != null ? keyOf(livePassage.bookId, livePassage.chapter, livePassage.startVerse) : null
@@ -140,17 +145,30 @@ export function BibleModeScreen() {
     }
   }
 
-  const goLiveWithVerse = (verse: number | null = pick.verse) => {
-    if (verse === null || !slideFor(verse)) return
+  const goLiveWithVerse = async (verse: number | null = pick.verse) => {
+    if (connectingRef.current || verse === null || !slideFor(verse)) return
     if (!startService || flatSlides(startService).length === 0) {
       push(t('biblemode.noService'), 'error')
       return
     }
-    if (!live && !startLive(startService.id, flatSlides(startService)[0].slide.id)) {
-      push(t('biblemode.noService'), 'error')
-      return
+    connectingRef.current = true
+    setConnecting(true)
+    try {
+      const result = await webOutputProvider.prepareAudience()
+      if (result !== 'ready') {
+        push(t(`presentation.${result}`), 'error')
+        if (result === 'chooseDisplays') navigate('/settings/outputs')
+        return
+      }
+      if (!useAppStore.getState().live && !startLive(startService.id, flatSlides(startService)[0].slide.id)) {
+        push(t('biblemode.noService'), 'error')
+        return
+      }
+      project(verse, true)
+    } finally {
+      connectingRef.current = false
+      setConnecting(false)
     }
-    project(verse, true)
   }
 
   const chooseBook = (index: number) => {
@@ -184,7 +202,7 @@ export function BibleModeScreen() {
         else setPick((current) => ({ ...current, verse: next }))
       } else if (event.key === 'Enter' && pick.verse !== null) {
         event.preventDefault()
-        project(pick.verse)
+        void goLiveWithVerse(pick.verse)
       } else if (event.key === 'Escape' && live?.scripture) {
         event.preventDefault()
         clearScriptureLive()
@@ -221,6 +239,24 @@ export function BibleModeScreen() {
     return () => observer.disconnect()
   }, [pick.verse, pick.chapter, book, projectedKey, visibleScripture, verses])
 
+  // A scrolled verse must never leave a fragment of its last line under the reference.
+  useEffect(() => {
+    const list = verseListRef.current
+    if (!list) return
+    const clip = () => {
+      const top = list.getBoundingClientRect().top
+      for (const item of list.querySelectorAll<HTMLElement>('li')) {
+        const rect = item.getBoundingClientRect()
+        item.style.visibility = rect.top < top - 1 && rect.bottom > top ? 'hidden' : ''
+      }
+    }
+    const frame = requestAnimationFrame(clip)
+    list.addEventListener('scroll', clip, { passive: true })
+    const observer = new ResizeObserver(clip)
+    observer.observe(list)
+    return () => { cancelAnimationFrame(frame); observer.disconnect(); list.removeEventListener('scroll', clip) }
+  }, [verses])
+
   // Previous / Next in the live controls step through the verses of the chapter.
   const verseNumbers = verses.map((verse) => verse.verse)
   const verseAt = pick.verse === null ? -1 : verseNumbers.indexOf(pick.verse)
@@ -237,8 +273,8 @@ export function BibleModeScreen() {
   const shownBook = shownPassage ? bookName(shownPassage.bookId, locale) : bookLabel
   const shownChapter = shownPassage ? shownPassage.chapter : pick.chapter
   const shownVerse = shownPassage ? shownPassage.startVerse : pick.verse
-  const onScreen = (verse: number) => Boolean(book && pick.chapter !== null && projectedKey === keyOf(book.id, pick.chapter, verse))
-  const [liveBook, liveChapter] = (projectedKey ?? '').split(':')
+  const onScreen = (verse: number) => Boolean(audienceConfirmed && book && pick.chapter !== null && projectedKey === keyOf(book.id, pick.chapter, verse))
+  const [liveBook, liveChapter] = (audienceConfirmed ? projectedKey ?? '' : '').split(':')
 
   const bookTile = (index: number) => {
     const entry = BIBLE_BOOKS[index]
@@ -276,7 +312,7 @@ export function BibleModeScreen() {
         </div>
         <div className="bm-controls">
           <div className="bm-translation-select"><SortSelect value={translationId} label={t('biblemode.translation')} onChange={setTranslationId} selectedLabel={bilingual ? translation?.abbreviation : undefined} leading={translation && LOCALES.includes(translation.language) ? <LocaleFlag locale={translation.language} size={16} /> : undefined}
-            options={translations.map((entry) => ({ value: entry.id, label: `${entry.abbreviation} · ${entry.name}` }))} /></div>
+            options={translations.map((entry) => ({ value: entry.id, label: `${entry.abbreviation} · ${entry.name}`, icon: <LocaleFlag locale={entry.language} size={16} /> }))} /></div>
           <div className="bm-language-mode" role="group" aria-label={t('biblemode.translation')}>
             <button type="button" className={!bilingual ? 'is-on' : ''} aria-label={t('biblemode.oneLanguage')} title={t('biblemode.oneLanguage')} aria-pressed={!bilingual} onClick={() => setBilingual(false)}>
               <strong aria-hidden="true">1</strong> {t('biblemode.languageUnit')}
@@ -287,7 +323,7 @@ export function BibleModeScreen() {
           </div>
           {bilingual && (
             <div className="bm-translation-select"><SortSelect value={secondaryId} label={t('biblemode.secondary')} onChange={setSecondaryId} selectedLabel={secondaryTranslation?.abbreviation} leading={secondaryTranslation && LOCALES.includes(secondaryTranslation.language) ? <LocaleFlag locale={secondaryTranslation.language} size={16} /> : undefined}
-              options={translations.map((entry) => ({ value: entry.id, label: `${entry.abbreviation} · ${entry.name}` }))} /></div>
+              options={translations.map((entry) => ({ value: entry.id, label: `${entry.abbreviation} · ${entry.name}`, icon: <LocaleFlag locale={entry.language} size={16} /> }))} /></div>
           )}
         </div>
       </header>
@@ -359,8 +395,8 @@ export function BibleModeScreen() {
 
         <section className="bm-panel bm-reading" aria-label={reference}>
           <div className="bm-preview">
-            <div className={`bm-preview-frame ${visibleScripture ? 'is-on-screen' : ''}`}>
-              {visibleScripture || preview ? (
+            <div className={`bm-preview-frame ${visibleScripture && audienceConfirmed ? 'is-on-screen' : ''}`}>
+              {live?.modeTransitionPending ? <div className="bm-preview-empty bm-preview-black" role="img" aria-label={t('output.blank')} /> : visibleScripture || preview ? (
                 <SlideRenderer
                   slide={visibleScripture ?? preview}
                   branding={branding}
@@ -372,7 +408,7 @@ export function BibleModeScreen() {
               ) : (
                 <div className="bm-preview-empty" aria-label={t(pick.chapter === null ? 'biblemode.pickChapter' : 'biblemode.pickVerse')} />
               )}
-              {visibleScripture && (
+              {visibleScripture && audienceConfirmed && (
                 <span className="bm-on-screen">
                   <Radio size={12} />
                   {t('biblemode.onScreen')}
@@ -384,20 +420,19 @@ export function BibleModeScreen() {
                 book={shownBook ? shownBook.toLocaleUpperCase(locale) : t('biblemode.pickBook')}
                 chapter={shownChapter} verse={shownVerse} verseLabel={t('biblemode.verseShort')}
               />
-              {live?.scripture && (
-                <button type="button" className="btn btn-ghost btn-sm bm-clear-verse" onClick={clearScriptureLive}>
+              {live?.scripture && audienceConfirmed && (
+                <button type="button" className="btn btn-ghost btn-sm bm-clear-verse" title={t('biblemode.clear')} aria-label={t('biblemode.clear')} onClick={clearScriptureLive}>
                   <Eraser size={14} aria-hidden="true" />
-                  {t('biblemode.clear')}
+                  <span className="bm-action-label">{t('biblemode.clear')}</span>
                 </button>
               )}
-              {(!live || !live.scripture) && (
-                <button type="button" className="btn btn-present btn-sm" disabled={pick.verse === null || !startService} onClick={() => goLiveWithVerse()}>
+              {(!live || !live.scripture || !audienceConfirmed) && (
+                <button type="button" className="btn btn-present btn-sm" title={t(connecting ? 'presentation.connecting' : 'biblemode.presentVerse')} aria-label={t(connecting ? 'presentation.connecting' : 'biblemode.presentVerse')} disabled={connecting || pick.verse === null || !startService} aria-busy={connecting} onClick={() => void goLiveWithVerse()}>
                   <MonitorPlay size={14} />
-                  {t('biblemode.presentVerse')}
+                  <span className="bm-action-label">{t(connecting ? 'presentation.connecting' : 'biblemode.presentVerse')}</span>
                 </button>
               )}
             </div>
-            {!live && <p className="bm-hint">{t('biblemode.notLive')}</p>}
           </div>
           {verses.length > 0 && (
             <ol className="bm-verses" ref={verseListRef}>

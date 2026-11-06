@@ -1,9 +1,11 @@
+import { OutputProfileEditor } from './OutputProfileEditor'
 import { useState } from 'react'
 import { Monitor, RefreshCw } from 'lucide-react'
 import { useT } from '../../i18n/useT'
 import { useAppStore } from '../../store/useAppStore'
 import { operatingSystem, reconcilePhysicalDisplays } from '../../providers/output/desktop'
 import type { MonitorRole } from '../../types'
+import { useDesktopDisplays } from '../../hooks/useDesktopDisplays'
 
 export function HardwareOutputs() {
   const t = useT()
@@ -11,8 +13,8 @@ export function HardwareOutputs() {
   const testId = useAppStore((state) => state.testMonitorId)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(false)
-  const desktop = window.cathedralDesktop
-  const system = operatingSystem()
+  const desktop = useDesktopDisplays()
+  const system = desktop ? desktop.platform === 'darwin' ? 'macOS' : desktop.platform === 'win32' ? 'Windows' : 'Linux' : operatingSystem()
   const physical = monitors.filter((monitor) => !monitor.simulated)
   if (!desktop)
     return (
@@ -110,10 +112,10 @@ export function HardwareOutputs() {
                 </h4>
                 <p>
                   {monitor.width} × {monitor.height} ·{' '}
-                  {monitor.isOperator
-                    ? t('hardware.operator')
-                    : monitor.status === 'disconnected'
+                  {monitor.status === 'disconnected'
                       ? t('status.disconnected')
+                      : monitor.isOperator
+                        ? t('hardware.operator')
                       : monitor.outputOpen
                         ? t('hardware.open')
                         : t('common.ready')}
@@ -145,6 +147,7 @@ export function HardwareOutputs() {
                     )}
                   </select>
                 </label>
+                {monitor.role !== 'disabled' && <OutputProfileEditor id={monitor.displayId ?? monitor.id} confidence={monitor.role === 'confidence'} />}
                 <div className="output-actions">
                   <button
                     className="btn btn-secondary btn-sm"

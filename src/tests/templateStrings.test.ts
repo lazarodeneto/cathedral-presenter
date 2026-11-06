@@ -2,10 +2,23 @@ import { describe, expect, it } from 'vitest'
 import { SLIDE_TEMPLATES } from '../data/templates'
 import { dictionaries } from '../i18n/dictionary'
 import { createTemplateItem } from '../utils/slides'
+import { isCinematicAsset } from '../assets/templateArt'
 
 const LOCALES = Object.keys(dictionaries) as (keyof typeof dictionaries)[]
 
 describe('template translations', () => {
+  it('uses full-frame photographic assets and slow camera motion in the cinematic scenes', () => {
+    const cinematic = SLIDE_TEMPLATES.filter((template) => template.elementPreset?.startsWith('art-'))
+    expect(cinematic).toHaveLength(12)
+    for (const template of cinematic) {
+      const slide = createTemplateItem(template, template.name).slides[0]
+      const photo = slide.elements.find((element) => element.type === 'image')!
+      expect(isCinematicAsset(photo.source)).toBe(true)
+      expect(photo).toMatchObject({ x: 0, y: 0, width: 100, height: 100, settings: { fit: 'cover', motion: 'cinematic' } })
+      expect(slide.background.preset).toBe('graphite')
+    }
+    expect(isCinematicAsset('/media/cinematic/../../.data/secret')).toBe(false)
+  })
   it('has a name, description and slide content for every template in every language', () => {
     const missing: string[] = []
     for (const locale of LOCALES) {

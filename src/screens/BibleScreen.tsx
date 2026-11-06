@@ -32,6 +32,7 @@ import { createBibleItem, createBibleSlides } from '../utils/slides'
 import { isLikelyOverflow } from '../utils/slides'
 import { SCREEN_META, ScreenIcon } from '../components/ScreenIcon'
 import { LocaleFlag } from '../components/LocaleFlag'
+import { SortSelect } from '../components/SortSelect'
 import { LOCALES } from '../types'
 
 const BROWSE = [
@@ -496,46 +497,22 @@ export function BibleScreen() {
               </select>
             </div>
           </div>
-          <label className="bible-selector">
+          <div className="bible-selector">
             <span className="bible-selector-label bible-selector-label-primary">{t('bible.primary')}</span>
-            <span className="bible-select-with-flag">
-            {LOCALES.includes(primaryTranslation.language) && <LocaleFlag locale={primaryTranslation.language} size={18} />}
-            <select
-              value={translationId}
-              onChange={(event) => {
-                const nextId = validTranslationId(translations, event.target.value, translationId)
+            <SortSelect value={translationId} label={t('bible.primary')} onChange={(value) => {
+                const nextId = validTranslationId(translations, value, translationId)
                 setTranslationId(nextId)
                 updateSettings({ defaultTranslationId: nextId })
-              }}
-            >
-              {translations.map((translation) => (
-                <option key={translation.id} value={translation.id}>
-                  {translation.abbreviation} · {translation.name}
-                </option>
-              ))}
-            </select>
-            </span>
-          </label>
-          <label className="bible-selector">
+              }} options={translations.map((translation) => ({ value: translation.id, label: `${translation.abbreviation} · ${translation.name}`, icon: <LocaleFlag locale={translation.language} size={18} /> }))} />
+          </div>
+          <div className="bible-selector">
             <span className="bible-selector-label bible-selector-label-secondary">{t('bible.secondary')}</span>
-            <span className="bible-select-with-flag">
-            {LOCALES.includes(secondaryTranslation.language) && <LocaleFlag locale={secondaryTranslation.language} size={18} />}
-            <select
-              value={secondaryId}
-              onChange={(event) => {
-                const nextId = validTranslationId(translations, event.target.value, secondaryId)
+            <SortSelect value={secondaryId} label={t('bible.secondary')} onChange={(value) => {
+                const nextId = validTranslationId(translations, value, secondaryId)
                 setSecondaryId(nextId)
                 updateSettings({ secondaryTranslationId: nextId })
-              }}
-            >
-              {translations.map((translation) => (
-                <option key={translation.id} value={translation.id}>
-                  {translation.abbreviation} · {translation.name}
-                </option>
-              ))}
-            </select>
-            </span>
-          </label>
+              }} options={translations.map((translation) => ({ value: translation.id, label: `${translation.abbreviation} · ${translation.name}`, icon: <LocaleFlag locale={translation.language} size={18} /> }))} />
+          </div>
         </div>
         <div className="bible-source-row">
           <span className="source-note">
@@ -592,7 +569,7 @@ export function BibleScreen() {
                 }}
               >
                 <span>{entry.reference}</span>
-                <small>{translationById(translations, entry.translationId).abbreviation}</small>
+                <small><LocaleFlag locale={translationById(translations, entry.translationId).language} size={14} /> {translationById(translations, entry.translationId).abbreviation}</small>
               </button>
             ))}
           </div>
@@ -652,7 +629,7 @@ export function BibleScreen() {
               >
                 <span className="bible-result-head">
                   <strong>{passage.reference}</strong>
-                  <span className="badge badge-quiet">{passage.translationAbbreviation}</span>
+                  <span className="badge badge-quiet"><LocaleFlag locale={passage.language} size={15} />{passage.translationAbbreviation}</span>
                 </span>
                 <p>{passage.verses.map((verse) => verse.text).join(' ')}</p>
                 <span className="bible-result-meta">
@@ -679,7 +656,7 @@ export function BibleScreen() {
                   <span className="eyebrow">{t('bible.preview')}</span>
                   <h3>{selected.reference}</h3>
                 </div>
-                <span className="badge badge-amber">{selected.translationAbbreviation}</span>
+                <span className="badge badge-amber"><LocaleFlag locale={primaryTranslation.language} size={15} />{selected.translationAbbreviation}</span>
               </div>
               <div className="bible-stage-preview" role="region" aria-label={`${t('bible.preview')}: ${selected.reference}`} tabIndex={0}
                 onKeyDown={(event) => {
@@ -712,7 +689,7 @@ export function BibleScreen() {
               </div>
               <details className="bible-preview-source">
                 <summary>{t('bible.licenseSource')}</summary>
-                <strong>{selected.translationName}</strong>
+                <strong className="bible-flagged-name"><LocaleFlag locale={selected.language} size={15} />{selected.translationName}</strong>
                 <p>{selected.copyrightNotice}</p>
                 {bilingual && secondaryPreview && <p>{secondaryPreview.copyrightNotice}</p>}
               </details>

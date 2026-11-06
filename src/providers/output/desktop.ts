@@ -13,6 +13,8 @@ export interface PhysicalDisplay {
   open: boolean
 }
 export interface DesktopDisplays {
+  reportReady?(): void
+  openMediaBrowser?(): Promise<void>
   readonly platform: 'darwin' | 'win32' | 'linux'
   listDisplays(): Promise<PhysicalDisplay[]>
   setDisplayRole(id: string, role: MonitorRole): Promise<PhysicalDisplay[]>

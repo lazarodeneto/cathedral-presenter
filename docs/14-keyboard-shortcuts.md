@@ -55,7 +55,7 @@ When an audience or confidence window has focus, presentation keys are sent to t
 
 ## Saving
 
-- Custom shortcuts are saved in the app settings on this computer (like the other settings) and included in backups. The app has no sign-in, so there is no logout step.
+- Custom shortcuts are saved in the app settings on this computer (like the other settings) and included in backups. Sign-out revokes the account session; shared installation presentation content remains available for offline preparation.
 - Only differences from the defaults are stored, so new or changed defaults in later versions still reach you, and valid custom shortcuts are kept across updates.
 - Saved data is checked on load. Unknown actions, invalid or reserved keys, and entries that would clash fall back to the defaults.
 

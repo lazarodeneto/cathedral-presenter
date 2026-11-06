@@ -17,3 +17,10 @@ test-results/
 
 # Private account database and signing secret
 .data/
+
+# Generated desktop runtime and installers
+desktop/build/
+release/
+
+# Detailed local audit working copy (sanitized report is in docs/audits)
+security_best_practices_report.md

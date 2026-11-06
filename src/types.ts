@@ -52,7 +52,7 @@ export type BackgroundPreset =
   | 'rays'
   | 'breathe'
 
-export type ElementType = 'text' | 'image' | 'video' | 'shape' | 'qr' | 'embed' | 'message'
+export type ElementType = 'text' | 'image' | 'video' | 'audio' | 'shape' | 'qr' | 'embed' | 'message'
 
 export type TextElementSettings = {
   fontSize?: number
@@ -81,8 +81,13 @@ export type MediaElementSettings = {
   missing?: boolean
   /** Video placeholder from a template: invisible on outputs until a video fills it. */
   videoSlot?: boolean
+  playbackMode?: 'foreground' | 'background'
+  volume?: number
+  muted?: boolean
+  loop?: boolean
+  endAction?: 'hold' | 'next' | 'black'
   /** Gentle looping motion for decorative elements. */
-  motion?: 'pulse' | 'float' | 'spin' | 'drift' | 'sway'
+  motion?: 'pulse' | 'float' | 'spin' | 'drift' | 'sway' | 'cinematic'
   onlineOnly?: boolean
   status?: MediaStatus
 }
@@ -205,6 +210,7 @@ export interface Slide {
   /** Overrides the service's default transition into this slide. */
   transition?: SlideTransition
   /** Timer slides only: configured countdown. Runtime state lives in TimerRuntime. */
+  autoAdvanceSeconds?: number
   timer?: TimerConfig
 }
 
@@ -267,6 +273,7 @@ export interface SlideTransition {
  * church's local time on this computer: "2026-11-01" and "10:00".
  */
 export interface Service {
+  loop?: boolean
   id: string
   /** The church this service belongs to; other churches' services are never shown or changed. */
   churchId: string
@@ -308,6 +315,14 @@ export interface FlatSlide {
 export type MonitorRole = 'audience' | 'confidence' | 'broadcast' | 'disabled'
 export type MonitorStatus = 'ready' | 'connecting' | 'disconnected' | 'test' | 'unsupported'
 
+export interface OutputProfile {
+  source: 'live' | 'slide'
+  slideId?: string
+  layout: 'full' | 'text' | 'lower-third' | 'stage-lyrics' | 'stage-speaker'
+  margin?: number
+  updatedAt?: number
+}
+
 export interface Monitor {
   /** Operating-system display identifier; absent on browser preview windows. */
   displayId?: string
@@ -325,11 +340,13 @@ export interface Monitor {
   simulated: boolean
 }
 
-export type MediaKind = 'image' | 'video'
+export type MediaKind = 'image' | 'video' | 'audio'
 export type MediaStatus = 'ready' | 'loading' | 'missing' | 'unsupported' | 'offline'
 export type MediaAssetProvider = 'upload' | 'url' | 'youtube'
 
 export interface MediaAsset {
+  storage?: 'local' | 'drive'
+  scan?: 'clean'
   id: string
   name: string
   kind: MediaKind
@@ -458,6 +475,7 @@ export interface SongSearchResult {
 }
 
 export interface LibrarySong {
+  arrangement?: number[]
   id: string
   title: string
   lyrics: string
@@ -511,7 +529,7 @@ export interface SlideTemplate {
   /** Accent colour (any CSS colour) for the preset's lines, panels and glows. Gold by default. */
   accent?: string
   /** Gentle looping motion applied to the preset's decorative shapes. */
-  motion?: 'pulse' | 'float' | 'spin' | 'drift' | 'sway'
+  motion?: 'pulse' | 'float' | 'spin' | 'drift' | 'sway' | 'cinematic'
   fontFamily?: 'serif' | 'sans'
   fontSize?: number
   fontWeight?: number
@@ -539,7 +557,11 @@ export interface Branding {
   theme: BrandingTheme
 }
 
+export interface PresenterCue { id: string; name: string; slideId: string; backgroundAssetId?: string | null; layout?: OutputProfile['layout']; stageMessage?: string; stageSeconds?: number }
+
 export interface AppSettings {
+  cues?: PresenterCue[]
+  outputProfiles?: Record<string, OutputProfile>
   locale: Locale
   /** Sunday-first weekday index to softly emphasize in the service calendar, or null. */
   highlightWeekday?: number | null
@@ -575,17 +597,26 @@ export interface LiveSession {
   currentSlideId: string
   history: string[]
   startedAt: string
+  slideStartedAt?: number
+  blankStartedAt?: number
   blank: boolean
   /** The output is black while waiting for content after changing presenter modes. */
   modeTransitionPending?: boolean
   frozen: boolean
   frozenSlideId: string | null
+  frozenSlide?: Slide | null
+  frozenAt?: number
+  stageMessage?: string
+  textHidden?: boolean
+  mediaHidden?: boolean
+  background?: SlideElement | null
   message: string | null
   messageVisible: boolean
   /**
    * A verse projected from Bible Mode, outside the service's slides. It is on
    * the audience screen until the operator moves to a service slide again.
    */
+  media?: import('./media/playback').MediaSession
   scripture?: Slide | null
   /** The Bible Mode verse that was on screen when Freeze was pressed. */
   frozenScripture?: Slide | null
@@ -598,6 +629,9 @@ export interface Toast {
 }
 
 export interface AudienceOutputState {
+  textHidden?: boolean
+  mediaHidden?: boolean
+  background?: SlideElement | null
   mode: 'idle' | 'live' | 'blank' | 'test' | 'ended'
   slide: Slide | null
   message: string | null
@@ -614,6 +648,7 @@ export interface AudienceOutputState {
 }
 
 export interface ConfidenceOutputState {
+  stageMessage?: string
   mode: 'idle' | 'live' | 'test' | 'ended'
   current: Slide | null
   next: Slide | null

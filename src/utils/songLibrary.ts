@@ -10,10 +10,11 @@ export const MAX_SONG_NOTES = 4000
 export const MAX_SONG_COPYRIGHT = 400
 export const MAX_SONG_LYRICS = 50000
 
-export type SongLibraryField = 'title' | 'lyrics' | 'author' | 'category' | 'key' | 'notes' | 'copyright'
-export type SongLibraryError = 'required' | 'too-long'
+export type SongLibraryField = 'title' | 'lyrics' | 'author' | 'category' | 'key' | 'notes' | 'copyright' | 'arrangement'
+export type SongLibraryError = 'required' | 'too-long' | 'invalid-order'
 
 export interface SongLibraryForm {
+  arrangement?: string
   title: string
   lyrics: string
   author: string
@@ -38,6 +39,7 @@ export function validateSongLibrary(form: SongLibraryForm): Partial<Record<SongL
   if (form.key.trim().length > MAX_SONG_KEY) errors.key = 'too-long'
   if (form.notes.trim().length > MAX_SONG_NOTES) errors.notes = 'too-long'
   if (form.copyright.trim().length > MAX_SONG_COPYRIGHT) errors.copyright = 'too-long'
+  if ((form.arrangement ?? '').trim() && (form.arrangement ?? '').trim().split(/\s+/).some((value) => !/^\d+$/.test(value) || Number(value) < 1 || Number(value) > parseLyrics(form.lyrics).length)) errors.arrangement = 'invalid-order'
   return errors
 }
 
@@ -51,7 +53,8 @@ export function parseLyrics(lyrics: string): string[] {
 
 /** Build a SlideItem from a LibrarySong. Each stanza becomes one slide. */
 export function createLibrarySongItem(song: LibrarySong): SlideItem {
-  const stanzas = parseLyrics(song.lyrics)
+  const source = parseLyrics(song.lyrics)
+  const stanzas = song.arrangement?.length ? song.arrangement.slice(0, 200).map((i) => source[i - 1]).filter(Boolean) : source
   const slides = createLyricsSlides({
     title: song.title,
     stanzas: stanzas.length > 0 ? stanzas : [song.lyrics.trim()],
@@ -76,6 +79,7 @@ export function createLibrarySongItem(song: LibrarySong): SlideItem {
 
 export function formFromLibrarySong(song: LibrarySong): SongLibraryForm {
   return {
+    arrangement: (song.arrangement ?? []).join(' '),
     title: song.title,
     lyrics: song.lyrics,
     author: song.author ?? '',
@@ -98,6 +102,7 @@ export function librarySongFromForm(form: SongLibraryForm, existing?: LibrarySon
     id: existing?.id ?? newId('song'),
     title: form.title.trim(),
     lyrics: form.lyrics,
+    arrangement: form.arrangement?.trim() ? form.arrangement.trim().split(/\s+/).map(Number).filter((n) => Number.isInteger(n) && n > 0 && n <= parseLyrics(form.lyrics).length).slice(0, 200) : undefined,
     author: form.author.trim() || undefined,
     language: (form.language as Locale) || undefined,
     category: form.category.trim() || undefined,

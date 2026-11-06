@@ -1,0 +1,22 @@
+import type { Locale } from '../types'
+const keys = ['connecting', 'noDisplay', 'chooseDisplays', 'blocked', 'unreachable']
+const rows: Record<Locale, string[]> = {
+  en: ['Connecting…', 'No audience display is available. Connect an extended screen and check Outputs.', 'Choose the audience screens in Settings → Outputs, then present again.', 'Could not open the output. Check the desktop app or allow presentation pop-ups.', 'The output did not confirm its connection. Check the desktop app and try Present again.'],
+  pt: ['A ligar…', 'Não há um ecrã de público disponível. Ligue um ecrã expandido e verifique as Saídas.', 'Escolha os ecrãs de público em Definições → Saídas e volte a apresentar.', 'Não foi possível abrir a saída. Verifique a aplicação de computador ou permita as janelas de apresentação.', 'A saída não confirmou a ligação. Verifique a aplicação de computador e volte a clicar em Apresentar.'],
+  'pt-BR': ['Conectando…', 'Não há uma tela de público disponível. Conecte uma tela estendida e verifique as Saídas.', 'Escolha as telas de público em Configurações → Saídas e apresente novamente.', 'Não foi possível abrir a saída. Verifique o aplicativo de computador ou permita as janelas de apresentação.', 'A saída não confirmou a conexão. Verifique o aplicativo de computador e clique em Apresentar novamente.'],
+  es: ['Conectando…', 'No hay una pantalla de público disponible. Conecta una pantalla extendida y revisa Salidas.', 'Elige las pantallas de público en Ajustes → Salidas y vuelve a presentar.', 'No se pudo abrir la salida. Revisa la aplicación de escritorio o permite las ventanas de presentación.', 'La salida no confirmó la conexión. Revisa la aplicación de escritorio y pulsa Presentar de nuevo.'],
+  fr: ['Connexion…', 'Aucun écran public disponible. Connectez un écran étendu et vérifiez les sorties.', 'Choisissez les écrans publics dans Réglages → Sorties, puis relancez la présentation.', 'Impossible d’ouvrir la sortie. Vérifiez l’application de bureau ou autorisez les fenêtres de présentation.', 'La sortie n’a pas confirmé sa connexion. Vérifiez l’application de bureau et relancez la présentation.'],
+  de: ['Verbinden…', 'Kein Publikumsbildschirm verfügbar. Erweiterten Bildschirm anschließen und Ausgänge prüfen.', 'Publikumsbildschirme unter Einstellungen → Ausgänge wählen und erneut präsentieren.', 'Ausgabe konnte nicht geöffnet werden. Desktop-App prüfen oder Präsentationsfenster erlauben.', 'Die Ausgabe hat die Verbindung nicht bestätigt. Desktop-App prüfen und erneut präsentieren.'],
+  it: ['Connessione…', 'Nessuno schermo per il pubblico disponibile. Collega uno schermo esteso e verifica le uscite.', 'Scegli gli schermi del pubblico in Impostazioni → Uscite, poi presenta di nuovo.', 'Impossibile aprire l’uscita. Verifica l’app desktop o consenti le finestre di presentazione.', 'L’uscita non ha confermato la connessione. Verifica l’app desktop e riprova a presentare.'],
+}
+export const presentationStrings = Object.fromEntries(Object.entries(rows).map(([locale, values]) => [locale, Object.fromEntries(keys.map((key, index) => [`presentation.${key}`, values[index]]))])) as Record<Locale, Record<string, string>>
+const desktopRequired: Record<Locale, string> = {
+  en: 'Open Cathedral Presenter on this computer to connect its TVs and projectors. You can keep using this browser to control it.',
+  pt: 'Abra o Cathedral Presenter neste computador para ligar as TVs e os projetores. Pode continuar a controlar a apresentação neste navegador.',
+  'pt-BR': 'Abra o Cathedral Presenter neste computador para conectar as TVs e os projetores. Você pode continuar controlando a apresentação neste navegador.',
+  es: 'Abre Cathedral Presenter en este ordenador para conectar televisores y proyectores. Puedes seguir controlándolo desde este navegador.',
+  fr: 'Ouvrez Cathedral Presenter sur cet ordinateur pour connecter les téléviseurs et projecteurs. Vous pouvez continuer à le contrôler dans ce navigateur.',
+  de: 'Cathedral Presenter auf diesem Computer öffnen, um Fernseher und Projektoren zu verbinden. Die Steuerung kann in diesem Browser bleiben.',
+  it: 'Apri Cathedral Presenter su questo computer per collegare TV e proiettori. Puoi continuare a controllarlo da questo browser.',
+}
+for (const locale of Object.keys(desktopRequired) as Locale[]) presentationStrings[locale]['presentation.desktopRequired'] = desktopRequired[locale]

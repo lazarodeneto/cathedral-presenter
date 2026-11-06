@@ -1,19 +1,46 @@
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, render, screen, waitFor, cleanup } from '@testing-library/react'
 import { BibleModeScreen } from '../screens/BibleModeScreen'
 import { useAppStore } from '../store/useAppStore'
 import { flatSlides } from '../store/serviceUtils'
 import { getVersePassage } from '../providers/bible/LocalBibleProvider'
 import { createBibleSlides } from '../utils/slides'
+import { webOutputProvider } from '../providers/output/WebOutputProvider'
+
+beforeEach(() => { vi.spyOn(webOutputProvider, 'audienceConnected').mockReturnValue(true) })
 
 beforeAll(() => {
   Element.prototype.scrollIntoView = vi.fn()
   vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} unobserve() {} })
 })
 
-afterEach(() => { cleanup(); useAppStore.getState().endLive() })
+afterEach(() => { cleanup(); useAppStore.getState().endLive(); vi.restoreAllMocks() })
 
 describe('Bible Mode live state', () => {
+  it('does not claim the verse is on screen without confirmation from an output', async () => {
+    vi.mocked(webOutputProvider.audienceConnected).mockReturnValue(false)
+    const state = useAppStore.getState()
+    const service = state.services.find((item) => flatSlides(item).length && item.status !== 'archived')!
+    state.startLive(service.id, flatSlides(service)[0].slide.id)
+    state.showScriptureLive(createBibleSlides({ primary: getVersePassage('blivre', 'john', 3, 16)!, bilingual: false })[0])
+    const { container } = render(<BibleModeScreen />)
+    await screen.findByRole('button', { name: /(verse|versículo) 16$/i })
+    expect(container.querySelector('.bm-on-screen')).toBeNull()
+    expect(container.querySelector('.bm-preview-frame')).not.toHaveClass('is-on-screen')
+  })
+
+  it('waits for a connected output before starting live and preserves off-air state on failure', async () => {
+    vi.mocked(webOutputProvider.audienceConnected).mockReturnValue(false)
+    const prepare = vi.spyOn(webOutputProvider, 'prepareAudience').mockResolvedValue('unreachable')
+    render(<BibleModeScreen />)
+    const chapter = await screen.findByRole('button', { name: /^(chapter|capítulo) 3$/i })
+    await waitFor(() => expect(chapter).toBeEnabled())
+    fireEvent.click(chapter)
+    fireEvent.click(await screen.findByRole('button', { name: /^(verse|versículo) 16$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^(present|apresentar)$/i }))
+    await waitFor(() => expect(prepare).toHaveBeenCalledOnce())
+    expect(useAppStore.getState().live).toBeNull()
+  })
   it('restores the audience verse after reopening and lets Enter activate a focused control', async () => {
     const state = useAppStore.getState()
     const service = state.services.find((item) => flatSlides(item).length && item.status !== 'archived')!

@@ -20,6 +20,8 @@ import {
   type BibleImportError,
 } from '../../utils/bibleImport'
 import { IncludedBibles } from './IncludedBibles'
+import { LocaleFlag } from '../LocaleFlag'
+import { SortSelect } from '../SortSelect'
 import { reloadAfterAdd } from '../../store/appReload'
 
 const LICENSE_TYPES: BibleTranslation['licenseType'][] = [
@@ -151,7 +153,7 @@ export function BibleLibraryPanel() {
             const bundled = isBundledBibleTranslation(translation.id)
             return (
               <li key={translation.id} className="bible-admin-row">
-                <span className="bible-translation-abbr">{translation.abbreviation}</span>
+                <span className="bible-translation-abbr"><LocaleFlag locale={translation.language} size={17} />{translation.abbreviation}</span>
                 <span className="bible-admin-copy">
                   <strong>{translation.name}</strong>
                   <small>
@@ -256,7 +258,7 @@ export function BibleLibraryPanel() {
               <ul className="bible-admin-list bible-admin-list-hidden" aria-label={t('settings.bibleHiddenList')}>
                 {hiddenTranslations.map((translation) => (
                   <li key={translation.id} className="bible-admin-row bible-admin-row-hidden">
-                    <span className="bible-translation-abbr">{translation.abbreviation}</span>
+                    <span className="bible-translation-abbr"><LocaleFlag locale={translation.language} size={17} />{translation.abbreviation}</span>
                     <span className="bible-admin-copy">
                       <strong>{translation.name}</strong>
                       <small>{languageName(translation.language, locale)}</small>
@@ -295,7 +297,7 @@ export function BibleLibraryPanel() {
               <ul className="bible-admin-list bible-admin-list-hidden" aria-label={t('settings.bibleArchivedList')}>
                 {archivedTranslations.map((translation) => (
                   <li key={translation.id} className="bible-admin-row bible-admin-row-hidden">
-                    <span className="bible-translation-abbr">{translation.abbreviation}</span>
+                    <span className="bible-translation-abbr"><LocaleFlag locale={translation.language} size={17} />{translation.abbreviation}</span>
                     <span className="bible-admin-copy">
                       <strong>{translation.name}</strong>
                       <small>{languageName(translation.language, locale)}</small>
@@ -556,20 +558,10 @@ function BibleImportDialog({
               maxLength={120}
             />
           </label>
-          <label className="field">
-            <span>{t('settings.bibleLanguage')}</span>
-            <select
-              value={language}
-              onChange={(event) => setLanguage(event.target.value as Locale)}
-            >
-              {LOCALE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.flag} {option.label}
-                </option>
-              ))}
-            </select>
+          <div className="field">
+            <SortSelect value={language} label={t('settings.bibleLanguage')} onChange={setLanguage} options={LOCALE_OPTIONS.map((option) => ({ value: option.value, label: option.label, icon: <LocaleFlag locale={option.value} size={18} /> }))} />
             <small className="field-hint">{t('settings.bibleLanguageHint')}</small>
-          </label>
+          </div>
           <label className="field">
             <span>{t('settings.bibleLicense')}</span>
             <select

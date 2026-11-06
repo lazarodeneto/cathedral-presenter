@@ -1,3 +1,4 @@
+import { PresentationImport } from '../components/PresentationImport'
 import { useMemo, useState } from 'react'
 import { Archive, ArchiveRestore, CalendarDays, Copy, Pencil, Play, Plus, Search, SlidersHorizontal, Trash2, X } from 'lucide-react'
 import type { Service } from '../types'
@@ -63,6 +64,7 @@ export function ServicesScreen() {
           <p>{t('culto.screenCopy')}</p>
         </div>
         <div className="heading-actions">
+          <PresentationImport />
           <button className="btn btn-secondary" onClick={() => navigate('/calendar')}>
             <CalendarDays size={15} />
             {t('nav.calendar')}

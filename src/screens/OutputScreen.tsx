@@ -1,11 +1,14 @@
+import { StageCountdown } from '../components/timer/StageCountdown'
+import type { MediaFeedback } from '../media/playback'
+import { PlaybackContext } from '../media/PlaybackContext'
 import { useEffect, useState } from 'react'
-import { Expand, Minimize2, Monitor, Radio, Snowflake } from 'lucide-react'
+import { Expand, Minimize2, Monitor, Radio } from 'lucide-react'
 import type { OutputSnapshot } from '../providers/output/OutputProvider'
 import { webOutputProvider } from '../providers/output/WebOutputProvider'
 import type { Branding, Slide, SlideTransition } from '../types'
 import { useT } from '../i18n/useT'
 import { SlideRenderer } from '../components/SlideRenderer'
-import { TimerSourceContext } from '../components/timer/useTimer'
+import { TimerSourceContext, TimerNowContext } from '../components/timer/useTimer'
 import { useShortcutHandlers } from '../shortcuts/registry'
 import { SHORTCUT_ACTIONS } from '../shortcuts/actions'
 import { BrandMark } from '../components/BrandMark'
@@ -108,14 +111,33 @@ export function OutputScreen({
     return () => window.clearInterval(timer)
   }, [])
 
+  useEffect(() => {
+    if (!snapshot) return
+    // Confirm after React commits the received slide; keep the connection alive.
+    const confirm = () => {
+      const root = document.querySelector('.output-window')
+      const media: MediaFeedback[] = [...(root?.querySelectorAll<HTMLMediaElement>('.persistent-background [data-media-id], .transition-layer:not(.is-outgoing) [data-media-id]') ?? [])].map((video) => ({
+        id: video.dataset.mediaId!, duration: Number.isFinite(video.duration) ? video.duration : 0, position: video.currentTime,
+        state: video.error ? 'error' : video.dataset.playbackBlocked === 'true' ? 'blocked' : video.ended ? 'ended' : video.readyState < 2 ? 'loading' : video.paused ? 'paused' : 'playing',
+      }))
+      const ready = !root?.querySelector('[data-media-error="true"]') && ![...(root?.querySelectorAll<HTMLImageElement>('.transition-layer:not(.is-outgoing) img') ?? [])].some((image) => !image.complete || !image.naturalWidth) && media.every((entry) => entry.state !== 'loading' && entry.state !== 'error' && entry.state !== 'blocked')
+      const actual = displayId ? snapshot.displays?.[displayId] : undefined
+      webOutputProvider.acknowledge(actual?.source === 'slide' ? { ...snapshot, audience: { ...snapshot.audience, slide: actual.slide ?? null } } : snapshot, role, displayId, media, ready)
+    }
+    const frame = requestAnimationFrame(confirm)
+    const heartbeat = window.setInterval(confirm, 1000)
+    return () => { cancelAnimationFrame(frame); window.clearInterval(heartbeat) }
+  }, [snapshot, role, displayId])
+
   const target = displayId ? snapshot?.displays?.[displayId] : undefined
   const audience = snapshot?.audience
     ? {
         ...snapshot.audience,
+        ...(target?.source === 'slide' ? { slide: target.slide ?? null } : {}),
         ...(target
           ? {
               monitorName: target.name,
-              mode: target.test && role === 'audience' ? ('test' as const) : snapshot.audience.mode,
+              mode: target.test && role === 'audience' ? ('test' as const) : target.source === 'slide' && !target.slide && snapshot.audience.mode === 'live' ? ('blank' as const) : snapshot.audience.mode,
               testMonitorName: target.test ? target.name : undefined,
             }
           : {}),
@@ -137,6 +159,8 @@ export function OutputScreen({
     document.body.classList.toggle('physical-output', Boolean(displayId))
     return () => document.body.classList.remove('physical-output')
   }, [displayId])
+  const layout = target?.layout ?? (role === 'broadcast' ? snapshot?.broadcast?.layout : undefined) ?? 'full'
+  const margin = target?.margin ?? 0
   const branding =
     role === 'audience'
       ? (audience?.branding ?? FALLBACK_BRANDING)
@@ -193,7 +217,7 @@ export function OutputScreen({
     const isTest = mode === 'test'
     return (
       <TimerSourceContext.Provider value={snapshot.timers ?? {}}>
-        <div className="output-window output-confidence">
+        <div className={`output-window output-confidence stage-layout-${layout}`}>
           {isTest ? (
             <TestPattern
               label={confidence.testMonitorName ?? confidence.monitorName}
@@ -201,6 +225,7 @@ export function OutputScreen({
             />
           ) : mode === 'live' || mode === 'ended' ? (
             <div className="stage-output">
+              {confidence.stageMessage && <aside className="stage-private-message" role="status">{confidence.stageMessage}</aside>}
               <header className="stage-output-head">
                 <div className="stage-brand">
                   <BrandMark branding={confidence.branding} size="sm" />
@@ -213,6 +238,8 @@ export function OutputScreen({
                   </span>
                   <span className="stage-position">{confidence.position ?? '—'}</span>
                   <span className="stage-timer">{stageTimer}</span>
+                  <StageCountdown runtime={snapshot.timers?.stage} />
+                  <time className="stage-clock">{new Date().toLocaleTimeString()}</time>
                 </div>
               </header>
 
@@ -309,9 +336,11 @@ export function OutputScreen({
       ? (target?.name ?? snapshot.broadcast?.monitorName ?? audience.monitorName)
       : audience.monitorName
   return (
+    <TimerNowContext.Provider value={audience.isFrozen ? snapshot.frozenAt ?? null : null}>
+    <PlaybackContext.Provider value={{ session: target?.media ?? snapshot?.media, output: true, audible: role === 'audience' && (displayId ?? 'preview') === snapshot?.audioDisplayId, frozen: audience.isFrozen || audience.mediaHidden }}>
     <TimerSourceContext.Provider value={snapshot.timers ?? {}}>
       <div
-        className={`output-window output-audience ${mode === 'blank' ? 'is-blank' : ''}`}
+        className={`output-window output-audience ${mode === 'blank' ? 'is-blank' : ''} ${audience.isFrozen ? 'is-frozen' : ''} ${audience.background && !audience.mediaHidden ? 'has-persistent-background' : ''} ${audience.textHidden ? 'has-text-hidden' : ''} is-${layout}`}
         style={{ '--output-ratio': ASPECT_RATIO[format.aspect] } as React.CSSProperties}
         data-format={format.id}
       >
@@ -324,13 +353,14 @@ export function OutputScreen({
           // Blank means a black screen for the audience: nothing drawn, the state is named for assistive tech only.
           <div className="output-black" role="img" aria-label={t('output.blank')} />
         ) : mode === 'live' && audience.slide ? (
-          <div className="audience-frame">
+          <div className="audience-frame" style={{ padding: `${margin}%` }}>
+            {audience.background && !audience.mediaHidden && layout === 'full' && <div className="persistent-background"><SlideRenderer slide={{ ...audience.slide, kind: 'media', text: '', title: '', bible: undefined, elements: [audience.background], background: { type: 'preset', preset: 'graphite' } }} branding={audience.branding} aspectRatio={format.aspect} /></div>}
             <TransitionStage
               slide={audience.slide}
               transition={audience.transition}
               render={(slide) => (
                 <SlideRenderer
-                  slide={slide}
+                  slide={{ ...slide, elements: slide.elements.filter((e) => (layout === 'full' && !audience.mediaHidden) || e.type === 'text' || e.type === 'message') }}
                   branding={audience.branding}
                   aspectRatio={format.aspect}
                   message={audience.message}
@@ -338,12 +368,7 @@ export function OutputScreen({
                 />
               )}
             />
-            {audience.isFrozen && (
-              <span className="output-frozen-hint">
-                <Snowflake size={13} />
-                {t('output.frozen')}
-              </span>
-            )}
+
           </div>
         ) : mode === 'ended' ? (
           <div className="output-ended">
@@ -367,6 +392,8 @@ export function OutputScreen({
         />
       </div>
     </TimerSourceContext.Provider>
+    </PlaybackContext.Provider>
+    </TimerNowContext.Provider>
   )
 }
 
@@ -409,7 +436,7 @@ function TransitionStage({
     <div className={`transition-stage is-${type}`} style={style}>
       {outgoing && (
         <div key={`out-${outgoing.id}`} className="transition-layer is-outgoing" aria-hidden="true">
-          {render(outgoing)}
+          <PlaybackContext.Provider value={{ output: true, frozen: true }}>{render(outgoing)}</PlaybackContext.Provider>
         </div>
       )}
       <div key={`in-${shownId}`} className={`transition-layer ${outgoing ? 'is-incoming' : ''}`}>

@@ -13,7 +13,7 @@ export function mediaElementFromAsset(asset: MediaAsset, labels: MediaElementLab
   const isYouTube = asset.provider === 'youtube'
   const type = isYouTube ? 'embed' : asset.kind
   const onlineOnly = asset.provider === 'url' || isYouTube
-  const geometry = isYouTube
+  const geometry = asset.kind === 'audio' ? { x: 8, y: 82, width: 84, height: 12 } : isYouTube
     ? { x: 13, y: 20, width: 74, height: 58 }
     : asset.kind === 'video'
       ? { x: 8, y: 16, width: 84, height: 62 }
@@ -49,12 +49,12 @@ export function backgroundFromAsset(asset: MediaAsset, overlay = 0.42): SlideBac
   }
 }
 
-export async function prepareUploadedMedia(file: File): Promise<{
+export async function prepareUploadedMedia(file: File, options?: { storage: 'local' | 'drive' }): Promise<{
   ok: boolean
   asset?: MediaAsset
   reason?: string
 }> {
-  return webMediaProvider.registerFile(file)
+  return webMediaProvider.registerFile(file, options)
 }
 
 export function prepareRemoteMedia(

@@ -595,7 +595,7 @@ export const SLIDE_TEMPLATES: SlideTemplate[] = [
   {
     id: 'water-baptism',
     name: 'Baptism Waters',
-    description: 'Moving water under a baptism title, waves gently swaying.',
+    description: 'A photographic lake with a slow, continuous camera move.',
     category: 'Service',
     kind: 'title',
     background: 'tide',
@@ -608,7 +608,7 @@ export const SLIDE_TEMPLATES: SlideTemplate[] = [
   {
     id: 'water-living',
     name: 'Never Thirst',
-    description: 'Swaying waves for songs about living water.',
+    description: 'A photographic lake with a slow, continuous camera move.',
     category: 'Worship',
     kind: 'lyrics',
     background: 'ocean',
@@ -620,7 +620,7 @@ export const SLIDE_TEMPLATES: SlideTemplate[] = [
   {
     id: 'dove-spirit',
     name: 'Holy Spirit Dove',
-    description: 'A descending dove floating in a soft glow above the lyrics.',
+    description: 'The supplied dove video over natural dawn light.',
     category: 'Worship',
     kind: 'lyrics',
     background: 'flow',
@@ -633,7 +633,7 @@ export const SLIDE_TEMPLATES: SlideTemplate[] = [
   {
     id: 'dove-pentecost',
     name: 'Pentecost',
-    description: 'The dove over warm moving fire for Pentecost Sunday.',
+    description: 'The supplied dove video over natural dawn light.',
     category: 'Message',
     kind: 'sermon',
     background: 'ember',
@@ -646,7 +646,7 @@ export const SLIDE_TEMPLATES: SlideTemplate[] = [
   {
     id: 'calvary-finished',
     name: 'It Is Finished',
-    description: 'Three crosses on Calvary against a glowing sunset.',
+    description: 'Photographic Calvary at sunset with a slow camera move.',
     category: 'Message',
     kind: 'sermon',
     background: 'sunset',
@@ -660,7 +660,7 @@ export const SLIDE_TEMPLATES: SlideTemplate[] = [
   {
     id: 'calvary-rays',
     name: 'Calvary Light',
-    description: 'Turning rays of light behind the crosses of Calvary.',
+    description: 'Photographic Calvary at sunset with a slow camera move.',
     category: 'Service',
     kind: 'title',
     background: 'rays',
@@ -674,7 +674,7 @@ export const SLIDE_TEMPLATES: SlideTemplate[] = [
   {
     id: 'kneel-pray',
     name: 'Kneeling in Prayer',
-    description: 'A person kneeling in prayer in a breathing blue light.',
+    description: 'A quiet photographic prayer scene with gentle camera motion.',
     category: 'Service',
     kind: 'title',
     background: 'breathe',
@@ -686,7 +686,7 @@ export const SLIDE_TEMPLATES: SlideTemplate[] = [
   {
     id: 'kneel-ceasing',
     name: 'Pray Without Ceasing',
-    description: 'Kneeling prayer under a twinkling night sky.',
+    description: 'A quiet photographic prayer scene with gentle camera motion.',
     category: 'Message',
     kind: 'sermon',
     background: 'stars',
@@ -698,7 +698,7 @@ export const SLIDE_TEMPLATES: SlideTemplate[] = [
   {
     id: 'worship-hands',
     name: 'Hands Raised',
-    description: 'A worshipping crowd with raised hands under turning rays.',
+    description: 'A photographic congregation with restrained cinematic motion.',
     category: 'Worship',
     kind: 'lyrics',
     background: 'rays',
@@ -712,7 +712,7 @@ export const SLIDE_TEMPLATES: SlideTemplate[] = [
   {
     id: 'worship-hallelujah',
     name: 'Hallelujah',
-    description: 'A crowd in worship over drifting violet light.',
+    description: 'A photographic congregation with restrained cinematic motion.',
     category: 'Worship',
     kind: 'lyrics',
     background: 'flow',
@@ -726,7 +726,7 @@ export const SLIDE_TEMPLATES: SlideTemplate[] = [
   {
     id: 'night-psalm',
     name: 'Night Sky',
-    description: 'Twinkling stars and a crescent moon over night hills.',
+    description: 'A photographic night sky with a slow camera drift.',
     category: 'Scripture',
     kind: 'scripture',
     background: 'stars',
@@ -739,7 +739,7 @@ export const SLIDE_TEMPLATES: SlideTemplate[] = [
   {
     id: 'night-promise',
     name: 'Count the Stars',
-    description: 'God’s promise to Abraham under a starry night.',
+    description: 'A photographic night sky with a slow camera drift.',
     category: 'Scripture',
     kind: 'scripture',
     background: 'stars',

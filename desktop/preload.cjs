@@ -2,6 +2,8 @@
 const { contextBridge, ipcRenderer } = require('electron')
 contextBridge.exposeInMainWorld('cathedralDesktop', {
   platform: process.platform,
+  reportReady: () => ipcRenderer.send('app:ready'),
+  openMediaBrowser: () => ipcRenderer.invoke('app:media-browser'),
   listDisplays: () => ipcRenderer.invoke('displays:list'),
   setDisplayRole: (id, role) => ipcRenderer.invoke('displays:assign', id, role),
   openDisplay: (id) => ipcRenderer.invoke('displays:open', id),

@@ -1,3 +1,5 @@
+import { LiveLayerControls } from './LiveLayerControls'
+import { MediaPlaybackControls } from './MediaPlaybackControls'
 import { useState } from 'react'
 import {
   ChevronLeft,
@@ -87,6 +89,8 @@ export function LiveControlBar({
 
   return (
     <>
+      <MediaPlaybackControls />
+      <LiveLayerControls />
       {alertOn && (
         <div className="live-alert-banner" role="status">
           <TriangleAlert size={18} strokeWidth={2.4} className="live-alert-banner-icon" aria-hidden="true" />

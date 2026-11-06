@@ -1,5 +1,6 @@
+import { onWorkspaceStatus, workspaceStatus } from '../store/sharedWorkspace'
 import { AccountMenu } from './AccountMenu'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { CalendarDays, Check, Clock3, Search, TriangleAlert, X } from 'lucide-react'
 import { useT } from '../i18n/useT'
 import { useAppStore } from '../store/useAppStore'
@@ -142,6 +143,7 @@ export function TopBar({ route }: { route: Route }) {
     state.services.find((service) => service.id === state.activeServiceId),
   )
   const live = useAppStore((state) => state.live)
+  const sharedStatus = useSyncExternalStore(onWorkspaceStatus, workspaceStatus)
   const lastSavedAt = useAppStore((state) => state.lastSavedAt)
   const clearAudienceMessage = useAppStore((state) => state.clearAudienceMessage)
   const [clock, setClock] = useState(() => new Date())
@@ -225,7 +227,7 @@ export function TopBar({ route }: { route: Route }) {
             }
           >
             <Check size={14} strokeWidth={2.4} aria-hidden="true" />
-            {t('status.storageLocal')}
+            {t(sharedStatus === 'saved' ? 'workspace.saved' : sharedStatus === 'saving' ? 'workspace.saving' : 'status.storageLocal')}
           </span>
           <span className="topbar-clock">
             <Clock3 size={14} aria-hidden="true" />

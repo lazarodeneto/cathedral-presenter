@@ -45,7 +45,9 @@ export function LoginScreen({
         return
       }
       form.reset()
-      window.location.hash = '/home'
+      const returnTo = sessionStorage.getItem('cathedral:after-login')
+      sessionStorage.removeItem('cathedral:after-login')
+      window.location.hash = returnTo && /^\/(?:service\/[A-Za-z0-9_-]+|media|settings(?:\/[a-z-]+)?)$/.test(returnTo) ? returnTo : '/home'
     } catch {
       setError(t('auth.error'))
     } finally {

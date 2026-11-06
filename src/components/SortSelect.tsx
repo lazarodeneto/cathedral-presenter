@@ -3,7 +3,7 @@ import { Check, ChevronDown } from 'lucide-react'
 
 export function SortSelect<T extends string>({ value, options, label, onChange, selectedLabel, leading }: {
   value: T
-  options: { value: T; label: string }[]
+  options: { value: T; label: string; icon?: ReactNode }[]
   label: string
   onChange: (value: T) => void
   selectedLabel?: string
@@ -38,7 +38,7 @@ export function SortSelect<T extends string>({ value, options, label, onChange, 
             setOpen(true)
           }
         }}>
-        {leading}
+        {leading ?? options.find((option) => option.value === value)?.icon}
         <span id={`${id}-value`}>{selectedLabel ?? options.find((option) => option.value === value)?.label}</span>
         <ChevronDown size={16} aria-hidden="true" />
       </button>
@@ -60,7 +60,7 @@ export function SortSelect<T extends string>({ value, options, label, onChange, 
         {options.map((option) => <button key={option.value} type="button" role="menuitemradio"
           aria-checked={option.value === value} tabIndex={option.value === value ? 0 : -1}
           onClick={() => { onChange(option.value); setOpen(false); trigger.current?.focus() }}>
-          <span>{option.label}</span>
+          <span className="sort-select-option-content">{option.icon}{option.label}</span>
           {option.value === value && <Check size={16} aria-hidden="true" />}
         </button>)}
       </div>}

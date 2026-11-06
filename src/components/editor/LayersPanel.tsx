@@ -28,7 +28,7 @@ type Layer =
 
 function LayerIcon({ type }: { type: ElementType }) {
   if (type === 'image') return <ImageIcon size={13} />
-  if (type === 'video') return <Film size={13} />
+  if (type === 'video' || type === 'audio') return <Film size={13} />
   if (type === 'shape') return <Circle size={13} />
   if (type === 'qr') return <QrCode size={13} />
   if (type === 'embed') return <Video size={13} />
@@ -39,6 +39,7 @@ function LayerIcon({ type }: { type: ElementType }) {
 function layerName(element: SlideElement, t: (key: string) => string): string {
   if (element.text?.trim()) return element.text.trim().slice(0, 52)
   if (element.type === 'image') return t('editor.image')
+  if (element.type === 'audio') return t('editor.audio')
   if (element.type === 'video') return t('editor.video')
   if (element.type === 'shape') return t('editor.shape')
   if (element.type === 'qr') return t('editor.qr')

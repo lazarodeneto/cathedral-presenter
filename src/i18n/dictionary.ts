@@ -1,4 +1,12 @@
+import { controlStrings } from './controlStrings'
+import { operationsStrings } from './operationsStrings'
+import { routingStrings } from './routingStrings'
+import { preflightStrings } from './preflightStrings'
+import { workspaceStrings } from './workspaceStrings'
+import { playbackStrings } from './playbackStrings'
 import { hardwareStrings } from './hardwareStrings'
+import { presentationStrings } from './presentationStrings'
+import { storageStrings } from './storageStrings'
 import { bibleDefaultStrings } from './bibleDefaultStrings'
 import { LOCALE_OPTIONS } from './localeOptions'
 import { authStrings } from './authStrings'
@@ -3422,7 +3430,7 @@ export const dictionaries: Record<Locale, Dict> = {
 }
 
 for (const locale of Object.keys(dictionaries) as Locale[]) {
-  Object.assign(dictionaries[locale], authStrings[locale], bibleDefaultStrings[locale], hardwareStrings[locale])
+  Object.assign(dictionaries[locale], authStrings[locale], bibleDefaultStrings[locale], hardwareStrings[locale], presentationStrings[locale], storageStrings[locale], playbackStrings[locale], workspaceStrings[locale], preflightStrings[locale], routingStrings[locale], controlStrings[locale], operationsStrings[locale])
 }
 
 export function translate(locale: Locale, key: string, vars?: Record<string, string | number>): string {

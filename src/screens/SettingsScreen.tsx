@@ -1,3 +1,6 @@
+import { ControllerPairing } from '../components/settings/ControllerPairing'
+import { OutputProfileEditor } from '../components/settings/OutputProfileEditor'
+import { WorkspaceRecovery } from '../components/WorkspaceStorage'
 import { HardwareOutputs } from '../components/settings/HardwareOutputs'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -38,6 +41,8 @@ import { outputFormat } from '../utils/outputFormats'
 import { OutputFormatPicker } from '../components/OutputFormatPicker'
 import { SCREEN_META, ScreenIcon, type ScreenTone } from '../components/ScreenIcon'
 import { LanguageFilterSelect } from '../components/LanguageFilterSelect'
+import { SortSelect } from '../components/SortSelect'
+import { LocaleFlag } from '../components/LocaleFlag'
 
 type Tab = 'general' | 'bibles' | 'identity' | 'outputs' | 'data' | 'security' | 'shortcuts'
 
@@ -148,32 +153,44 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
     push(t('toast.testStarted'), 'success')
   }
 
-  const exportBackup = () => {
+  const exportBackup = async () => {
     const backup = buildBackup({
       services,
       settings,
       branding,
       monitors,
       media: mediaLibrary,
+      librarySongs: useAppStore.getState().librarySongs,
       mediaTags,
       bibles: customBibles,
       hiddenBibleIds,
       archivedBibleIds,
       deletedBibleIds,
     })
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = `church-presenter-backup-${new Date().toISOString().slice(0, 10)}.json`
-    anchor.click()
-    URL.revokeObjectURL(url)
+    try {
+      const response = await fetch('/api/media/packages/export', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Cathedral-Media': '1' }, body: JSON.stringify(backup) })
+      const result = await response.json() as { download?: string; reason?: string }
+      if (!response.ok || !result.download || !/^\/api\/media\/packages\/[0-9a-f-]{36}$/.test(result.download)) throw new Error(result.reason)
+      const anchor = document.createElement('a'); anchor.href = result.download; anchor.download = 'Cathedral-Presenter-backup.zip'; anchor.click()
+    } catch (error) { push(importErrorMessage(error), 'error'); return }
     updateSettings({ lastBackupAt: new Date().toISOString() })
     push(t('settings.backupExported'), 'success')
   }
 
   const importErrorMessage = (error: unknown) => {
     switch (error instanceof Error ? error.message : '') {
+      case 'sign-in-required':
+        return t('storage.signIn')
+      case 'virus-detected':
+        return t('storage.virusDetected')
+      case 'scanner-unavailable':
+        return t('storage.scannerUnavailable')
+      case 'backup-disk-space':
+        return t('settings.backupDiskSpace')
+      case 'backup-checksum-failed':
+        return t('settings.backupDamaged')
+      case 'media-missing':
+        return t('settings.backupMissingMedia')
       case 'backup-too-large':
         return t('settings.importTooLarge')
       case 'invalid-json':
@@ -183,17 +200,22 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
       case 'empty-backup':
         return t('settings.importEmpty')
       default:
-        return t('settings.importReadFailed')
+        return t('settings.backupFailed')
     }
   }
 
   const importFromFile = async (file: File) => {
-    if (file.size > 12 * 1024 * 1024) {
+    if (file.size > (file.name.toLowerCase().endsWith('.zip') ? 2 * 1024 * 1024 * 1024 : 12 * 1024 * 1024)) {
       push(t('settings.importTooLarge'), 'error')
       return
     }
     try {
-      const parsed = parseBackup(await file.text())
+      const parsed = file.name.toLowerCase().endsWith('.zip') ? await (async () => {
+        const response = await fetch('/api/media/packages/import', { method: 'POST', headers: { 'Content-Type': 'application/zip', 'X-Cathedral-Media': '1' }, body: file })
+        const result = await response.json()
+        if (!response.ok || !result.parsed) throw new Error(result.reason)
+        return result.parsed as import('../security/backup').ParsedBackup
+      })() : parseBackup(await file.text())
       importBackup(parsed)
       push(t('settings.importSuccess'), 'success')
       navigate('/home')
@@ -258,32 +280,8 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
                     onChange={(value) => { if (value) setLocale(value) }}
                   />
                 </div>
-                <label className="field">
-                  <span>{t('settings.defaultTranslation')}</span>
-                  <select
-                    value={settings.defaultTranslationId}
-                    onChange={(event) => updateSettings({ defaultTranslationId: event.target.value })}
-                  >
-                    {bibleTranslations.map((translation) => (
-                      <option key={translation.id} value={translation.id}>
-                        {translation.abbreviation} · {translation.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="field">
-                  <span>{t('settings.secondaryTranslation')}</span>
-                  <select
-                    value={settings.secondaryTranslationId}
-                    onChange={(event) => updateSettings({ secondaryTranslationId: event.target.value })}
-                  >
-                    {bibleTranslations.map((translation) => (
-                      <option key={translation.id} value={translation.id}>
-                        {translation.abbreviation} · {translation.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <div className="field"><SortSelect value={settings.defaultTranslationId} label={t('settings.defaultTranslation')} onChange={(value) => updateSettings({ defaultTranslationId: value })} options={bibleTranslations.map((translation) => ({ value: translation.id, label: `${translation.abbreviation} · ${translation.name}`, icon: <LocaleFlag locale={translation.language} size={18} /> }))} /></div>
+                <div className="field"><SortSelect value={settings.secondaryTranslationId} label={t('settings.secondaryTranslation')} onChange={(value) => updateSettings({ secondaryTranslationId: value })} options={bibleTranslations.map((translation) => ({ value: translation.id, label: `${translation.abbreviation} · ${translation.name}`, icon: <LocaleFlag locale={translation.language} size={18} /> }))} /></div>
                 <label className="field">
                   <span>{t('settings.transition')}</span>
                   <select
@@ -368,6 +366,7 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
                 </div>
               </div>
               <HardwareOutputs />
+              <OutputProfileEditor id="broadcast" />
               {!window.cathedralDesktop && <div className="output-list">
                 {OUTPUT_KINDS.map(({ role, icon: KindIcon, title, copy, formatKey }) => {
                   const monitor = monitors.find((entry) => entry.role === role)
@@ -498,6 +497,8 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
                   </button>
                 </div>
               </div>
+              <WorkspaceRecovery />
+              <ControllerPairing />
               <div className="data-actions">
                 <button className="btn btn-secondary" onClick={() => importInput.current?.click()}>
                   <Upload size={15} />
@@ -514,7 +515,7 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
                 <input
                   ref={importInput}
                   type="file"
-                  accept="application/json,.json"
+                  accept="application/json,.json,application/zip,.zip"
                   hidden
                   onChange={(event) => {
                     const file = event.target.files?.[0]

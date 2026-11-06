@@ -1,3 +1,5 @@
+> Historical prototype review. Current backend/desktop audit and fixes: [6 November security audit](audits/security-2026-11-06.md).
+
 # Church Presenter — Security Review
 
 Date: 2026-10-27 (updated 2026-10-28 for the editor media toolbar; 2026-11-04 full-app review)

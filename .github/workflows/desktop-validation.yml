@@ -1,0 +1,35 @@
+name: Desktop validation
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run desktop:build
+      - if: runner.os == 'macOS'
+        run: node desktop/package.cjs --mac --arm64 --dir --config.mac.notarize=false
+      - if: runner.os == 'Windows'
+        run: node desktop/package.cjs --win --x64 --dir --config.win.signAndEditExecutable=false
+      - run: node desktop/verify-package.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Cathedral-Presenter-${{ runner.os }}-unsigned
+          path: release/
+          retention-days: 7

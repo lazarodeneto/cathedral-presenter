@@ -76,6 +76,8 @@ export function useHashRoute(): Route {
 
   useEffect(() => {
     let current = window.location.hash
+    const mode = (name: RouteName) => name === 'biblemode' ? 'biblemode' : name === 'service' || name === 'live' ? 'service' : null
+    let lastPresenterMode = mode(parse(current).name) ?? (useAppStore.getState().live?.scripture ? 'biblemode' : useAppStore.getState().live ? 'service' : null)
     const onChange = () => {
       const next = window.location.hash
       // Back/forward buttons change the hash directly; undo it if a guard objects.
@@ -85,11 +87,12 @@ export function useHashRoute(): Route {
         window.history.replaceState(null, '', current)
         return
       }
-      const from = parse(current).name
       const to = parse(next).name
-      if ((from === 'service' && to === 'biblemode') || (from === 'biblemode' && to === 'service')) {
+      const nextMode = mode(to)
+      if (nextMode && lastPresenterMode && nextMode !== lastPresenterMode) {
         useAppStore.getState().blankForModeTransition()
       }
+      if (nextMode) lastPresenterMode = nextMode
       current = next
       setRoute(parse(next))
     }

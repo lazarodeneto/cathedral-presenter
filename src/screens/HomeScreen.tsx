@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { LocaleFlag } from '../components/LocaleFlag'
 import {
   ArrowRight,
   CalendarDays,
@@ -342,7 +343,12 @@ export function HomeScreen() {
           {passage ? (
             <button className="scripture-feature" onClick={() => navigate('/bible')}>
               <span className="translation-tag">
-                {passage.translationAbbreviation} · {passage.reference}
+                <span className="translation-tag-identity">
+                  <LocaleFlag locale={passage.language} size={15} />
+                  <span>{passage.translationAbbreviation}</span>
+                </span>
+                <span className="translation-tag-separator" aria-hidden="true">·</span>
+                <span className="translation-tag-ref">{passage.reference}</span>
               </span>
               <blockquote>{passage.verses[0]?.text}</blockquote>
               <span className="scripture-source">

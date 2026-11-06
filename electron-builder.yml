@@ -1,0 +1,33 @@
+appId: church.cathedral.presenter
+productName: Cathedral Presenter
+directories:
+  output: release
+files:
+  - dist/**
+  - desktop/main.cjs
+  - desktop/preload.cjs
+  - desktop/display-manager.cjs
+  - desktop/build/**
+  - package.json
+asar: true
+asarUnpack:
+  - node_modules/better-sqlite3/**
+  - node_modules/bindings/**
+  - node_modules/file-uri-to-path/**
+npmRebuild: true
+mac:
+  icon: desktop/cathedral.icns
+  category: public.app-category.productivity
+  target:
+    - dmg
+    - zip
+  hardenedRuntime: true
+  notarize: true
+win:
+  icon: desktop/cathedral.ico
+  target:
+    - nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true

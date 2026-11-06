@@ -1,4 +1,4 @@
-import { ART_CALVARY, ART_DOVE, ART_KNEELING, ART_NIGHTSCAPE, ART_WATER, ART_WORSHIP } from '../assets/templateArt'
+import { ART_CALVARY, ART_DOVE, ART_KNEELING, ART_NIGHTSCAPE, ART_WATER, ART_WORSHIP, ART_LIGHT } from '../assets/templateArt'
 import type {
   BiblePassage,
   ContentType,
@@ -390,20 +390,13 @@ export function createMediaItem(title: string, element: SlideElement): SlideItem
 const shape = (x: number, y: number, width: number, height: number, fill: string, extra: Partial<SlideElement['settings']> = {}, opacity = 1) =>
   makeElement('shape', { x, y, width, height, zIndex: 1, opacity, settings: { shape: 'rect', fill, radius: 0, ...extra } })
 
-type Motion = NonNullable<NonNullable<SlideElement['settings']>['motion']>
-
-// An illustration layer; contain keeps the drawing's proportions, anchored to the bottom of its box.
-const art = (source: string, x: number, y: number, width: number, height: number, motion?: Motion, opacity = 1) =>
+// A full-frame photographic layer. The camera moves; slide text stays perfectly still.
+const art = (source: string) =>
   makeElement('image', {
-    x,
-    y,
-    width,
-    height,
-    zIndex: 1,
-    opacity,
+    x: 0, y: 0, width: 100, height: 100, zIndex: 0, opacity: 1,
     source,
     text: '',
-    settings: { fit: 'contain', cropX: 50, cropY: 100, cropZoom: 1, ...(motion ? { motion } : {}) },
+    settings: { fit: 'cover', cropX: 50, cropY: 50, cropZoom: 1, motion: 'cinematic' },
   })
 
 const label = (text: string, overrides: Partial<SlideElement>, settings: Partial<SlideElement['settings']> = {}) =>
@@ -523,29 +516,21 @@ function decorElements(template: SlideTemplate): SlideElement[] {
         shape(0, 0, 100, 100, 'linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.55))'),
       ]
     case 'art-water':
-      return [art(ART_WATER, 0, 62, 100, 38, 'sway'), art(ART_WATER, -4, 70, 108, 30, 'sway', 0.7)]
+      return [art(ART_WATER), shape(0, 0, 100, 100, 'linear-gradient(180deg, rgba(0,0,0,.16), rgba(0,0,0,.35))')]
     case 'art-night':
-      return [art(ART_NIGHTSCAPE, 0, 0, 100, 100)]
+      return [art(ART_NIGHTSCAPE), shape(0, 0, 100, 100, 'rgba(0,0,0,.16)')]
     case 'art-dove':
       return [
-        shape(32, 2, 36, 64, `radial-gradient(circle, ${tint(45)}, transparent 68%)`, { shape: 'circle', motion: 'pulse' }),
-        art(ART_DOVE, 38, 6, 24, 33, 'float'),
+        art(ART_LIGHT),
+        shape(0, 0, 100, 100, 'linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.55))'),
+        makeElement('video', { source: ART_DOVE, x: 22, y: 3, width: 56, height: 52, zIndex: 2, opacity: .88, settings: { fit: 'contain' } }),
       ]
     case 'art-calvary':
-      return [
-        shape(25, 18, 50, 60, `radial-gradient(circle, ${tint(55)}, transparent 70%)`, { shape: 'circle', motion: 'pulse' }),
-        art(ART_CALVARY, 0, 50, 100, 50),
-      ]
+      return [art(ART_CALVARY), shape(0, 0, 100, 100, 'linear-gradient(180deg, rgba(0,0,0,.27), rgba(0,0,0,.22))')]
     case 'art-kneeling':
-      return [
-        shape(55, 22, 40, 76, `radial-gradient(circle, ${tint(40)}, transparent 68%)`, { shape: 'circle', motion: 'pulse' }),
-        art(ART_KNEELING, 62, 40, 28, 52),
-      ]
+      return [art(ART_KNEELING), shape(0, 0, 100, 100, 'linear-gradient(90deg, rgba(0,0,0,.2), transparent)')]
     case 'art-worship':
-      return [
-        shape(10, 30, 80, 70, `radial-gradient(60% 60% at 50% 100%, ${tint(50)}, transparent 75%)`, { motion: 'pulse' }),
-        art(ART_WORSHIP, -2, 64, 104, 36, 'sway'),
-      ]
+      return [art(ART_WORSHIP), shape(0, 0, 100, 100, 'rgba(0,0,0,.17)')]
     case 'glow':
       return [shape(0, 45, 100, 55, `radial-gradient(60% 100% at 50% 100%, ${tint(60)}, transparent 72%)`)]
     default:
@@ -603,7 +588,7 @@ export function createTemplateItem(template: SlideTemplate, title: string): Slid
         ...(template.fontSize ? { fontSize: template.fontSize } : {}),
         ...(template.fontWeight ? { fontWeight: template.fontWeight } : {}),
         ...(template.textVerticalAlign ? { textVerticalAlign: template.textVerticalAlign } : {}),
-        background: { type: 'preset', preset: template.background, tone: BACKGROUND_PRESETS.find((preset) => preset.id === template.background)?.tone ?? 'dark' },
+        background: { type: 'preset', preset: template.elementPreset?.startsWith('art-') ? 'graphite' : template.background, tone: BACKGROUND_PRESETS.find((preset) => preset.id === template.background)?.tone ?? 'dark' },
         textAlign: template.textAlign,
         elements,
       }),

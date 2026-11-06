@@ -11,6 +11,7 @@ import { useT } from '../../i18n/useT'
 import { useAppStore } from '../../store/useAppStore'
 import { useToasts } from '../../store/useToasts'
 import { reloadAfterAdd } from '../../store/appReload'
+import { LocaleFlag } from '../LocaleFlag'
 
 /** Public-domain Bibles first, then alphabetical by name. */
 const SORTED_CATALOG = [...BIBLE_CATALOG].sort(
@@ -90,7 +91,7 @@ export function IncludedBibles() {
           const details = [bible.year, bible.publisher].filter(Boolean).join(' · ')
           return (
             <li key={bible.code} className="bible-admin-row">
-              <span className="bible-translation-abbr">{bible.code}</span>
+              <span className="bible-translation-abbr"><LocaleFlag locale={bible.language} size={17} />{bible.code}</span>
               <span className="bible-admin-copy">
                 <strong>{bible.name}</strong>
                 <small className="included-bible-meta">

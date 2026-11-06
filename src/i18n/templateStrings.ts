@@ -1267,3 +1267,18 @@ export const templateStrings: Record<Locale, Record<string, string>> = {
     'template.blank-ivory.text': '',
   },
 }
+
+const cinematicGroups = [
+  ['water-baptism', 'water-living'], ['dove-spirit', 'dove-pentecost'], ['calvary-finished', 'calvary-rays'],
+  ['kneel-pray', 'kneel-ceasing'], ['worship-hands', 'worship-hallelujah'], ['night-psalm', 'night-promise'],
+]
+const cinematicDescriptions: Record<Locale, string[]> = {
+  en: ['A photographic lake with a slow, continuous camera move.', 'The supplied dove video over natural dawn light.', 'Photographic Calvary at sunset with a slow camera move.', 'A quiet photographic prayer scene with gentle camera motion.', 'A photographic congregation with restrained cinematic motion.', 'A photographic night sky with a slow camera drift.'],
+  pt: ['Um lago fotográfico com um movimento de câmara lento e contínuo.', 'A pomba em vídeo sobre a luz natural do amanhecer.', 'O Calvário ao pôr do sol com um movimento de câmara lento.', 'Uma cena fotográfica de oração com movimento de câmara suave.', 'Uma congregação fotografada com movimento cinematográfico discreto.', 'Um céu noturno fotografado com um movimento de câmara lento.'],
+  'pt-BR': ['Um lago fotográfico com um movimento de câmera lento e contínuo.', 'A pomba em vídeo sobre a luz natural do amanhecer.', 'O Calvário ao pôr do sol com um movimento de câmera lento.', 'Uma cena fotográfica de oração com movimento de câmera suave.', 'Uma congregação fotografada com movimento cinematográfico discreto.', 'Um céu noturno fotografado com um movimento de câmera lento.'],
+  es: ['Un lago fotográfico con un movimiento de cámara lento y continuo.', 'La paloma en vídeo sobre la luz natural del amanecer.', 'El Calvario al atardecer con un movimiento de cámara lento.', 'Una escena fotográfica de oración con movimiento de cámara suave.', 'Una congregación fotografiada con movimiento cinematográfico discreto.', 'Un cielo nocturno fotografiado con un movimiento de cámara lento.'],
+  fr: ['Un lac photographié avec un mouvement de caméra lent et continu.', 'La colombe en vidéo sur la lumière naturelle de l’aube.', 'Le Calvaire au coucher du soleil avec un lent mouvement de caméra.', 'Une scène de prière photographiée avec un doux mouvement de caméra.', 'Une assemblée photographiée avec un mouvement cinématographique discret.', 'Un ciel nocturne photographié avec un lent mouvement de caméra.'],
+  de: ['Ein fotografierter See mit langsamer, gleichmäßiger Kamerabewegung.', 'Das Taubenvideo vor natürlichem Morgenlicht.', 'Das fotografierte Golgatha bei Sonnenuntergang mit langsamer Kamerabewegung.', 'Eine ruhige fotografierte Gebetsszene mit sanfter Kamerabewegung.', 'Eine fotografierte Gemeinde mit zurückhaltender filmischer Bewegung.', 'Ein fotografierter Nachthimmel mit langsamer Kamerabewegung.'],
+  it: ['Un lago fotografico con un movimento di camera lento e continuo.', 'La colomba in video sulla luce naturale dell’alba.', 'Il Calvario al tramonto con un lento movimento di camera.', 'Una scena fotografica di preghiera con un dolce movimento di camera.', 'Una congregazione fotografata con un movimento cinematografico discreto.', 'Un cielo notturno fotografato con un lento movimento di camera.'],
+}
+for (const locale of Object.keys(cinematicDescriptions) as Locale[]) cinematicGroups.forEach((group, index) => group.forEach((id) => { templateStrings[locale][`template.${id}.description`] = cinematicDescriptions[locale][index] }))

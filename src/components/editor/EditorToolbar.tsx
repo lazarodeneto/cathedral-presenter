@@ -5,6 +5,7 @@ import {
   Eye,
   EyeOff,
   Film,
+  Music4,
   Grid3x3,
   Image as ImageIcon,
   ImagePlus,
@@ -18,6 +19,7 @@ import {
   SquarePlay,
   Trash2,
   Type,
+  Timer,
 } from 'lucide-react'
 import type { SlideElement } from '../../types'
 import { useT } from '../../i18n/useT'
@@ -108,6 +110,7 @@ export function EditorToolbar({
   onBackground,
   onToggleLayers,
   onTemplates,
+  onTimer,
 }: {
   disabled: boolean
   layersOpen: boolean
@@ -121,6 +124,7 @@ export function EditorToolbar({
   onToggleLayers: () => void
   /** Opens the template gallery; the picked template becomes a new item after the current one. */
   onTemplates: () => void
+  onTimer?: () => void
 }) {
   const t = useT()
   return (
@@ -136,6 +140,7 @@ export function EditorToolbar({
         <ToolButton icon={<Type size={16} />} label={t('editor.text')} onClick={onText} disabled={disabled} />
         <ToolButton icon={<ImageIcon size={16} />} label={t('editor.image')} onClick={() => onMedia('image')} disabled={disabled} />
         <ToolButton icon={<Film size={16} />} label={t('editor.video')} onClick={() => onMedia('video')} disabled={disabled} />
+        <ToolButton icon={<Music4 size={16} />} label={t('editor.audio')} onClick={() => onMedia('audio')} disabled={disabled} />
         <ToolButton icon={<Link2 size={16} />} label={t('editor.url')} onClick={() => onMedia('url')} disabled={disabled} />
       </div>
       <span className="editor-tool-divider" />
@@ -144,6 +149,7 @@ export function EditorToolbar({
         <ToolButton icon={<QrCode size={16} />} label={t('editor.qr')} onClick={onQr} disabled={disabled} />
         <ToolButton icon={<Circle size={16} />} label={t('editor.shape')} onClick={onShape} disabled={disabled} />
         <ToolButton icon={<MessageSquareText size={16} />} label={t('editor.messageBox')} onClick={onMessage} disabled={disabled} />
+        <ToolButton icon={<Timer size={16} />} label={t('add.timer')} onClick={() => onTimer?.()} disabled={disabled || !onTimer} />
         <ToolButton icon={<Palette size={16} />} label={t('editor.background')} onClick={onBackground} disabled={disabled} />
         <ToolButton
           icon={<Layers size={16} />}

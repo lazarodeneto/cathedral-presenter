@@ -8,6 +8,7 @@ import { createTimer, timerRemainingMs, timerStatusAt } from '../../utils/timer'
  * output windows (audience, confidence) have no live store, so OutputScreen
  * provides the timers from the published snapshot instead.
  */
+export const TimerNowContext = createContext<number | null>(null)
 export const TimerSourceContext = createContext<Record<string, TimerRuntime> | null>(null)
 
 /**
@@ -56,11 +57,12 @@ export interface TimerReading {
  */
 export function useTimerReading(slide: Slide, smooth = true): TimerReading {
   const runtime = useTimerRuntime(slide)
+  const frozenNow = useContext(TimerNowContext)
   // Thumbnails refresh once a second; full-size views refresh 5× a second so the
   // seconds digit and progress bar change on time.
   const now = useNow(runtime.status === 'running' ? runtime.endsAt : null, smooth ? 200 : 1000)
-  const remainingMs = timerRemainingMs(runtime, now)
-  const status = timerStatusAt(runtime, now)
+  const remainingMs = timerRemainingMs(runtime, frozenNow ?? now)
+  const status = timerStatusAt(runtime, frozenNow ?? now)
   const progress = runtime.durationMs > 0 ? 1 - remainingMs / runtime.durationMs : 1
   return { runtime, status, remainingMs, progress: Math.min(1, Math.max(0, progress)) }
 }

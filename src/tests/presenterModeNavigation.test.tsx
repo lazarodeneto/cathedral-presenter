@@ -20,6 +20,7 @@ describe('presenter mode navigation', () => {
 
     state.jumpLive(slide.id)
     expect(useAppStore.getState().live?.blank).toBe(false)
+    act(() => { window.history.replaceState(null, '', '#/media'); window.dispatchEvent(new HashChangeEvent('hashchange')) })
     act(() => { window.history.replaceState(null, '', `#/service/${service.id}`); window.dispatchEvent(new HashChangeEvent('hashchange')) })
     expect(useAppStore.getState().live).toMatchObject({ blank: true, modeTransitionPending: true })
   })

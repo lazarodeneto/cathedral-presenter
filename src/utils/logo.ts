@@ -18,6 +18,9 @@ export type LogoError =
   | 'corrupt'
   | 'svg-invalid'
   | 'read-failed'
+  | 'virus-detected'
+  | 'scanner-unavailable'
+  | 'sign-in-required'
 
 export type LogoCheck =
   | { ok: true; kind: 'raster'; mime: string }
@@ -165,6 +168,12 @@ export async function processLogoFile(file: File): Promise<LogoResult> {
   try {
     const dataUrl = check.kind === 'svg' ? await rasterizeSvg(check.text) : await fileToDataUrl(file)
     if (!validateImageDataUrl(dataUrl)) return { ok: false, reason: check.kind === 'svg' ? 'svg-invalid' : 'too-large' }
+    const upload = check.kind === 'svg' ? new File([await (await fetch(dataUrl)).blob()], 'logo.png', { type: 'image/png' }) : file
+    const scan = await fetch('/api/media/scan', { method: 'POST', headers: { 'Content-Type': upload.type, 'X-File-Name': encodeURIComponent(upload.name), 'X-Cathedral-Media': '1' }, body: upload })
+    if (!scan.ok) {
+      const result = await scan.json() as { reason?: string }
+      return { ok: false, reason: result.reason === 'virus-detected' || result.reason === 'sign-in-required' ? result.reason : 'scanner-unavailable' }
+    }
     // Decoding proves the image is not truncated or corrupted.
     const image = await loadImage(dataUrl)
     if (!image.naturalWidth || !image.naturalHeight) return { ok: false, reason: 'corrupt' }
@@ -185,4 +194,7 @@ export const LOGO_ERROR_KEYS: Record<LogoError, string> = {
   corrupt: 'branding.logoError.corrupt',
   'svg-invalid': 'branding.logoError.svg',
   'read-failed': 'branding.logoError.read',
+  'virus-detected': 'storage.virusDetected',
+  'scanner-unavailable': 'storage.scannerUnavailable',
+  'sign-in-required': 'storage.signIn',
 }

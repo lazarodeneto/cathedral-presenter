@@ -1,5 +1,6 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
+  ChevronDown,
   ChevronRight,
   ExternalLink,
   Film,
@@ -13,6 +14,10 @@ import {
   SquarePlay,
   Search,
   Tags,
+  Tag,
+  Pencil,
+  Check,
+  X,
 } from 'lucide-react'
 import type { MediaAsset, MediaKind } from '../types'
 import { webMediaProvider } from '../providers/media/MediaProvider'
@@ -29,10 +34,18 @@ import { SCREEN_META, ScreenIcon } from '../components/ScreenIcon'
 import { reloadAfterAdd } from '../store/appReload'
 import { DateField } from '../components/DateField'
 import { DEFAULT_MEDIA_TAGS, filterMedia, mediaSearchKey, normalizeMediaTags, type MediaFilters } from '../utils/mediaTags'
+import { MediaStorageControls } from '../components/MediaStorageControls'
+import { removeStoredMedia, updateStoredMedia } from '../providers/media/library'
+import { mediaTagLabel } from '../i18n/mediaTagLabels'
 
 const emptyFilters: MediaFilters = { query: '', tags: [], kind: '', from: '', to: '', sort: 'newest' }
 
 function errorMessage(reason: string | undefined, t: (key: string) => string): string {
+  if (reason === 'virus-detected') return t('storage.virusDetected')
+  if (reason === 'scanner-unavailable') return t('storage.scannerUnavailable')
+  if (reason === 'sign-in-required') return t('storage.signIn')
+  if (reason === 'drive-not-connected' || reason === 'drive-not-configured') return t('storage.cloudSetup')
+  if (reason === 'media-service-unavailable' || reason?.startsWith('drive-')) return t('storage.failed')
   switch (reason) {
     case 'too-large':
     case 'file-too-large':
@@ -69,12 +82,14 @@ function errorMessage(reason: string | undefined, t: (key: string) => string): s
 
 export function MediaScreen() {
   const t = useT()
+  const locale = useAppStore((state) => state.settings.locale)
   const services = useAppStore((state) => state.services)
   const activeServiceId = useAppStore((state) => state.activeServiceId)
   const mediaLibrary = useAppStore((state) => state.mediaLibrary)
   const addMedia = useAppStore((state) => state.addMedia)
   const savedTags = useAppStore((state) => state.mediaTags)
-  const setMediaTags = useAppStore((state) => state.setMediaTags)
+  const storeSetMediaTags = useAppStore((state) => state.setMediaTags)
+  const renameMedia = useAppStore((state) => state.renameMedia)
   const addMediaTag = useAppStore((state) => state.addMediaTag)
   const removeMedia = useAppStore((state) => state.removeMedia)
   const addItem = useAppStore((state) => state.addItem)
@@ -82,6 +97,7 @@ export function MediaScreen() {
   const activeService = services.find((service) => service.id === activeServiceId)
   const fileInput = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
+  const [storage, setStorage] = useState<'local' | 'drive'>('local')
   const [dragging, setDragging] = useState(false)
   const [sectionId, setSectionId] = useState(
     activeService?.sections.find((section) => section.title.toLowerCase().includes('message'))?.id ??
@@ -99,13 +115,30 @@ export function MediaScreen() {
   const [selectedId, setSelectedId] = useState<string | null>(mediaLibrary[0]?.id ?? null)
   const [filters, setFilters] = useState<MediaFilters>(emptyFilters)
   const [tagQuery, setTagQuery] = useState('')
+  const [renaming, setRenaming] = useState(false)
+  const [draftName, setDraftName] = useState('')
+  const [savingName, setSavingName] = useState(false)
   const allTags = useMemo(() => normalizeMediaTags([...DEFAULT_MEDIA_TAGS, ...savedTags, ...mediaLibrary.flatMap((asset) => asset.tags ?? [])], 300), [savedTags, mediaLibrary])
-  const results = useMemo(() => filterMedia(mediaLibrary, filters), [mediaLibrary, filters])
+  const results = useMemo(() => filterMedia(mediaLibrary, filters, locale), [mediaLibrary, filters, locale])
   const selected = results.find((asset) => asset.id === selectedId) ?? (selectedId ? results[0] ?? null : null)
-  const matchingTags = allTags.filter((tag) => mediaSearchKey(tag).includes(mediaSearchKey(tagQuery)))
+  const matchingTags = allTags.filter((tag) => mediaSearchKey(tag).includes(mediaSearchKey(tagQuery)) || mediaSearchKey(mediaTagLabel(tag, locale)).includes(mediaSearchKey(tagQuery)))
   const newTag = normalizeMediaTags([tagQuery], 1)[0]
   const canCreateTag = Boolean(newTag && !allTags.some((tag) => mediaSearchKey(tag) === mediaSearchKey(newTag)))
   const hasFilters = Boolean(filters.query || filters.tags.length || filters.kind || filters.from || filters.to || filters.sort !== 'newest')
+  useEffect(() => { setRenaming(false) }, [selected?.id])
+  const setMediaTags = (id: string, tags: string[]) => {
+    storeSetMediaTags(id, tags)
+    const asset = useAppStore.getState().mediaLibrary.find((item) => item.id === id)
+    if (asset) void updateStoredMedia(asset, { tags: normalizeMediaTags(tags, 30) }).catch(() => push(t('storage.failed'), 'error'))
+  }
+  const saveName = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!selected || !draftName.trim() || savingName) return
+    setSavingName(true)
+    try { await updateStoredMedia(selected, { name: draftName.trim() }); renameMedia(selected.id, draftName.trim()); setRenaming(false); push(t('storage.renamed'), 'success') }
+    catch { push(t('storage.failed'), 'error') }
+    finally { setSavingName(false) }
+  }
 
   const selectedSection = sectionId || activeService?.sections[0]?.id || ''
 
@@ -116,7 +149,7 @@ export function MediaScreen() {
     }
     setUploading(true)
     for (const file of Array.from(files)) {
-      const result = await webMediaProvider.registerFile(file)
+      const result = await webMediaProvider.registerFile(file, { storage })
       if (result.ok && result.asset) {
         addMedia(result.asset)
         setSelectedId(result.asset.id)
@@ -164,7 +197,7 @@ export function MediaScreen() {
       return
     }
     const isYoutube = /^https:\/\/www\.youtube(?:-nocookie)?\.com\/embed\//.test(asset.source)
-    const element = makeElement(isYoutube ? 'embed' : asset.kind === 'video' ? 'video' : 'image', {
+    const element = makeElement(isYoutube ? 'embed' : asset.kind, {
       text: asset.name,
       source: asset.source,
       width: isYoutube ? 74 : 84,
@@ -225,10 +258,11 @@ export function MediaScreen() {
         </div>
       </div>
 
+      <MediaStorageControls storage={storage} onStorageChange={setStorage} uploading={uploading} />
       <input
         ref={fileInput}
         type="file"
-        accept="image/png,image/jpeg,image/webp,image/gif,image/avif,video/mp4,video/webm,video/quicktime"
+        accept="image/png,image/jpeg,image/webp,image/gif,image/avif,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/wav,audio/ogg,audio/flac,audio/mp4"
         multiple
         hidden
         onChange={(event) => {
@@ -288,7 +322,7 @@ export function MediaScreen() {
               <input value={filters.query} onChange={(event) => setFilters((current) => ({ ...current, query: event.target.value }))} placeholder={t('mediaSearch.search')} aria-label={t('mediaSearch.search')} />
             </label>
             <div className="media-filter-fields">
-              <label className="field"><span>{t('mediaSearch.type')}</span><select value={filters.kind} onChange={(event) => setFilters((current) => ({ ...current, kind: event.target.value }))}><option value="">{t('mediaSearch.allTypes')}</option><option value="image">{t('mediaSearch.image')}</option><option value="video">{t('mediaSearch.video')}</option><option value="youtube">YouTube</option></select></label>
+              <label className="field"><span>{t('mediaSearch.type')}</span><select value={filters.kind} onChange={(event) => setFilters((current) => ({ ...current, kind: event.target.value }))}><option value="">{t('mediaSearch.allTypes')}</option><option value="image">{t('mediaSearch.image')}</option><option value="video">{t('mediaSearch.video')}</option><option value="audio">{t('editor.audio')}</option><option value="youtube">YouTube</option></select></label>
               <div className="field"><span>{t('mediaSearch.from')}</span><DateField aria-label={t('mediaSearch.from')} value={filters.from} onChange={(value) => setFilters((current) => ({ ...current, from: value }))} /></div>
               <div className="field"><span>{t('mediaSearch.to')}</span><DateField aria-label={t('mediaSearch.to')} value={filters.to} onChange={(value) => setFilters((current) => ({ ...current, to: value }))} /></div>
               <label className="field"><span>{t('mediaSearch.sort')}</span><select value={filters.sort} onChange={(event) => setFilters((current) => ({ ...current, sort: event.target.value }))}><option value="newest">{t('mediaSearch.newest')}</option><option value="oldest">{t('mediaSearch.oldest')}</option><option value="name">{t('mediaSearch.name')}</option></select></label>
@@ -296,7 +330,7 @@ export function MediaScreen() {
             <details className="media-tag-filter">
               <summary><Tags size={15} aria-hidden="true" />{t('mediaSearch.tags')}{filters.tags.length > 0 && <strong>{filters.tags.length}</strong>}</summary>
               <div className="media-tag-choices">
-                {allTags.map((tag) => <label key={tag}><input type="checkbox" checked={filters.tags.includes(tag)} onChange={() => setFilters((current) => ({ ...current, tags: current.tags.includes(tag) ? current.tags.filter((item) => item !== tag) : [...current.tags, tag] }))} /><span>{tag}</span></label>)}
+                {allTags.map((tag) => <label key={tag}><input type="checkbox" checked={filters.tags.includes(tag)} onChange={() => setFilters((current) => ({ ...current, tags: current.tags.includes(tag) ? current.tags.filter((item) => item !== tag) : [...current.tags, tag] }))} /><span>{mediaTagLabel(tag, locale)}</span></label>)}
               </div>
             </details>
             {hasFilters && <button type="button" className="text-link media-filter-clear" onClick={() => setFilters(emptyFilters)}>{t('mediaSearch.clear')}</button>}
@@ -331,7 +365,7 @@ export function MediaScreen() {
                           ? t('media.localOnly')
                           : t('media.library')}
                     </span>
-                    {asset.tags?.length ? <span className="media-card-tags">{asset.tags.join(' · ')}</span> : null}
+                    {asset.tags?.length ? <span className="media-card-tags">{asset.tags.map((tag) => mediaTagLabel(tag, locale)).join(' · ')}</span> : null}
                   </span>
                 </button>
               ))}
@@ -358,7 +392,7 @@ export function MediaScreen() {
                     sandbox="allow-scripts allow-same-origin allow-presentation"
                   />
                 ) : selected.source ? (
-                  <video src={selected.source} muted playsInline />
+                  selected.kind === 'audio' ? <audio src={selected.source} controls /> : <video src={selected.source} muted playsInline controls />
                 ) : (
                   <div className="media-missing">
                     <ImageIcon size={24} />
@@ -366,18 +400,26 @@ export function MediaScreen() {
                   </div>
                 )}
               </div>
-              <h3>{selected.name}</h3>
+              {renaming ? <form className="media-rename" onSubmit={saveName}>
+                <label className="field"><span>{t('storage.mediaName')}</span><input autoFocus value={draftName} onFocus={(event) => event.target.select()} onChange={(event) => setDraftName(event.target.value)} onKeyDown={(event) => { if (event.key === 'Escape') setRenaming(false) }} maxLength={120} disabled={savingName} /></label>
+                <button type="submit" className="btn btn-primary btn-icon" disabled={savingName || !draftName.trim()} aria-label={t('common.save')} title={t('common.save')}><Check size={16} /></button>
+                <button type="button" className="btn btn-secondary btn-icon" disabled={savingName} onClick={() => setRenaming(false)} aria-label={t('common.cancel')} title={t('common.cancel')}><X size={16} /></button>
+              </form> : <div className="media-inspector-title"><h3>{selected.name}</h3><button type="button" className="btn btn-ghost btn-icon" aria-label={t('storage.rename')} title={t('storage.rename')} onClick={() => { setDraftName(selected.name); setRenaming(true) }}><Pencil size={15} aria-hidden="true" /></button></div>}
               <div className="media-tags-editor">
                 <strong><Tags size={15} aria-hidden="true" />{t('mediaSearch.tags')}</strong>
                 <div className="media-selected-tags">
-                  {selected.tags?.length ? selected.tags.map((tag) => <span key={tag} className="media-tag-chip">{tag}</span>) : <span className="media-tag-empty">{t('mediaSearch.noTags')}</span>}
+                  {selected.tags?.length ? selected.tags.map((tag) => <span key={tag} className="media-tag-chip">{mediaTagLabel(tag, locale)}</span>) : <span className="media-tag-empty">{t('mediaSearch.noTags')}</span>}
                 </div>
-                <details key={selected.id} className="media-tag-picker">
-                  <summary>{t('mediaSearch.addTags')}</summary>
+                <details key={selected.id} className="media-tag-picker" onToggle={(event) => {
+                  if (!event.currentTarget.open) return
+                  const editor = event.currentTarget.closest('.media-tags-editor')
+                  requestAnimationFrame(() => editor?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }))
+                }}>
+                  <summary><Tag size={17} aria-hidden="true" /><span>{t('mediaSearch.addTags')}</span><ChevronDown size={15} className="media-tag-picker-chevron" aria-hidden="true" /></summary>
                   <label className="search-field"><Search size={14} aria-hidden="true" /><input value={tagQuery} onChange={(event) => setTagQuery(event.target.value)} placeholder={t('mediaSearch.findTag')} aria-label={t('mediaSearch.findTag')} maxLength={60} /></label>
                   {canCreateTag && <button type="button" className="btn btn-secondary btn-sm media-create-tag" onClick={() => { addMediaTag(newTag); setMediaTags(selected.id, [...(selected.tags ?? []), newTag]); setTagQuery('') }}><Plus size={14} />{t('mediaSearch.create')}: {newTag}</button>}
                   <div className="media-tag-choices">
-                    {matchingTags.map((tag) => <label key={tag}><input type="checkbox" checked={(selected.tags ?? []).some((item) => mediaSearchKey(item) === mediaSearchKey(tag))} onChange={() => { const current = selected.tags ?? []; setMediaTags(selected.id, current.some((item) => mediaSearchKey(item) === mediaSearchKey(tag)) ? current.filter((item) => mediaSearchKey(item) !== mediaSearchKey(tag)) : [...current, tag]) }} /><span>{tag}</span></label>)}
+                    {matchingTags.map((tag) => <label key={tag}><input type="checkbox" checked={normalizeMediaTags(selected.tags ?? []).includes(tag)} onChange={() => { const current = normalizeMediaTags(selected.tags ?? []); setMediaTags(selected.id, current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag]) }} /><span>{mediaTagLabel(tag, locale)}</span></label>)}
                   </div>
                 </details>
               </div>
@@ -392,7 +434,7 @@ export function MediaScreen() {
                 </span>
                 <span>
                   <small>{t('common.provider')}</small>
-                  {selected.provider === 'youtube' ? t('media.officialEmbed') : selected.provider === 'url' ? t('media.remote') : t('media.localOnly')}
+                  {selected.provider === 'youtube' ? t('media.officialEmbed') : selected.provider === 'url' ? t('media.remote') : t(selected.storage === 'drive' ? 'storage.drive' : 'storage.local')}
                 </span>
                 <span>
                   <small>{t('media.type')}</small>
@@ -425,9 +467,9 @@ export function MediaScreen() {
                 )}
                 <button
                   className="btn btn-ghost btn-block danger-text"
-                  onClick={() => {
-                    removeMedia(selected.id)
-                    setSelectedId(null)
+                  onClick={async () => {
+                    try { await removeStoredMedia(selected); removeMedia(selected.id); setSelectedId(null) }
+                    catch { push(t('storage.failed'), 'error') }
                   }}
                 >
                   <Trash2 size={14} />

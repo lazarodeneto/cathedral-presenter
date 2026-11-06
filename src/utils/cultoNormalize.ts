@@ -34,6 +34,11 @@ export function normalizeServiceMeta(
   return {
     ...content,
     churchId,
+    loop: raw.loop === true,
+    pastor: text(raw.pastor, 200) || undefined,
+    worship: text(raw.worship, 200) || undefined,
+    guests: text(raw.guests, 400) || undefined,
+    spotifyUrl: typeof raw.spotifyUrl === 'string' && /^https:\/\/open\.spotify\.com\//.test(raw.spotifyUrl) ? raw.spotifyUrl.slice(0, 1000) : undefined,
     title: sanitizeSingleLine(raw.title, MAX_TITLE) || 'Imported service',
     date,
     time,

@@ -1,7 +1,5 @@
 import type { MediaAsset, MediaKind } from '../../types'
 import {
-  MAX_INLINE_IMAGE_BYTES,
-  fileToDataUrl,
   validateMediaFile,
 } from '../../security/media'
 import { parseYouTubeUrl, validateMediaUrl } from '../../security/url'
@@ -22,7 +20,7 @@ export interface MediaRegistrationResult {
 export interface MediaProvider {
   readonly id: string
   readonly label: string
-  registerFile(file: File): Promise<MediaRegistrationResult>
+  registerFile(file: File, options?: { storage: 'local' | 'drive' }): Promise<MediaRegistrationResult>
   registerUrl(url: string, kind: MediaKind): MediaRegistrationResult
   registerYouTube(url: string): MediaRegistrationResult
   supportsOffline(asset: MediaAsset): boolean
@@ -35,32 +33,21 @@ function isOnline(): boolean {
 export const webMediaProvider: MediaProvider = {
   id: 'local-web-media',
   label: 'Local media · browser prototype',
-  async registerFile(file) {
-    const checked = await validateMediaFile(file)
+  async registerFile(file, options) {
+    let checked: Awaited<ReturnType<typeof validateMediaFile>>
+    try { checked = await validateMediaFile(file) } catch { return { ok: false, reason: 'read-failed' } }
     if (!checked.ok) return { ok: false, reason: checked.reason }
 
-    const inline = checked.kind === 'image' && file.size <= MAX_INLINE_IMAGE_BYTES
-    let source: string
     try {
-      source = inline ? await fileToDataUrl(file) : URL.createObjectURL(file)
+      const response = await fetch('/api/media/upload', { method: 'POST', credentials: 'same-origin', headers: {
+        'Content-Type': checked.mime, 'X-File-Name': encodeURIComponent(safeDisplayFileName(file.name)),
+        'X-Storage-Target': options?.storage ?? 'local', 'X-Cathedral-Media': '1',
+      }, body: file })
+      const result = await response.json() as { asset?: MediaAsset; reason?: string }
+      if (!response.ok || !result.asset) return { ok: false, reason: result.reason ?? 'media-service-unavailable' }
+      return { ok: true, asset: result.asset }
     } catch {
-      return { ok: false, reason: 'read-failed' }
-    }
-
-    return {
-      ok: true,
-      asset: {
-        id: crypto.randomUUID(),
-        name: safeDisplayFileName(file.name),
-        kind: checked.kind,
-        mime: checked.mime,
-        size: file.size,
-        source,
-        status: 'ready',
-        addedAt: new Date().toISOString(),
-        localOnly: !inline,
-        provider: 'upload',
-      },
+      return { ok: false, reason: 'media-service-unavailable' }
     }
   },
 
@@ -73,7 +60,7 @@ export const webMediaProvider: MediaProvider = {
         id: crypto.randomUUID(),
         name: checked.hostname,
         kind,
-        mime: kind === 'image' ? 'image/*' : 'video/*',
+        mime: kind === 'image' ? 'image/*' : kind === 'audio' ? 'audio/*' : 'video/*',
         size: 0,
         source: checked.url,
         status: isOnline() ? 'ready' : 'offline',

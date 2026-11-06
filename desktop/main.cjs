@@ -1,16 +1,20 @@
 'use strict'
-const { app, BrowserWindow, ipcMain, screen, session } = require('electron')
+const { app, BrowserWindow, ipcMain, screen, session, shell } = require('electron')
 const { mkdirSync, readFileSync, writeFileSync } = require('node:fs')
 const path = require('node:path')
+const { pathToFileURL } = require('node:url')
 const { createDisplayManager } = require('./display-manager.cjs')
 
 // Only the local application receives native capabilities. Never disable web security.
-const BASE = 'http://localhost:4173'
+const verifying = process.argv.includes('--verify-runtime')
+let BASE = 'http://localhost:4173'
 app.setName('Cathedral Presenter')
-const profile = path.join(app.getPath('appData'), 'Cathedral Presenter')
+const profile = process.env.CATHEDRAL_PROFILE_DIR || path.join(app.getPath('appData'), 'Cathedral Presenter')
 mkdirSync(profile, { recursive: true })
 app.setPath('userData', profile)
+if (!app.requestSingleInstanceLock()) app.quit()
 let operator
+app.on('second-instance', () => { if (operator && !operator.isDestroyed()) { if (operator.isMinimized()) operator.restore(); operator.show(); operator.focus() } })
 let displays
 let quitting = false
 function protect(window) {
@@ -40,6 +44,8 @@ function preferences() {
     contextIsolation: true,
     sandbox: true,
     webSecurity: true,
+    backgroundThrottling: false,
+    autoplayPolicy: 'no-user-gesture-required',
     partition: 'persist:cathedral-presenter',
   }
 }
@@ -53,7 +59,16 @@ function operatorOnly(event) {
   )
     throw new Error('Native operation denied')
 }
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  if (app.isPackaged) {
+    const { startServer } = await import(pathToFileURL(path.join(__dirname, 'build/server.mjs')).href)
+    const port = Number(process.env.CATHEDRAL_PORT) || 4173
+    let localServer
+    try { localServer = await startServer(profile, path.join(app.getAppPath(), 'dist'), port) }
+    catch (error) { if (error.code !== 'EADDRINUSE') throw error; localServer = await startServer(profile, path.join(app.getAppPath(), 'dist'), 0) }
+    BASE = `http://localhost:${localServer.address().port}`
+    app.once('will-quit', () => { localServer.closeAllConnections(); localServer.close() })
+  }
   session
     .fromPartition('persist:cathedral-presenter')
     .setPermissionRequestHandler((_contents, _permission, callback) => callback(false))
@@ -71,6 +86,7 @@ app.whenReady().then(() => {
     minWidth: 760,
     minHeight: 560,
     title: 'Cathedral Presenter',
+    show: !verifying,
     backgroundColor: '#0b0b0c',
     webPreferences: preferences(),
   })
@@ -100,6 +116,15 @@ app.whenReady().then(() => {
         webPreferences: preferences(),
       })
       protect(output)
+      let retries = 0
+      output.webContents.on('render-process-gone', () => {
+        if (quitting || output.isDestroyed() || retries++ >= 3) return
+        setTimeout(() => { if (!output.isDestroyed()) void output.loadURL(`${BASE}/#/output/${role}/${encodeURIComponent(id)}`).catch(() => {}) }, 1000 * retries)
+      })
+      output.webContents.on('did-fail-load', (_event, code) => {
+        if (code === -3 || quitting || output.isDestroyed() || retries++ >= 3) return
+        setTimeout(() => { if (!output.isDestroyed()) void output.loadURL(`${BASE}/#/output/${role}/${encodeURIComponent(id)}`).catch(() => {}) }, 1000 * retries)
+      })
       output.setMenuBarVisibility(false)
       output.loadURL(`${BASE}/#/output/${role}/${encodeURIComponent(id)}`)
       output.once('ready-to-show', () => {
@@ -116,6 +141,8 @@ app.whenReady().then(() => {
     },
   })
   for (const [name, handler] of Object.entries({
+    // Fixed local destination; renderers cannot choose a URL or protocol to launch.
+    'app:media-browser': () => shell.openExternal(`${BASE}/#/media`),
     'displays:list': () => displays.list(),
     'displays:assign': (id, role) => displays.setRole(id, role),
     'displays:open': (id) => displays.open(id),
@@ -142,8 +169,19 @@ app.whenReady().then(() => {
     displays.closeAll()
     app.quit()
   })
+  operator.webContents.on('render-process-gone', () => {
+    if (!quitting && !operator.isDestroyed()) setTimeout(() => { if (!operator.isDestroyed()) void operator.loadURL(`${BASE}/?recovery=1#/home`).catch(() => {}) }, 1000)
+  })
+  if (verifying) {
+    const deadline = setTimeout(() => { console.error('Native verification timed out'); app.exit(1) }, 20000)
+    ipcMain.once('app:ready', (event) => {
+      operatorOnly(event); clearTimeout(deadline)
+      console.log(JSON.stringify({ packaged: app.isPackaged, rendererReady: true, displays: displays.list().length, platform: process.platform, origin: BASE }))
+      app.quit()
+    })
+  }
   operator.loadURL(`${BASE}/#/home`)
-})
+}).catch((error) => { require('electron').dialog.showErrorBox('Cathedral Presenter', error.message); app.quit() })
 app.on('before-quit', () => {
   quitting = true
   displays?.closeAll()

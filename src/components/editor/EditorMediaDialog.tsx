@@ -1,6 +1,8 @@
+import { MediaStorageControls } from '../MediaStorageControls'
 import { useEffect, useRef, useState } from 'react'
 import {
   Film,
+  Music4,
   Image as ImageIcon,
   Link2,
   Loader2,
@@ -22,9 +24,13 @@ import {
 } from '../../providers/media/mediaWorkflow'
 import { Modal } from '../Modal'
 
-export type MediaDialogMode = 'image' | 'video' | 'url' | 'youtube'
+export type MediaDialogMode = 'image' | 'video' | 'audio' | 'url' | 'youtube'
 
 export function mediaError(reason: string | undefined, t: (key: string) => string): string {
+  if (reason === 'virus-detected') return t('storage.virusDetected')
+  if (reason === 'scanner-unavailable') return t('storage.scannerUnavailable')
+  if (reason === 'sign-in-required') return t('storage.signIn')
+  if (reason === 'media-service-unavailable' || reason?.startsWith('drive-')) return t('storage.failed')
   switch (reason) {
     case 'file-too-large':
       return t('error.fileTooLarge')
@@ -139,6 +145,8 @@ function Preview({
             onError(true)
           }}
         />
+      ) : asset.kind === 'audio' ? (
+        <audio src={asset.source} controls muted preload="metadata" onLoadedMetadata={() => setLoading(false)} onError={() => { setLoading(false); onError(true) }} />
       ) : (
         <video
           src={asset.source}
@@ -173,7 +181,8 @@ export function EditorMediaDialog({
   const addMedia = useAppStore((state) => state.addMedia)
   const push = useToasts((state) => state.push)
   const fileInput = useRef<HTMLInputElement>(null)
-  const [kind, setKind] = useState<MediaKind>(mode === 'video' ? 'video' : 'image')
+  const [storage, setStorage] = useState<'local' | 'drive'>('local')
+  const [kind, setKind] = useState<MediaKind>(mode === 'audio' ? 'audio' : mode === 'video' ? 'video' : 'image')
   const [selected, setSelected] = useState<MediaAsset | null>(null)
   const [urlValue, setUrlValue] = useState('')
   const [youtubeValue, setYoutubeValue] = useState('')
@@ -184,7 +193,7 @@ export function EditorMediaDialog({
 
   useEffect(() => {
     if (!open) return
-    setKind(mode === 'video' || mode === 'youtube' ? 'video' : 'image')
+    setKind(mode === 'audio' ? 'audio' : mode === 'video' || mode === 'youtube' ? 'video' : 'image')
     setSelected(null)
     setError('')
     setUrlValue('')
@@ -204,7 +213,8 @@ export function EditorMediaDialog({
     setError('')
     const accepted: MediaAsset[] = []
     for (const file of Array.from(files)) {
-      const result = await prepareUploadedMedia(file)
+      let result: Awaited<ReturnType<typeof prepareUploadedMedia>>
+      try { result = await prepareUploadedMedia(file, { storage }) } catch { result = { ok: false, reason: 'read-failed' } }
       if (!result.ok || !result.asset) {
         setError(mediaError(result.reason, t))
         continue
@@ -250,7 +260,7 @@ export function EditorMediaDialog({
 
   const title = youtubeMode
     ? t('media.youtube')
-    : mode === 'video'
+    : mode === 'audio' ? t('editor.audio') : mode === 'video'
       ? t('editor.video')
       : mode === 'url'
         ? t('media.url')
@@ -264,7 +274,7 @@ export function EditorMediaDialog({
           ? t('media.youtubeHint')
           : mode === 'url'
             ? t('media.urlHint')
-            : mode === 'video'
+            : mode === 'audio' ? t('editor.audio') : mode === 'video'
               ? t('media.uploadHint')
               : t('editor.dropHint')
       }
@@ -307,7 +317,7 @@ export function EditorMediaDialog({
       ) : mode === 'url' ? (
         <div className="editor-media-remote">
           <div className="segmented segmented-sm editor-kind-switch">
-            {(['image', 'video'] as const).map((value) => (
+            {(['image', 'video', 'audio'] as const).map((value) => (
               <button
                 key={value}
                 type="button"
@@ -318,8 +328,8 @@ export function EditorMediaDialog({
                   setError('')
                 }}
               >
-                {value === 'image' ? <ImageIcon size={13} /> : <Film size={13} />}
-                {t(value === 'image' ? 'media.urlImage' : 'media.urlVideo')}
+                {value === 'image' ? <ImageIcon size={13} /> : value === 'audio' ? <Music4 size={13} /> : <Film size={13} />}
+                {t(value === 'audio' ? 'editor.audio' : value === 'image' ? 'media.urlImage' : 'media.urlVideo')}
               </button>
             ))}
           </div>
@@ -352,6 +362,7 @@ export function EditorMediaDialog({
         </div>
       ) : (
         <div className="editor-media-browser">
+          <MediaStorageControls storage={storage} onStorageChange={setStorage} uploading={uploading} />
           <div
             className={`editor-media-drop ${dragging ? 'is-dragging' : ''}`}
             onDragOver={(event) => {
@@ -387,7 +398,7 @@ export function EditorMediaDialog({
             accept={
               kind === 'image'
                 ? 'image/png,image/jpeg,image/webp,image/gif,image/avif'
-                : 'video/mp4,video/webm,video/quicktime'
+                : kind === 'audio' ? 'audio/mpeg,audio/wav,audio/ogg,audio/flac,audio/mp4,.mp3,.wav,.m4a,.flac,.ogg' : 'video/mp4,video/webm,video/quicktime,.mp4,.mov,.m4v,.webm'
             }
             multiple
             hidden
@@ -396,10 +407,11 @@ export function EditorMediaDialog({
               event.target.value = ''
             }}
           />
+          {error && <div className="inline-error" role="alert">{error}</div>}
           <div className="editor-media-browser-head">
             <span className="eyebrow">{t('media.library')}</span>
             <div className="segmented segmented-sm">
-              {(['image', 'video'] as const).map((value) => (
+              {(['image', 'video', 'audio'] as const).map((value) => (
                 <button
                   key={value}
                   type="button"
@@ -409,8 +421,8 @@ export function EditorMediaDialog({
                     setSelected(null)
                   }}
                 >
-                  {value === 'image' ? <ImageIcon size={12} /> : <Film size={12} />}
-                  {t(value === 'image' ? 'editor.image' : 'editor.video')}
+                  {value === 'image' ? <ImageIcon size={12} /> : value === 'audio' ? <Music4 size={12} /> : <Film size={12} />}
+                  {t(value === 'audio' ? 'editor.audio' : value === 'image' ? 'editor.image' : 'editor.video')}
                 </button>
               ))}
             </div>

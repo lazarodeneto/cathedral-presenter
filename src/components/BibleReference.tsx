@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from 'react'
 
-/** Keep the complete localized reference together; move the action below before reducing legibility. */
+/** Keep the full reference and its action on one line at every panel width. */
 export function BibleReference({
   book,
   chapter,
@@ -21,30 +21,33 @@ export function BibleReference({
     if (!container || !text || !row) return
     let cancelled = false
     let measuredWidth = 0
+    let measuredReferenceWidth = 0
     const fit = () => {
       if (!row.clientWidth) return
       measuredWidth = row.clientWidth
-      row.classList.remove('reference-stacked')
+      row.classList.remove('reference-compact')
       text.style.fontSize = '14px'
       if (text.scrollWidth > container.clientWidth) {
         text.style.fontSize = `${Math.max(11, (14 * container.clientWidth) / text.scrollWidth)}px`
       }
       if (text.scrollWidth > container.clientWidth + 1) {
-        row.classList.add('reference-stacked')
+        row.classList.add('reference-compact')
         text.style.fontSize = '14px'
         if (text.scrollWidth > container.clientWidth) {
-          text.style.fontSize = `${Math.max(11, (14 * container.clientWidth) / text.scrollWidth)}px`
+          text.style.fontSize = `${(14 * container.clientWidth) / text.scrollWidth}px`
         }
       }
+      measuredReferenceWidth = container.clientWidth
     }
     fit()
     const observer =
       typeof ResizeObserver === 'undefined'
         ? null
         : new ResizeObserver(() => {
-            if (row.clientWidth !== measuredWidth) fit()
+            if (row.clientWidth !== measuredWidth || container.clientWidth !== measuredReferenceWidth) fit()
           })
     observer?.observe(row)
+    observer?.observe(container)
     window.addEventListener('resize', fit)
     void document.fonts?.ready.then(() => {
       if (!cancelled) fit()

@@ -10,6 +10,8 @@ import { elapsedLabel } from '../../utils/dates'
  * Live: the green LIVE state, elapsed time, and End live.
  */
 export function OutputStatusCard({
+  connecting = false,
+  waitingForSlide = false,
   isLive,
   startedAt,
   outputName,
@@ -19,6 +21,8 @@ export function OutputStatusCard({
   onEnd,
   tools,
 }: {
+  connecting?: boolean
+  waitingForSlide?: boolean
   isLive: boolean
   startedAt: string | null
   outputName: string | null
@@ -44,13 +48,13 @@ export function OutputStatusCard({
     <section className={`output-status ${isLive ? 'is-live' : ''}`} aria-label={t('editor.outputStatus')}>
       <div className="output-status-line">
         <span className={`output-status-dot ${isLive ? 'is-live' : ''}`} aria-hidden="true" />
-        <span className="output-status-state">{isLive ? t('status.live') : t('editor.notLive')}</span>
+        <span className="output-status-state">{waitingForSlide ? t('output.blank') : isLive ? t('status.live') : t('editor.notLive')}</span>
         <span className="output-status-meta">
           {isLive ? elapsedLabel(startedAt) : outputName ?? t('live.noAudience')}
         </span>
       </div>
 
-      {isLive ? (
+      {isLive && !waitingForSlide ? (
         <button type="button" className="btn output-status-action is-end" onClick={onEnd}>
           <Square size={14} fill="currentColor" />
           {t('live.endLive')}
@@ -60,14 +64,15 @@ export function OutputStatusCard({
           type="button"
           className="btn output-status-action is-go"
           onClick={onPresent}
-          disabled={Boolean(problem)}
+          disabled={connecting || Boolean(problem)}
+          aria-busy={connecting}
           aria-describedby={problem ? 'output-status-problem' : undefined}
           title={presentShortcut ? `${t('editor.present')} (${presentShortcut})` : t('editor.present')}
         >
           <span className="output-status-go-icon" aria-hidden="true">
             <Play size={13} fill="currentColor" strokeWidth={0} />
           </span>
-          <span>{t('editor.present')}</span>
+          <span>{t(connecting ? 'presentation.connecting' : 'editor.present')}</span>
         </button>
       )}
 

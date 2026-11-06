@@ -62,11 +62,13 @@ export function AddContentModal({
   onClose,
   serviceId,
   sectionId,
+  initialChoice,
 }: {
   open: boolean
   onClose: () => void
   serviceId: string
   sectionId: string
+  initialChoice?: 'timer'
 }) {
   const t = useT()
   const services = useAppStore((state) => state.services)
@@ -98,6 +100,10 @@ export function AddContentModal({
   useEffect(() => {
     if (open && sectionId) setDestination(sectionId)
   }, [open, sectionId])
+
+  useEffect(() => {
+    if (open && initialChoice) setSelected(initialChoice)
+  }, [open, initialChoice])
 
   useEffect(() => {
     if (!open) {

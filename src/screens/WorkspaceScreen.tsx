@@ -1,7 +1,13 @@
+import { checkService, type PreflightCheck } from '../utils/preflight'
+import { PreflightDialog } from '../components/editor/PreflightDialog'
+import { MediaPlaybackSettings } from '../components/editor/MediaPlaybackSettings'
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useResizablePane } from '../hooks/useResizablePane'
+import { LocaleFlag } from '../components/LocaleFlag'
 import {
   AlignCenter,
+  ArrowUpToLine,
+  ArrowDownToLine,
   CalendarDays,
   CaseSensitive,
   ALargeSmall,
@@ -237,6 +243,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   const removeElement = useAppStore((state) => state.removeElement)
   const duplicateElement = useAppStore((state) => state.duplicateElement)
   const reorderElement = useAppStore((state) => state.reorderElement)
+  const updateServiceMeta = useAppStore((state) => state.updateServiceMeta)
   const addSection = useAppStore((state) => state.addSection)
   const deleteSection = useAppStore((state) => state.deleteSection)
   const moveItem = useAppStore((state) => state.moveItem)
@@ -251,9 +258,13 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   const setMessageVisible = useAppStore((state) => state.setMessageVisible)
   const updateItemTitle = useAppStore((state) => state.updateItemTitle)
   const push = useToasts((state) => state.push)
+  const [connectingOutput, setConnectingOutput] = useState(false)
+  const connectingOutputRef = useRef(false)
 
   const service = services.find((entry) => entry.id === serviceId) ?? null
+  const [preflight, setPreflight] = useState<PreflightCheck[] | null>(null)
   const [addOpen, setAddOpen] = useState(false)
+  const [addInitialChoice, setAddInitialChoice] = useState<'timer' | undefined>()
   const inspectorPane = useResizablePane('church-presenter:inspector-width', { initial: 288, min: 260, max: 420 })
   const [sectionForAdd, setSectionForAdd] = useState('')
   const [addElementOpen, setAddElementOpen] = useState(false)
@@ -514,10 +525,24 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
     return () => window.removeEventListener('keydown', handleDeleteKey)
   }, [activeItem, activeSlide, deleteSelected, selectedElement])
 
-  const goLive = () => {
-    if (!service || !activeSlide) return
-    webOutputProvider.openOutput('audience')
-    startLive(service.id, activeSlide.id)
+  const goLive = async (allowWarnings = false, inspectOnly = false) => {
+    if (!service || !activeSlide || connectingOutputRef.current) return
+    connectingOutputRef.current = true
+    setConnectingOutput(true)
+    try {
+      const checks = await checkService(service)
+      if (inspectOnly) { setPreflight(checks); return }
+      if (checks.some((c) => c.severity === 'error' || (!allowWarnings && c.severity === 'warning'))) { setPreflight(checks); return }
+      setPreflight(null)
+      const result = await webOutputProvider.prepareAudience()
+      if (result !== 'ready') {
+        push(t(`presentation.${result}`), 'error')
+        if (result === 'chooseDisplays') navigate('/settings/outputs')
+        return
+      }
+      if (useAppStore.getState().live?.serviceId === service.id) jumpLive(activeSlide.id)
+      else startLive(service.id, activeSlide.id)
+    } finally { connectingOutputRef.current = false; setConnectingOutput(false) }
   }
   goLiveRef.current = goLive
 
@@ -535,6 +560,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   }
 
   const openAdd = (sectionId: string) => {
+    setAddInitialChoice(undefined)
     setSectionForAdd(sectionId)
     setAddOpen(true)
   }
@@ -1230,12 +1256,17 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
               onBackground={() => setBackgroundOpen(true)}
               onToggleLayers={() => setLayersOpen((value) => !value)}
               onTemplates={() => setTemplatePickerOpen(true)}
+              onTimer={() => {
+                setAddInitialChoice('timer')
+                setSectionForAdd(activeSection?.id ?? service.sections[0]?.id ?? '')
+                setAddOpen(true)
+              }}
             />
 
             <div className="canvas-area" ref={canvasAreaRef}>
               <div className="canvas-stage-row">
                 <div
-                  className={`canvas-frame is-aspect-${slideAspectRatio} ${canvasFit ? 'is-fitted' : ''} ${canvasDrop !== 'idle' ? `is-drop-${canvasDrop}` : ''}`}
+                  className={`canvas-frame is-aspect-${slideAspectRatio} ${isLive && live?.modeTransitionPending ? 'has-mode-black' : ''} ${canvasFit ? 'is-fitted' : ''} ${canvasDrop !== 'idle' ? `is-drop-${canvasDrop}` : ''}`}
                   style={canvasFit ? { width: canvasFit.width, height: canvasFit.height } : undefined}
                   onDragOver={(event) => {
                     if (!activeSlide || !event.dataTransfer.types.includes('Files')) return
@@ -1517,12 +1548,14 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
         <aside className={`inspector panel ${mobileInspector ? 'is-drawer-open' : ''}`}>
           <div className="pane-grip" aria-label={t('editor.resizeInspector')} {...inspectorPane.gripProps} />
           <OutputStatusCard
+            connecting={connectingOutput}
+            waitingForSlide={Boolean(isLive && live?.modeTransitionPending)}
             isLive={isLive}
             startedAt={live?.startedAt ?? null}
             outputName={audienceOutputName}
             problem={presentationProblem(service) ? t(`culto.problem.${presentationProblem(service)}`) : null}
             presentShortcut={presentShortcut}
-            onPresent={() => { if (!isLive) goLive() }}
+            onPresent={() => { if (!isLive || live?.modeTransitionPending) void goLive() }}
             onEnd={() => setEndOpen(true)}
             tools={
               <>
@@ -1900,6 +1933,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     onChange={(align, vertical) => placeSelected(align, vertical)}
                   />
                 </div>
+                {(selectedElement.type === 'video' || selectedElement.type === 'audio') && <MediaPlaybackSettings settings={selectedElement.settings} onChange={(settings) => updateElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, { settings })} />}
                 {(selectedElement.type === 'image' || selectedElement.type === 'video') && (
                   <>
                     <div className="field-grid">
@@ -1985,12 +2019,13 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     {selectedElement.settings?.providerLabel ?? t('editor.youtubeProvider')}
                   </div>
                 )}
-                <div className="layer-buttons">
-                  <button className="btn btn-ghost btn-sm" onClick={() => reorderElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, 'front')}>
-                    <Layers size={13} />
+                <div className="layer-buttons" role="group" aria-label={t('editor.layers')}>
+                  <button type="button" className="btn btn-secondary layer-order-action" onClick={() => reorderElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, 'front')}>
+                    <ArrowUpToLine size={16} aria-hidden="true" />
                     {t('editor.bringFront')}
                   </button>
-                  <button className="btn btn-ghost btn-sm" onClick={() => reorderElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, 'back')}>
+                  <button type="button" className="btn btn-secondary layer-order-action" onClick={() => reorderElement(service.id, activeItem.id, activeSlide.id, selectedElement.id, 'back')}>
+                    <ArrowDownToLine size={16} aria-hidden="true" />
                     {t('editor.sendBack')}
                   </button>
                 </div>
@@ -2027,7 +2062,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   <>
                     <div className="inspector-label">
                       <FieldTitle icon={BookOpen}>{t('editor.scriptureContent')}</FieldTitle>
-                      <span className="badge badge-amber">{activeSlide.bible.primary.abbreviation}</span>
+                      <span className="badge badge-amber"><LocaleFlag locale={activeSlide.bible.primary.language} size={16} />{activeSlide.bible.primary.abbreviation}</span>
                     </div>
                     <label className="field">
                       <FieldTitle icon={BookOpenText}>{t('editor.primaryText')}</FieldTitle>
@@ -2039,7 +2074,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                     </label>
                     <label className="field">
                       <span>
-                        {t('editor.reference')} · {activeSlide.bible.primary.abbreviation}
+                        {t('editor.reference')} · <LocaleFlag locale={activeSlide.bible.primary.language} size={15} /> {activeSlide.bible.primary.abbreviation}
                       </span>
                       <input
                         value={activeSlide.bible.primary.reference}
@@ -2060,7 +2095,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                       <>
                         <label className="field">
                           <span>
-                            {t('editor.secondaryText')} · {activeSlide.bible.secondary.abbreviation}
+                            {t('editor.secondaryText')} · <LocaleFlag locale={activeSlide.bible.secondary.language} size={15} /> {activeSlide.bible.secondary.abbreviation}
                           </span>
                           <textarea
                             rows={4}
@@ -2070,7 +2105,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                         </label>
                         <label className="field">
                           <span>
-                            {t('editor.reference')} · {activeSlide.bible.secondary.abbreviation}
+                            {t('editor.reference')} · <LocaleFlag locale={activeSlide.bible.secondary.language} size={15} /> {activeSlide.bible.secondary.abbreviation}
                           </span>
                           <input
                             value={activeSlide.bible.secondary.reference}
@@ -2204,6 +2239,8 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                   </>
                 )}
                 </InspectorGroup>
+                <label className="field"><span>{t('control.autoAdvance')}</span><input type="number" min={0} max={3600} step={1} value={activeSlide.autoAdvanceSeconds ?? 0} onChange={(e) => updateSlide(service.id, activeItem.id, activeSlide.id, { autoAdvanceSeconds: Math.max(0, Math.min(3600, Number(e.target.value))) })} /><small>{t('control.manual')}</small></label>
+                <label className="switch-row"><span>{t('control.loop')}</span><input type="checkbox" checked={Boolean(service.loop)} onChange={(e) => updateServiceMeta(service.id, { loop: e.target.checked })} /></label>
                 <InspectorGroup id="background" icon={Palette} title={t('editor.background')} meta={activeSlide.background.preset}>
                 <div className="preset-grid">
                   {BACKGROUND_PRESETS.map((preset) => (
@@ -2301,7 +2338,9 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
         </aside>
       </div>
 
+      {preflight && <PreflightDialog checks={preflight} onClose={() => setPreflight(null)} onContinue={() => void goLive(true)} onCheck={() => void goLive(false, true)} />}
       <AddContentModal
+        initialChoice={addInitialChoice}
         open={addOpen}
         onClose={() => setAddOpen(false)}
         serviceId={service.id}
