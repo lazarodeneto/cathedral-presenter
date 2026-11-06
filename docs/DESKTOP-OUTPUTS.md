@@ -40,4 +40,4 @@ Development runs the HTTP/auth service in host Node. Packaged builds run a bundl
 - Automated platform detection tests cover Windows and macOS.
 - The Windows native UI and a physical four-output installation have not been tested on hardware. Before a live service, verify the exact GPU/dock/display arrangement, fullscreen placement, reconnect handling and video playback on that machine.
 
-An unsigned standalone macOS arm64 package was launched with renderer and database ready. A Windows cross-build was blocked by native SQLite; use a Windows build runner. Current Samsung retesting is pending OS-level reconnection. These are not signed release or four-output acceptance results.
+An unsigned standalone macOS arm64 package was launched with renderer and database ready. A Windows cross-build was blocked by native SQLite; the subsequent native Windows x64 runner passed tests, packaging and clean-profile startup. [Validation](https://github.com/lazarodeneto/church-presenter/actions/runs/42294726910). Current Samsung retesting is pending OS-level reconnection. These are not signed release or four-output acceptance results.
