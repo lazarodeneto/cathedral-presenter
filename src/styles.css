@@ -20223,18 +20223,17 @@ body:not(.output-mode) .bible-screen :is(.bible-selector-grid > :nth-child(n + 4
 @media (max-width: 480px) { .login-brand h1 { font-size: 48px; } .login-panel { padding-top: 88px; } .login-language { top: 12px; right: 16px; } }
 .login-switch { display: block; text-align: center; }
 
-/* Cross light and dove stay decorative and outside the form's reading area. */
-.login-cross { position: absolute; left: 16%; top: 52%; width: 180px; height: 310px; transform: translate(-50%, -50%); color: rgb(239 234 255 / .85); opacity: .7; }
-.cross-light { position: absolute; inset: 0; opacity: .85; }
-.cross-stem, .cross-arm { position: absolute; display: block; background: rgb(232 222 255 / .8); border-radius: 3px; box-shadow: 0 0 18px 4px rgb(var(--violet-rgb) / .45), 0 0 70px 20px rgb(var(--violet-rgb) / .2); }
-.cross-stem { left: calc(50% - 3px); top: 0; width: 6px; height: 100%; }
-.cross-arm { left: 0; top: 82px; width: 100%; height: 6px; }
-.cross-dove { position: absolute; width: 100px; height: 75px; left: calc(50% - 55px); top: -65px; overflow: visible; }
 .login-language .topbar-language-trigger { min-height: 40px; padding: 0 12px; }
 .login-language .topbar-language-menu { z-index: 20; }
-@media (max-width: 1100px) { .login-cross { left: 12%; width: 120px; height: 240px; opacity: .4; } .cross-arm { top: 64px; } }
-@media (max-width: 720px) { .login-cross { left: 82%; top: 42%; width: 100px; height: 210px; opacity: .16; } .cross-arm { top: 56px; } .cross-dove { width: 80px; height: 60px; left: calc(50% - 44px); top: -52px; } }
-@media (prefers-reduced-motion: reduce) { .cross-light { opacity: .55; } }
-.reduced-motion .cross-light { opacity: .55; }
-.dove-wing { transform: scaleY(.28); transform-origin: 58px 48px; }
-.login-animation-paused::before, .login-animation-paused::after, .login-animation-paused .login-beam { animation-play-state: paused; }
+
+/* Photographic scene replaces the flat cross and bird illustration. */
+.login-story { background: #08070d; }
+.login-story::before, .login-story::after, .login-atmosphere { display: none; }
+.login-cinema { position: absolute; inset: 0; overflow: hidden; }
+.cinema-scene { position: absolute; width: 100%; height: 100%; object-fit: cover; object-position: left center; transform-origin: 20% 50%; }
+.cinema-light { position: absolute; inset: -20%; opacity: .2; pointer-events: none; background: linear-gradient(112deg, transparent 10%, rgb(255 218 161 / .13) 18%, transparent 28%); }
+.cinema-shade { position: absolute; inset: 0; background: linear-gradient(90deg, transparent 10%, rgb(6 5 10 / .1) 35%, rgb(6 5 10 / .18) 100%); }
+@media (max-width: 720px) {
+  .cinema-scene { object-position: 8% center; opacity: .35; }
+  .cinema-shade { background: rgb(6 5 10 / .55); }
+}

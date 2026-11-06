@@ -62,10 +62,6 @@ export function LoginScreen({
         />
       </div>
       <div className="login-story" aria-hidden="true">
-        <div className="login-atmosphere">
-          <span className="login-beam" />
-          <span className="login-beam login-beam-second" />
-        </div>
         <LoginCross reducedMotion={reducedMotion} />
       </div>
       <section className="login-panel" aria-labelledby="login-title">
