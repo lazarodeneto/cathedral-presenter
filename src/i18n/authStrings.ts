@@ -186,3 +186,16 @@ export const authStrings: Record<Locale, Record<string, string>> = {
     'auth.signedIn': 'Accesso effettuato',
   },
 }
+
+const languageLabels: Record<Locale, string> = {
+  en: 'Language',
+  pt: 'Idioma',
+  'pt-BR': 'Idioma',
+  es: 'Idioma',
+  fr: 'Langue',
+  de: 'Sprache',
+  it: 'Lingua',
+}
+for (const locale of Object.keys(languageLabels) as Locale[]) {
+  authStrings[locale]['auth.language'] = languageLabels[locale]
+}

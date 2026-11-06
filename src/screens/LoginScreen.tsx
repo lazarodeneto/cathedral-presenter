@@ -1,11 +1,22 @@
+import { LanguageMenu } from '../components/LanguageMenu'
+import { LoginCross } from '../components/LoginCross'
 import { useState, type FormEvent } from 'react'
 import { BrandMark } from '../components/BrandMark'
-import type { Branding, Locale } from '../types'
+import { type Branding, type Locale } from '../types'
 import { authStrings } from '../i18n/authStrings'
 import { authClient } from '../auth/client'
-import { ArrowRight } from 'lucide-react'
 
-export function LoginScreen({ branding, locale }: { branding: Branding; locale: Locale }) {
+export function LoginScreen({
+  branding,
+  locale,
+  onLocaleChange,
+  reducedMotion = false,
+}: {
+  branding: Branding
+  locale: Locale
+  onLocaleChange?: (locale: Locale) => void
+  reducedMotion?: boolean
+}) {
   const t = (key: string) => authStrings[locale][key] ?? authStrings.en[key] ?? key
   const [signup, setSignup] = useState(
     () => new URLSearchParams(window.location.hash.split('?')[1]).get('mode') === 'signup',
@@ -43,30 +54,30 @@ export function LoginScreen({ branding, locale }: { branding: Branding; locale: 
   }
   return (
     <main className="login-page">
-      <section className="login-story" aria-label={branding.appTitle}>
-        <div className="login-atmosphere" aria-hidden="true">
+      <div className="login-language">
+        <LanguageMenu
+          locale={locale}
+          onChange={(value) => onLocaleChange?.(value)}
+          label={t('auth.language')}
+        />
+      </div>
+      <div className="login-story" aria-hidden="true">
+        <div className="login-atmosphere">
           <span className="login-beam" />
           <span className="login-beam login-beam-second" />
         </div>
-        <div className="login-brand">
-          <BrandMark branding={branding} size="lg" />
-          <span>
-            {branding.appTitle}
-            <small>{branding.name}</small>
-          </span>
-        </div>
-        <div>
-          <h1>{t('auth.intro')}</h1>
-          <p>{t('auth.description')}</p>
-        </div>
-        <p className="login-local">{t('auth.local')}</p>
-      </section>
+        <LoginCross reducedMotion={reducedMotion} />
+      </div>
       <section className="login-panel" aria-labelledby="login-title">
         <div className="login-card">
-          <h2 id="login-title">
-            {t(session ? 'auth.signedIn' : signup ? 'auth.createAccount' : 'auth.title')}
+          <div className="login-brand">
+            <BrandMark branding={branding} size="lg" />
+            <h1 id="login-title">Cathedral Presenter</h1>
+          </div>
+          <h2 className="login-mode">
+            {t(session ? 'auth.signedIn' : signup ? 'auth.createAccount' : 'auth.signIn')}
           </h2>
-          <p className="login-note">{session?.user?.email || t('auth.shared')}</p>
+          {session && <p className="login-note">{session.user?.email}</p>}
           {!session && (
             <>
               <form onSubmit={(event) => void submit(event)} aria-busy={busy}>
@@ -111,7 +122,6 @@ export function LoginScreen({ branding, locale }: { branding: Branding; locale: 
                   )}
                   <button className="login-submit" type="submit">
                     {t(busy ? 'auth.working' : signup ? 'auth.createAccount' : 'auth.signIn')}
-                    <ArrowRight size={18} aria-hidden="true" />
                   </button>
                 </fieldset>
               </form>
@@ -129,7 +139,6 @@ export function LoginScreen({ branding, locale }: { branding: Branding; locale: 
           )}
           <a className={session ? 'login-submit' : 'login-offline'} href="#/home">
             {t('auth.offline')}
-            <ArrowRight size={18} aria-hidden="true" />
           </a>
         </div>
       </section>

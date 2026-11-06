@@ -1,3 +1,4 @@
+import { savePreferredLocale } from '../i18n/preferredLocale'
 import { create } from 'zustand'
 import { isOutputFormatId, outputFormat } from '../utils/outputFormats'
 import { createJSONStorage, persist } from 'zustand/middleware'
@@ -412,6 +413,7 @@ export const useAppStore = create<AppState>()(
 
         setLocale: (locale) => {
           if (!LOCALES.includes(locale)) return
+          savePreferredLocale(locale)
           set((state) => ({ settings: { ...state.settings, locale } }))
         },
         updateSettings: (patch) =>

@@ -33,7 +33,7 @@ it('restores the saved locale and branding while offering account sign-in', () =
     '#/home',
   )
   expect(screen.getByRole('button', { name: 'Entrar' })).toBeEnabled()
-  expect(screen.getByText('Campus Teste')).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'Cathedral Presenter' })).toBeInTheDocument()
   expect(screen.getByRole('textbox', { name: 'Endereço de email' })).toBeInTheDocument()
 })
 it('recovers from malformed local settings', () => {
@@ -49,4 +49,14 @@ it('opens the workspace when leaving entry and returns to entry on hash navigati
   window.history.replaceState(null, '', '#/login')
   fireEvent(window, new HashChangeEvent('hashchange'))
   expect(screen.getByRole('link', { name: 'Continue on this computer' })).toBeInTheDocument()
+})
+
+it('switches entry language immediately and remembers it across remounts', () => {
+  const view = render(<Entry />)
+  fireEvent.click(screen.getByRole('button', { name: /Language: English/ }))
+  fireEvent.click(screen.getByRole('option', { name: /Français/ }))
+  expect(screen.getByRole('button', { name: 'Se connecter' })).toBeInTheDocument()
+  view.unmount()
+  render(<Entry />)
+  expect(screen.getByRole('button', { name: /Langue: Français/ })).toBeInTheDocument()
 })

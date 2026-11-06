@@ -1,3 +1,4 @@
+import { preferredLocale, savePreferredLocale } from './i18n/preferredLocale'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { LoginScreen } from './screens/LoginScreen'
 import { applyTheme, normalizeBranding } from './utils/branding'
@@ -10,7 +11,9 @@ function readEntrySettings() {
   try {
     const saved = JSON.parse(localStorage.getItem('church-presenter:workspace:v1') ?? '{}')
     const state = saved?.state
-    const locale: Locale = LOCALES.includes(state?.settings?.locale) ? state.settings.locale : 'en'
+    const locale: Locale =
+      preferredLocale() ??
+      (LOCALES.includes(state?.settings?.locale) ? state.settings.locale : 'en')
     return {
       branding: normalizeBranding(state?.branding),
       locale,
@@ -20,7 +23,7 @@ function readEntrySettings() {
   } catch {
     return {
       branding: normalizeBranding(undefined),
-      locale: 'en' as Locale,
+      locale: preferredLocale() ?? ('en' as Locale),
       reducedMotion: false,
       reducedTransparency: false,
     }
@@ -40,14 +43,30 @@ export function Entry() {
     return () => window.removeEventListener('hashchange', update)
   }, [])
   useEffect(() => {
-    if (!login) return
+    if (!login) {
+      const locale = preferredLocale()
+      if (locale)
+        void import('./store/useAppStore').then(({ useAppStore }) => {
+          if (useAppStore.getState().settings.locale !== locale)
+            useAppStore.getState().setLocale(locale)
+        })
+      return
+    }
     applyTheme(settings.branding.theme)
-    document.title = `${settings.branding.appTitle} · ${settings.branding.name}`
+    document.title = 'Cathedral Presenter'
     document.body.classList.toggle('reduced-motion', settings.reducedMotion)
     document.body.classList.toggle('reduced-transparency', settings.reducedTransparency)
   }, [login, settings])
   return login ? (
-    <LoginScreen branding={settings.branding} locale={settings.locale} />
+    <LoginScreen
+      reducedMotion={settings.reducedMotion}
+      branding={settings.branding}
+      locale={settings.locale}
+      onLocaleChange={(locale) => {
+        savePreferredLocale(locale)
+        setSettings((current) => ({ ...current, locale }))
+      }}
+    />
   ) : (
     <Suspense
       fallback={
