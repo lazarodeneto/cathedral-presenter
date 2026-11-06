@@ -340,6 +340,7 @@ export function TopBar({ route }: { route: Route }) {
           </button>
         </div>
         <div className="topbar-actions">
+          <button className="btn" onClick={() => navigate('/login')}>{t('auth.signIn')}</button>
           <span
             className="topbar-status"
             title={lastSavedAt ? `${t('status.storageLocal')} · ${formatClock(locale, new Date(lastSavedAt))}` : t('status.storageLocal')}

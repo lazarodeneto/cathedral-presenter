@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAppStore } from '../store/useAppStore'
 
 export type RouteName =
+  | 'login'
   | 'home'
   | 'calendar'
   | 'services'
@@ -26,6 +27,7 @@ function parse(hash: string): Route {
   const segments = raw.split('/').filter(Boolean)
   const name = (segments[0] || 'home') as RouteName
   const known: RouteName[] = [
+    'login',
     'home',
     'calendar',
     'services',

@@ -8,6 +8,7 @@ import { MobileNav } from './components/MobileNav'
 import { TopBar } from './components/TopBar'
 import { ToastHost } from './components/ToastHost'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { LoginScreen } from './screens/LoginScreen'
 import { OutputScreen } from './screens/OutputScreen'
 
 const HomeScreen = lazy(() => import('./screens/HomeScreen').then((module) => ({ default: module.HomeScreen })))
@@ -166,6 +167,8 @@ export default function App() {
       ? route.id === 'confidence'
         ? t('output.confidence')
         : t('output.audience')
+      : route.name === 'login'
+        ? t('auth.title')
       : isLive
         ? t('live.title')
         : route.name === 'service'
@@ -192,6 +195,8 @@ export default function App() {
       </div>
     )
   }
+
+  if (route.name === 'login') return <LoginScreen />
 
   if (isLive) {
     return <RouteLoading label={t('common.loading')} />
