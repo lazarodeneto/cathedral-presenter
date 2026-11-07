@@ -1,7 +1,11 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { TopBar } from '../components/TopBar'
 import { useAppStore } from '../store/useAppStore'
+
+// Account authentication is covered separately; avoid a pending session request
+// outliving the DOM in this language-menu test.
+vi.mock('../components/AccountMenu', () => ({ AccountMenu: () => null }))
 
 describe('top bar language menu', () => {
   beforeEach(() => {
