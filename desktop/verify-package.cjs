@@ -5,7 +5,7 @@ const { tmpdir } = require('node:os')
 const path = require('node:path')
 ;(async () => {
   const profile = await mkdtemp(path.join(tmpdir(), 'cathedral-smoke-'))
-  const binary = process.platform === 'win32' ? 'release/win-unpacked/Cathedral Presenter.exe' : 'release/mac-arm64/Cathedral Presenter.app/Contents/MacOS/Cathedral Presenter'
+  const binary = process.platform === 'win32' ? 'release/win-unpacked/Cathedral Presenter.exe' : (process.arch === 'arm64' ? 'release/mac-arm64/Cathedral Presenter.app/Contents/MacOS/Cathedral Presenter' : 'release/mac/Cathedral Presenter.app/Contents/MacOS/Cathedral Presenter')
   const env = { ...process.env, CATHEDRAL_PROFILE_DIR: profile }; delete env.ELECTRON_RUN_AS_NODE
   try {
     await new Promise((resolve, reject) => {

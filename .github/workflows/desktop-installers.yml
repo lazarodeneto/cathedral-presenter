@@ -1,0 +1,44 @@
+name: Build desktop installers
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  installer:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: windows-x64
+          - os: macos-latest
+            target: macos-arm64
+          - os: macos-15-intel
+            target: macos-x64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run desktop:build
+      - if: matrix.target == 'windows-x64'
+        run: node desktop/package.cjs --win nsis --x64 --config.win.signAndEditExecutable=false
+      - if: matrix.target == 'macos-arm64'
+        run: node desktop/package.cjs --mac dmg --arm64 --config.mac.notarize=false
+      - if: matrix.target == 'macos-x64'
+        run: node desktop/package.cjs --mac dmg --x64 --config.mac.notarize=false
+      - run: node desktop/verify-package.cjs
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: cathedral-presenter-${{ matrix.target }}-unsigned
+          path: |
+            release/*.exe
+            release/*.dmg
+          if-no-files-found: error
+          retention-days: 7
