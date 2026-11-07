@@ -126,6 +126,7 @@ export function createNativeCloud(options: Options) {
       for await (const chunk of req) { size += chunk.length; if (size > 2048) throw new Error('invalid-request'); chunks.push(chunk) }
       const body = size ? JSON.parse(Buffer.concat(chunks).toString()) : {}
       if (path === '/api/cloud/connect') {
+        if (body.authorized !== true) throw new Error('authorization-required')
         const code = String(body.code || '').replaceAll('-','').replaceAll(' ','')
         if (!/^[A-Fa-f0-9]{12}$/.test(code)) throw new Error('invalid-pairing-code')
         const response = await request(`${origin.origin}/api/installations/pair/complete`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, platform: process.platform }), signal: AbortSignal.timeout(20000) })

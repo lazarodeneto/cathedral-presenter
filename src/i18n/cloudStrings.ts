@@ -25,3 +25,17 @@ const computers: Record<Locale, string[]> = {
  it: ['Computer di uscita','Scegli computer','Nome del computer','Usa questo computer attendibile per l’antivirus','Inserisci il codice nell’app installata prima della scadenza','Crea un codice nelle impostazioni delle uscite del sito e inseriscilo qui.','Scarica per uso offline','Bloccato durante la presentazione. Scarica raccolta e file analizzati, conserva la cronologia e ricarica al termine.','Raccolta salvata offline','Schermo nero','Riprendi controllo online','Il backup include riferimenti Drive. Usa l’app installata per uno ZIP con i file.','Apri lo ZIP nell’app installata, poi importa il JSON online.','Database privato e Drive della chiesa'],
 }
 for (const locale of Object.keys(computers) as Locale[]) computerKeys.forEach((key,i) => { cloudStrings[locale][`cloud.${key}`] = computers[locale][i] })
+
+const permission: Record<Locale, [string, string, string]> = {
+ en: ['Allow presentation control?', 'Allow this online workspace to control presentation outputs on this computer? Your choice is saved on this computer until you disconnect it or the authorization expires.', 'Allow'],
+ pt: ['Autorizar controlo da apresentação?', 'Permitir que este espaço online controle as saídas de apresentação deste computador? A decisão fica guardada neste computador até o desligar ou a autorização expirar.', 'Autorizar'],
+ 'pt-BR': ['Autorizar controle da apresentação?', 'Permitir que este espaço online controle as saídas de apresentação deste computador? A decisão fica salva neste computador até você desconectá-lo ou a autorização expirar.', 'Autorizar'],
+ es: ['¿Permitir el control de presentación?', '¿Permitir que este espacio online controle las salidas de presentación de este equipo? La decisión se guarda en este equipo hasta desconectarlo o hasta que caduque la autorización.', 'Permitir'],
+ fr: ['Autoriser le contrôle de la présentation ?', 'Autoriser cet espace en ligne à contrôler les sorties de présentation de cet ordinateur ? Votre choix est enregistré sur cet ordinateur jusqu’à sa déconnexion ou à l’expiration de l’autorisation.', 'Autoriser'],
+ de: ['Präsentationssteuerung erlauben?', 'Darf dieser Online-Arbeitsbereich die Präsentationsausgänge dieses Computers steuern? Die Entscheidung bleibt auf diesem Computer gespeichert, bis Sie die Verbindung trennen oder die Berechtigung abläuft.', 'Erlauben'],
+ it: ['Consentire il controllo della presentazione?', 'Consentire a questo spazio online di controllare le uscite di presentazione di questo computer? La scelta viene salvata su questo computer fino alla disconnessione o alla scadenza dell’autorizzazione.', 'Consenti'],
+}
+for (const locale of Object.keys(permission) as Locale[]) {
+ const [title, copy, allow] = permission[locale]
+ Object.assign(cloudStrings[locale], { 'cloud.permissionTitle': title, 'cloud.permissionCopy': copy, 'cloud.permissionAllow': allow })
+}

@@ -3,13 +3,14 @@ import { Cloud, Download, Link2, Unplug } from 'lucide-react'
 import { useT } from '../../i18n/useT'
 import { useToasts } from '../../store/useToasts'
 import { isCloud, DEFAULT_CLOUD_ORIGIN } from '../../runtime'
+import { ConfirmDialog } from '../Modal'
 type Status = { connected: boolean; online: boolean; name?: string; blocked: boolean; origin: string; error?: string; syncBusy?: boolean }
 export async function nativeCloudAction(path: string, body?: object) {
   const response = await fetch(`/api/cloud/${path}`, { method: 'POST', headers: { 'X-Cathedral-Cloud': '1', 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}), signal: AbortSignal.timeout(600000) })
   const data = await response.json(); if (!response.ok) throw new Error(data.reason); return data
 }
 export function NativeCloudSettings() {
-  const t = useT(), push = useToasts((s) => s.push), [status, setStatus] = useState<Status | null>(null), [code, setCode] = useState(''), [busy, setBusy] = useState(false)
+  const t = useT(), push = useToasts((s) => s.push), [status, setStatus] = useState<Status | null>(null), [code, setCode] = useState(''), [busy, setBusy] = useState(false), [confirmConnect, setConfirmConnect] = useState(false)
   const refresh = useCallback(() => { void fetch('/api/cloud/status', { headers: { 'X-Cathedral-Cloud': '1' } }).then((r) => r.ok ? r.json() : null).then(setStatus).catch(() => {}) }, [])
   useEffect(() => { refresh(); const timer = setInterval(refresh, 5000); return () => clearInterval(timer) }, [refresh])
   if (isCloud) return null
@@ -17,7 +18,8 @@ export function NativeCloudSettings() {
   return <section className="cloud-settings-section"><h3><Cloud size={18} />{t('cloud.online')}</h3>
     <a href={status?.origin || DEFAULT_CLOUD_ORIGIN} target="_blank" rel="noreferrer">{status?.origin || DEFAULT_CLOUD_ORIGIN}</a>
     <p className="field-hint">{t('cloud.nativeInstructions')}</p>
-    {status?.connected ? <><p>{status.name} · {t(status.online ? 'cloud.connected' : 'cloud.notConnected')}</p><div className="output-actions"><button className="btn btn-secondary" disabled={busy} onClick={() => void run('sync', { direction: 'download' })}><Download size={16} />{t('cloud.downloadWorkspace')}</button><button className="btn btn-ghost" disabled={busy} onClick={() => void run('disconnect')}><Unplug size={16} />{t('cloud.disconnect')}</button></div><p className="field-hint">{t('cloud.syncHelp')}</p></> : <form className="cloud-invitation-form" onSubmit={(e) => { e.preventDefault(); void run('connect', { code }) }}><label className="field"><span>{t('cloud.pairCode')}</span><input value={code} autoComplete="off" onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={16} required placeholder="XXXX-XXXX-XXXX" /></label><button className="btn btn-secondary" disabled={busy}><Link2 size={16} />{t('cloud.connect')}</button></form>}
+    {status?.connected ? <><p>{status.name} · {t(status.online ? 'cloud.connected' : 'cloud.notConnected')}</p><div className="output-actions"><button className="btn btn-secondary" disabled={busy} onClick={() => void run('sync', { direction: 'download' })}><Download size={16} />{t('cloud.downloadWorkspace')}</button><button className="btn btn-ghost" disabled={busy} onClick={() => void run('disconnect')}><Unplug size={16} />{t('cloud.disconnect')}</button></div><p className="field-hint">{t('cloud.syncHelp')}</p></> : <form className="cloud-invitation-form" onSubmit={(e) => { e.preventDefault(); setConfirmConnect(true) }}><label className="field"><span>{t('cloud.pairCode')}</span><input value={code} autoComplete="off" onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={16} required placeholder="XXXX-XXXX-XXXX" /></label><button className="btn btn-secondary" disabled={busy}><Link2 size={16} />{t('cloud.connect')}</button></form>}
+    <ConfirmDialog open={confirmConnect} title={t('cloud.permissionTitle')} copy={t('cloud.permissionCopy')} confirmLabel={t('cloud.permissionAllow')} tone="primary" onClose={() => setConfirmConnect(false)} onConfirm={() => void run('connect', { code, authorized: true })} />
   </section>
 }
 export function NativeCloudSafety() {

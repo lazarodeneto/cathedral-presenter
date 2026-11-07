@@ -177,7 +177,8 @@ describe.skipIf(!databaseUrl)('cloud PostgreSQL and account integration', () => 
     const local = (path: string, body: object) => fetch(`http://127.0.0.1:${port}/api/cloud/${path}`, { method: 'POST', headers: { 'X-Cathedral-Cloud': '1', 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
     try {
       const pairing = await (await request('/api/installations/pair', { method: 'POST', cookie: adminCookie, body: { name: 'Native fixture', canScan: false } })).json()
-      expect((await local('connect',{ code: pairing.code })).status).toBe(200)
+      expect((await local('connect',{ code: pairing.code })).status).toBe(409)
+      expect((await local('connect',{ code: pairing.code, authorized: true })).status).toBe(200)
       const list = (await (await request('/api/installations', { cookie: adminCookie })).json()).installations as { id: string; name: string }[]
       const id = list.find((i) => i.name === 'Native fixture')!.id
       expect(await readFile(join(root,'.data','cloud-link','credentials'),'utf8')).not.toContain('token')
