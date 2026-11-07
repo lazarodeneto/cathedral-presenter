@@ -4,6 +4,7 @@ import {
 } from '../../security/media'
 import { parseYouTubeUrl, validateMediaUrl } from '../../security/url'
 import { safeDisplayFileName } from '../../security/path'
+import { isCloud } from '../../runtime'
 
 export interface MediaRegistrationResult {
   ok: boolean
@@ -39,6 +40,11 @@ export const webMediaProvider: MediaProvider = {
     if (!checked.ok) return { ok: false, reason: checked.reason }
 
     try {
+      if (isCloud) {
+        const { uploadCloudFile } = await import('./cloudUpload')
+        const result = await uploadCloudFile(file, checked.mime)
+        return result.asset ? { ok: true, asset: result.asset } : { ok: false, reason: 'scan-pending' }
+      }
       const response = await fetch('/api/media/upload', { method: 'POST', credentials: 'same-origin', headers: {
         'Content-Type': checked.mime, 'X-File-Name': encodeURIComponent(safeDisplayFileName(file.name)),
         'X-Storage-Target': options?.storage ?? 'local', 'X-Cathedral-Media': '1',
@@ -46,8 +52,8 @@ export const webMediaProvider: MediaProvider = {
       const result = await response.json() as { asset?: MediaAsset; reason?: string }
       if (!response.ok || !result.asset) return { ok: false, reason: result.reason ?? 'media-service-unavailable' }
       return { ok: true, asset: result.asset }
-    } catch {
-      return { ok: false, reason: 'media-service-unavailable' }
+    } catch (error) {
+      return { ok: false, reason: error instanceof Error && /^[a-z-]{1,80}$/.test(error.message) ? error.message : 'media-service-unavailable' }
     }
   },
 

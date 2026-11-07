@@ -1,4 +1,5 @@
 import { extensionOf, MAX_LOGO_BYTES, sniffImageMime, validateImageDataUrl } from '../security/media'
+import { isCloud } from '../runtime'
 
 export const LOGO_ACCEPT = 'image/png,image/jpeg,image/svg+xml,image/webp,.png,.jpg,.jpeg,.svg,.webp'
 /** Longest edge of a logo after an SVG is converted to PNG. */
@@ -169,10 +170,15 @@ export async function processLogoFile(file: File): Promise<LogoResult> {
     const dataUrl = check.kind === 'svg' ? await rasterizeSvg(check.text) : await fileToDataUrl(file)
     if (!validateImageDataUrl(dataUrl)) return { ok: false, reason: check.kind === 'svg' ? 'svg-invalid' : 'too-large' }
     const upload = check.kind === 'svg' ? new File([await (await fetch(dataUrl)).blob()], 'logo.png', { type: 'image/png' }) : file
-    const scan = await fetch('/api/media/scan', { method: 'POST', headers: { 'Content-Type': upload.type, 'X-File-Name': encodeURIComponent(upload.name), 'X-Cathedral-Media': '1' }, body: upload })
-    if (!scan.ok) {
-      const result = await scan.json() as { reason?: string }
-      return { ok: false, reason: result.reason === 'virus-detected' || result.reason === 'sign-in-required' ? result.reason : 'scanner-unavailable' }
+    if (isCloud) {
+      try { const { uploadCloudFile } = await import('../providers/media/cloudUpload'); await uploadCloudFile(upload, upload.type, true) }
+      catch (error) { const reason = error instanceof Error ? error.message : ''; return { ok: false, reason: reason === 'virus-detected' || reason === 'sign-in-required' ? reason : 'scanner-unavailable' } }
+    } else {
+      const scan = await fetch('/api/media/scan', { method: 'POST', headers: { 'Content-Type': upload.type, 'X-File-Name': encodeURIComponent(upload.name), 'X-Cathedral-Media': '1' }, body: upload })
+      if (!scan.ok) {
+        const result = await scan.json() as { reason?: string }
+        return { ok: false, reason: result.reason === 'virus-detected' || result.reason === 'sign-in-required' ? result.reason : 'scanner-unavailable' }
+      }
     }
     // Decoding proves the image is not truncated or corrupted.
     const image = await loadImage(dataUrl)

@@ -16,6 +16,7 @@ import { safeDisplayFileName } from '../src/security/path'
 import { sanitizeSingleLine } from '../src/security/text'
 import { normalizeMediaTags } from '../src/utils/mediaTags'
 import type { MediaAsset } from '../src/types'
+import type { RemoteMedia } from './nativeCloud'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 type StoredAsset = MediaAsset & { storage: 'local' | 'drive'; sha256?: string; driveId?: string; scan: 'clean' }
@@ -24,7 +25,7 @@ const extensions: Record<string, string[]> = { 'audio/mpeg': ['mp3'], 'audio/wav
 class MediaError extends Error { constructor(message: string, readonly status = 400) { super(message) } }
 function json(res: ServerResponse, status: number, value: unknown) { res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(value)) }
 
-export function createMediaLibrary(root: string, env: Record<string, string | undefined>, authenticate: (req: IncomingMessage) => Promise<Session> = accountSession, scanOverride?: (path: string) => Promise<ScanResult>) {
+export function createMediaLibrary(root: string, env: Record<string, string | undefined>, authenticate: (req: IncomingMessage) => Promise<Session> = accountSession, scanOverride?: (path: string) => Promise<ScanResult>, remote?: RemoteMedia) {
   const directory = join(root, '.data', 'media'), files = join(directory, 'files'), quarantine = join(directory, 'quarantine')
   for (const path of [directory, files, quarantine]) mkdirSync(path, { recursive: true, mode: 0o700 })
   const database = new Database(join(directory, 'library.sqlite'))
@@ -72,10 +73,10 @@ export function createMediaLibrary(root: string, env: Record<string, string | un
     let name: string
     try { name = safeDisplayFileName(decodeURIComponent(rawName)) } catch { throw new MediaError('invalid-filename') }
     const declared = req.headers['content-type']?.split(';')[0]
-    const documents: Record<string, string[]> = { 'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['pptx'], 'application/xml': ['xml'], 'text/plain': ['txt', 'md'] }
+    const documents: Record<string, string[]> = { 'application/pdf': ['pdf'], 'application/json': ['json'], 'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['pptx'], 'application/xml': ['xml'], 'text/plain': ['txt', 'md'] }
     const document = Boolean(scanOnly && declared && documents[declared])
     if (!declared || !(extensions[declared] ?? (scanOnly ? documents[declared] : undefined))?.includes(name.split('.').pop()?.toLowerCase() ?? '')) throw new MediaError('unsupported-type')
-    const max = document ? 12 * 1024 * 1024 : declared.startsWith('image/') ? MAX_IMAGE_BYTES : MAX_VIDEO_BYTES
+    const max = document ? 50 * 1024 * 1024 : declared.startsWith('image/') ? MAX_IMAGE_BYTES : MAX_VIDEO_BYTES
     if (Number(req.headers['content-length']) > max) throw new MediaError('file-too-large', 413)
     const id = randomUUID(), pending = join(quarantine, id)
     activeUploads++
@@ -119,11 +120,34 @@ export function createMediaLibrary(root: string, env: Record<string, string | un
     downloads.set(asset.id, download)
     return download
   }
+  async function ensureCached(id: string) {
+    if (!UUID.test(id)) throw new MediaError('media-missing', 404)
+    const existing = find(id)
+    if (existing && existsSync(join(files, id))) return
+    if (existing?.driveId) return cacheDrive(existing)
+    if (!remote) throw new MediaError('media-missing', 404)
+    if (downloads.has(id)) return downloads.get(id)
+    const operation = (async () => {
+      const asset = await remote.lookup(id), pending = join(quarantine, randomUUID()), hash = createHash('sha256'); let bytes = 0
+      try {
+        await pipeline(Readable.from(remote.download(asset)), new Transform({ transform(chunk: Buffer, _encoding, done) {
+          bytes += chunk.length
+          if (bytes > asset.size! || bytes > MAX_VIDEO_BYTES) return done(new MediaError('file-too-large', 413))
+          hash.update(chunk); done(null, chunk)
+        } }), createWriteStream(pending, { flags: 'wx', mode: 0o600 }))
+        if (bytes !== asset.size || hash.digest('hex') !== asset.sha256) throw new MediaError('file-changed', 422)
+        await requireClean(pending)
+        await rename(pending, join(files, id)); save(asset)
+      } finally { await rm(pending, { force: true }) }
+    })().finally(() => downloads.delete(id))
+    downloads.set(id, operation); return operation
+  }
   async function serve(req: IncomingMessage, res: ServerResponse, id: string) {
     if (!UUID.test(id)) throw new MediaError('media-missing', 404)
+    if (!find(id) && remote) await ensureCached(id)
     const asset = find(id)
     if (!asset) throw new MediaError('media-missing', 404)
-    await cacheDrive(asset)
+    await ensureCached(id)
     const file = join(files, id), size = (await stat(file)).size
     let start = 0, end = size - 1
     if (req.headers.range) {
@@ -217,7 +241,7 @@ export function createMediaLibrary(root: string, env: Record<string, string | un
       else res.destroy()
     })
   }
-  return { handle, close: () => database.close() }
+  return { handle, ensureCached, close: () => database.close() }
 }
 
 export function mediaLibrary(environment: Record<string, string> = {}): Plugin {

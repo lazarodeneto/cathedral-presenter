@@ -191,3 +191,18 @@ it('detects Windows and macOS from the native runtime', () => {
     window.cathedralDesktop = previous
   }
 })
+
+describe('AirPlay reconnect history', () => {
+  const old = (id: string, width: number) => ({ id: `display-${id}`, displayId: id, name: 'Samsung AU7175 65 TV (AirPlay)', displayName: 'Samsung AU7175 65 TV (AirPlay)', role: 'audience' as const, status: 'disconnected' as const, width, height: width === 3840 ? 2160 : 1080, fullscreen: true, simulated: false })
+  const active = (id: string): PhysicalDisplay => ({ id, name: 'Samsung AU7175 65 TV (AirPlay)', width: 3840, height: 2160, bounds: {x:1920,y:0,width:1920,height:1080}, scaleFactor: 2, primary:false, operator:false, role:'audience', open:false })
+  it('keeps one history entry when the same label reconnects with new ids and resolutions', () => {
+    expect(reconcilePhysicalDisplays([old('101',1920),old('202',3840),old('303',3840)],[])).toHaveLength(1)
+  })
+  it('replaces old sessions without adding a disconnected duplicate of a current TV', () => {
+    const result = reconcilePhysicalDisplays([old('101',1920),old('202',3840)],[active('404')])
+    expect(result).toHaveLength(1);expect(result[0].status).toBe('ready')
+  })
+  it('preserves multiple active TVs of the same model and removes only repeated OS ids', () => {
+    expect(reconcilePhysicalDisplays([old('101',1920)],[active('404'),active('505'),active('404')]).map((m)=>m.displayId)).toEqual(['404','505'])
+  })
+})

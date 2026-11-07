@@ -18,6 +18,7 @@ export async function accountSession(req: IncomingMessage) {
 export function accountAuth(environment: Record<string, string> = {}): Plugin {
   return {
     name: 'church-presenter-accounts',
+    apply: (_config, env) => env.mode !== 'test',
     configureServer: (server) => installAccounts({ ...server, config: { ...server.config, env: { ...server.config.env, ...environment, ...process.env } as Record<string, string> } }),
     configurePreviewServer: (server) => installAccounts({ ...server, config: { ...server.config, env: { ...server.config.env, ...environment, ...process.env } as Record<string, string> } }),
   }

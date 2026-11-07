@@ -30,12 +30,12 @@ declare global {
   }
 }
 
-/** Preserve disconnected assignments; never replace them with simulated displays. */
+/** Current OS ids stay independent; historical reconnects are grouped by device label. */
 export function reconcilePhysicalDisplays(
   previous: Monitor[],
   displays: PhysicalDisplay[],
 ): Monitor[] {
-  const current = displays.map((display): Monitor => ({
+  const current = [...new Map(displays.map((display) => [display.id, display])).values()].map((display): Monitor => ({
     id: `display-${display.id}`,
     displayId: display.id,
     name: display.name,
@@ -51,11 +51,19 @@ export function reconcilePhysicalDisplays(
     outputOpen: display.open,
   }))
   const connected = new Set(current.map((display) => display.id))
+  const label = (name: string) => name.normalize('NFKC').trim().toLocaleLowerCase().replace(/\s+/g, ' ')
+  const activeNames = new Set(current.map((monitor) => label(monitor.name)))
+  const history = new Map<string, Monitor>()
+  for (const monitor of previous) {
+    const key = label(monitor.name)
+    if (monitor.simulated || connected.has(monitor.id) || activeNames.has(key) || history.has(key)) continue
+    // Resolution and AirPlay session ids can change for one TV. They do not
+    // create additional history entries. Active same-model TVs are kept above.
+    history.set(key, { ...monitor, status: 'disconnected', outputOpen: false })
+  }
   return [
     ...current,
-    ...previous
-      .filter((monitor) => !monitor.simulated && !connected.has(monitor.id))
-      .map((monitor): Monitor => ({ ...monitor, status: 'disconnected', outputOpen: false })),
+    ...history.values(),
   ]
 }
 

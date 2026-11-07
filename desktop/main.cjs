@@ -9,11 +9,20 @@ const { createDisplayManager } = require('./display-manager.cjs')
 const verifying = process.argv.includes('--verify-runtime')
 let BASE = 'http://localhost:4173'
 app.setName('Cathedral Presenter')
+if (app.isPackaged) app.setAsDefaultProtocolClient('cathedral-presenter')
 const profile = process.env.CATHEDRAL_PROFILE_DIR || path.join(app.getPath('appData'), 'Cathedral Presenter')
 mkdirSync(profile, { recursive: true })
 app.setPath('userData', profile)
 if (!app.requestSingleInstanceLock()) app.quit()
 let operator
+app.on('open-url', (event, value) => {
+  event.preventDefault()
+  try {
+    const url = new URL(value)
+    if (url.protocol !== 'cathedral-presenter:' || url.hostname !== 'open' || !['', '/'].includes(url.pathname) || url.search || url.hash || url.username || url.password) return
+    if (operator && !operator.isDestroyed()) { if (operator.isMinimized()) operator.restore(); operator.show(); operator.focus() }
+  } catch { /* Only the fixed open-app link is accepted. */ }
+})
 app.on('second-instance', () => { if (operator && !operator.isDestroyed()) { if (operator.isMinimized()) operator.restore(); operator.show(); operator.focus() } })
 let displays
 let quitting = false

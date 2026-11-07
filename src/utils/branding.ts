@@ -1,7 +1,8 @@
+import { sha256 } from '@noble/hashes/sha2.js'
 import type { Branding, BrandingTheme } from '../types'
 import { sanitizeSingleLine } from '../security/text'
 import { validateImageDataUrl } from '../security/media'
-import { DEFAULT_LOGO_DATA_URL } from '../assets/defaultLogo'
+import { DEFAULT_LOGO_DATA_URL, LEGACY_LOGO_SHA256 } from '../assets/defaultLogo'
 
 export const DEFAULT_THEME: BrandingTheme = {
   primary: '#ececf0',
@@ -10,17 +11,17 @@ export const DEFAULT_THEME: BrandingTheme = {
 }
 
 export const DEFAULT_BRANDING: Branding = {
-  name: 'Campus Algarve',
-  appTitle: 'CATHEDRAL INTL',
+  name: 'Cathedral Presenter',
+  appTitle: 'Cathedral Presenter',
   logoUrl: DEFAULT_LOGO_DATA_URL,
-  logoAsFavicon: true,
+  logoAsFavicon: false,
   theme: DEFAULT_THEME,
 }
 
 export const DEFAULT_BACKGROUND = '#0b0b0c'
 /** Default primary before the graphite theme. Saved branding with this value is migrated to the new default. */
 export const LEGACY_DEFAULT_PRIMARY = '#e5a44f'
-/** Identity defaults before Cathedral INTL. A save still holding them is moved to the new defaults. */
+/** Previous application identity defaults. A save still holding them is moved to the new defaults. */
 export const LEGACY_DEFAULT_NAME = 'Grace Community Church'
 export const LEGACY_DEFAULT_APP_TITLE = 'Church Presenter'
 export const MAX_CHURCH_NAME = 80
@@ -216,9 +217,11 @@ export function normalizeBranding(value: unknown): Branding {
   const storedTitle = sanitizeSingleLine(record.appTitle, MAX_APP_TITLE)
   // Old installs saved the previous placeholder identity; treat it as "use the default".
   const legacyIdentity = storedName === LEGACY_DEFAULT_NAME && (!storedTitle || storedTitle === LEGACY_DEFAULT_APP_TITLE)
-  const name = legacyIdentity ? '' : storedName
-  const appTitle = legacyIdentity || storedTitle === LEGACY_DEFAULT_APP_TITLE ? '' : storedTitle
-  const storedLogo = validateImageDataUrl(record.logoUrl) ? (record.logoUrl as string) : null
+  const name = legacyIdentity || /^campus\s*-?\s*algarve$/i.test(storedName) ? '' : storedName
+  const appTitle = legacyIdentity || (storedTitle === LEGACY_DEFAULT_APP_TITLE || /^cathedral\s+(?:intl\.?|international|internacional)$/i.test(storedTitle)) ? '' : storedTitle
+  const rawLogo = validateImageDataUrl(record.logoUrl) ? (record.logoUrl as string) : null
+  const oldDefaultLogo = rawLogo ? [...sha256(new TextEncoder().encode(rawLogo))].map(n => n.toString(16).padStart(2, '0')).join('') === LEGACY_LOGO_SHA256 : false
+  const storedLogo = oldDefaultLogo ? DEFAULT_LOGO_DATA_URL : rawLogo
   const storedPrimary = normalizeHex(theme.primary)
   const candidate: BrandingTheme = {
     // The old default gold was saved with every branding record; it now means "use the default".
@@ -234,7 +237,7 @@ export function normalizeBranding(value: unknown): Branding {
     // null means the church removed its logo and stays removed; missing or invalid falls back to the
     // default logo, as does the old placeholder identity that never had one.
     logoUrl: storedLogo ?? (record.logoUrl === null && !legacyIdentity ? null : DEFAULT_BRANDING.logoUrl),
-    logoAsFavicon: typeof record.logoAsFavicon === 'boolean' ? record.logoAsFavicon : DEFAULT_BRANDING.logoAsFavicon,
+    logoAsFavicon: storedLogo && storedLogo !== DEFAULT_LOGO_DATA_URL ? record.logoAsFavicon === true : false,
     theme:
       themeErrors.primary || themeErrors.accent || themeErrors.background ? DEFAULT_THEME : candidate,
   }

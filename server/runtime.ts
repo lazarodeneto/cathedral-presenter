@@ -1,4 +1,4 @@
-import { createControllerApi } from './controllerApi'
+import { createLocalServices } from './localServices'
 import { securityHeaders } from './securityHeaders'
 import { createServer } from 'node:http'
 import { createReadStream } from 'node:fs'
@@ -6,9 +6,6 @@ import { stat } from 'node:fs/promises'
 import { resolve, extname, sep } from 'node:path'
 import type { Connect } from 'vite'
 import { installAccounts } from './auth'
-import { createMediaLibrary } from './mediaLibrary'
-import { createOutputRelay } from './outputRelay'
-import { createWorkspace } from './workspace'
 import { letrasGospelMiddleware } from './letrasgospelProxy'
 
 /** Production local server: bundled with the desktop app, with no Vite dependency. */
@@ -30,12 +27,12 @@ export async function startServer(dataRoot: string, staticRoot: string, port = 4
   const actualPort = (server.address() as { port: number }).port
   const environment = { ...process.env, BETTER_AUTH_URL: `http://localhost:${actualPort}` }
   installAccounts({ config: { root: dataRoot, env: environment as Record<string, string> }, middlewares: { use: (handler) => { handlers.push(handler) } }, httpServer: server })
-  const media = createMediaLibrary(dataRoot, environment), relay = createOutputRelay(), workspace = createWorkspace(dataRoot)
+  const services = createLocalServices(dataRoot, environment)
   handlers.push((req, res, next) => {
     if (req.url?.split('?')[0] !== '/api/app-health') return next()
     res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ app: 'church-presenter', production: true }))
-  }, createControllerApi(relay.dispatch), relay.handler, media.handle, workspace.handle, letrasGospelMiddleware)
-  const mime: Record<string, string> = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.mp4': 'video/mp4', '.woff2': 'font/woff2', '.ico': 'image/x-icon' }
+  }, ...services.handlers, letrasGospelMiddleware)
+  const mime: Record<string, string> = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.wasm': 'application/wasm', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.mp4': 'video/mp4', '.woff2': 'font/woff2', '.ico': 'image/x-icon' }
   handlers.push((req, res) => {
     void (async () => {
       if (req.method !== 'GET' && req.method !== 'HEAD') { res.writeHead(405).end(); return }
@@ -59,6 +56,6 @@ export async function startServer(dataRoot: string, staticRoot: string, port = 4
       else createReadStream(file, { start, end }).on('error', () => res.destroy()).pipe(res)
     })().catch(() => { if (!res.headersSent) res.writeHead(404).end() })
   })
-  server.on('close', () => { relay.close(); media.close(); workspace.close() })
+  server.on('close', services.close)
   return server
 }

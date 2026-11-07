@@ -1,4 +1,8 @@
 import { ControllerPairing } from '../components/settings/ControllerPairing'
+import { CloudAccounts } from '../components/settings/CloudAccounts'
+import { CloudInstallations } from '../components/settings/CloudInstallations'
+import { NativeCloudSettings } from '../components/settings/NativeCloudSettings'
+import { isCloud } from '../runtime'
 import { OutputProfileEditor } from '../components/settings/OutputProfileEditor'
 import { WorkspaceRecovery } from '../components/WorkspaceStorage'
 import { HardwareOutputs } from '../components/settings/HardwareOutputs'
@@ -164,12 +168,18 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
       monitors,
       media: mediaLibrary,
       librarySongs: useAppStore.getState().librarySongs,
+      userTemplates: useAppStore.getState().userTemplates,
       mediaTags,
       bibles: customBibles,
       hiddenBibleIds,
       archivedBibleIds,
       deletedBibleIds,
     })
+    if (isCloud) {
+      const url = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }))
+      const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'Cathedral-Presenter-cloud-workspace.json'; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000)
+      updateSettings({ lastBackupAt: new Date().toISOString() }); push(t('cloud.backupReferences'), 'success'); return
+    }
     try {
       const response = await fetch('/api/media/packages/export', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Cathedral-Media': '1' }, body: JSON.stringify(backup) })
       const result = await response.json() as { download?: string; reason?: string }
@@ -209,6 +219,7 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
 
   const importFromFile = async (file: File) => {
     if (useAppStore.getState().live || importing) return
+    if (isCloud && file.name.toLowerCase().endsWith('.zip')) { push(t('cloud.zipNative'), 'error'); return }
     if (file.size > (file.name.toLowerCase().endsWith('.zip') ? 2 * 1024 * 1024 * 1024 : 12 * 1024 * 1024)) {
       push(t('settings.importTooLarge'), 'error')
       return
@@ -221,6 +232,12 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
         if (!response.ok || !result.parsed) throw new Error(result.reason)
         return result.parsed as import('../security/backup').ParsedBackup
       })() : parseBackup(await file.text())
+      if (isCloud && parsed.media) {
+        const response = await fetch('/api/media/library')
+        if (!response.ok) throw new Error('media-missing')
+        const { assets } = await response.json() as { assets: import('../types').MediaAsset[] }
+        parsed.media = parsed.media.map((asset) => assets.find((available) => available.id === asset.id) ?? asset)
+      }
       setImportPreview(parsed)
     } catch (error) {
       push(importErrorMessage(error), 'error')
@@ -368,6 +385,7 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
                   <p>{t(window.cathedralDesktop ? 'hardware.subtitle' : 'settings.outputsSubtitle')}</p>
                 </div>
               </div>
+              {isCloud && <CloudInstallations />}
               <HardwareOutputs />
               <OutputProfileEditor id="broadcast" />
               {!window.cathedralDesktop && <div className="output-list">
@@ -479,9 +497,9 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
                   </span>
                   <div>
                     <strong>{t('settings.dataLocation')}</strong>
-                    <span>{t('home.dataLocationValue')}</span>
+                    <span>{t(isCloud ? 'cloud.dataLocation' : 'home.dataLocationValue')}</span>
                   </div>
-                  <span className="badge badge-quiet">{t('status.storageLocal')}</span>
+                  <span className="badge badge-quiet">{t(isCloud ? 'cloud.online' : 'status.storageLocal')}</span>
                 </div>
                 <div className="data-row">
                   <span className="data-icon">
@@ -501,7 +519,7 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
                 </div>
               </div>
               <WorkspaceRecovery />
-              <ControllerPairing />
+              {isCloud ? <CloudAccounts /> : <><NativeCloudSettings /><ControllerPairing /></>}
               <div className="data-actions">
                 <button className="btn btn-secondary" disabled={Boolean(live) || importing} title={live ? t('workspace.stopLive') : undefined} onClick={() => importInput.current?.click()}>
                   <Upload size={15} />
@@ -518,7 +536,7 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
                 <input
                   ref={importInput}
                   type="file"
-                  accept="application/json,.json,application/zip,.zip"
+                  accept={isCloud ? 'application/json,.json' : 'application/json,.json,application/zip,.zip'}
                   hidden
                   onChange={(event) => {
                     const file = event.target.files?.[0]
@@ -529,7 +547,7 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
               </div>
               <div className="setting-footnote">
                 <ShieldCheck size={14} />
-                {t('settings.backupContents')}
+                {t(isCloud ? 'cloud.backupReferences' : 'settings.backupContents')}
               </div>
               <div className="setting-footnote">
                 <ShieldCheck size={14} />

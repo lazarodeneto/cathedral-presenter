@@ -38,7 +38,7 @@ import {
 import { sanitizeSingleLine, sanitizeText } from '../security/text'
 import { validateImageDataUrl } from '../security/media'
 import { translate } from '../i18n/dictionary'
-import type { ParsedBackup } from '../security/backup'
+import { normalizeUserTemplates, type ParsedBackup } from '../security/backup'
 import { newId } from '../utils/id'
 import { normalizeMediaTags } from '../utils/mediaTags'
 import { webOutputProvider } from '../providers/output/WebOutputProvider'
@@ -137,6 +137,9 @@ interface AppState {
   recentPassages: RecentPassage[]
   recentSongs: string[]
   librarySongs: LibrarySong[]
+  userTemplates: import('../types').UserTemplate[]
+  saveUserTemplate: (template: import('../types').UserTemplate) => boolean
+  removeUserTemplate: (id: string) => void
   /** Version of the installed default library migration. */
   bibleDefaultsVersion: number
   /** Administrator-imported Bibles. Every entry carries its own language. */
@@ -414,6 +417,15 @@ export const useAppStore = create<AppState>()(
         ],
         recentSongs: ['amazing-grace', 'holy-holy-holy', 'come-thou-fount'],
         librarySongs: [],
+        userTemplates: [],
+        saveUserTemplate: (template) => {
+          const previous = get().userTemplates, existing = previous.findIndex((item) => item.id === template.id)
+          const next = existing < 0 ? [...previous, template] : previous.map((item) => item.id === template.id ? template : item)
+          const clean = normalizeUserTemplates(next)
+          if (clean.length !== next.length) return false
+          set({ userTemplates: clean, lastSavedAt: now() }); return true
+        },
+        removeUserTemplate: (id) => set((state) => ({ userTemplates: state.userTemplates.filter((item) => item.id !== id), lastSavedAt: now() })),
         bibleDefaultsVersion: 2,
         customBibles: [],
         hiddenBibleIds: [],
@@ -1850,6 +1862,7 @@ export const useAppStore = create<AppState>()(
               monitors: parsed.monitors ?? state.monitors,
               mediaLibrary: parsed.media ?? state.mediaLibrary,
               librarySongs: parsed.librarySongs ?? state.librarySongs,
+              userTemplates: parsed.userTemplates ?? state.userTemplates,
               mediaTags: parsed.mediaTags ?? state.mediaTags,
               customBibles: parsed.bibles ?? state.customBibles,
               hiddenBibleIds: parsed.hiddenBibleIds ?? state.hiddenBibleIds,
@@ -1895,6 +1908,7 @@ export const useAppStore = create<AppState>()(
             recentPassages: [],
             recentSongs: [],
             librarySongs: [],
+            userTemplates: [],
             customBibles: [],
             hiddenBibleIds: [],
             archivedBibleIds: [],

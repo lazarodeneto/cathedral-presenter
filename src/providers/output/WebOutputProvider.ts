@@ -3,6 +3,8 @@ import type { MonitorRole } from '../../types'
 import { ASPECT_RATIO, outputFormat } from '../../utils/outputFormats'
 import type { OutputProvider, OutputSnapshot } from './OutputProvider'
 import { LocalOutputRelay, type RelayMessage } from './LocalOutputRelay'
+import { CloudOutputRelay } from './CloudOutputRelay'
+import { isCloud } from '../../runtime'
 
 const CHANNEL = 'church-presenter-output-v1'
 const STORAGE_KEY = 'church-presenter:output-snapshot:v1'
@@ -29,8 +31,8 @@ export class WebOutputProvider implements OutputProvider {
   private latest: OutputSnapshot | null = null
   private localSnapshot: OutputSnapshot | null = null
   private sender = crypto.randomUUID()
-  private controller = !window.location.hash.startsWith('#/output/') && !new URLSearchParams(window.location.search).has('recovery')
-  private relay: LocalOutputRelay | null = null
+  private controller = !isCloud && !window.location.hash.startsWith('#/output/') && !new URLSearchParams(window.location.search).has('recovery')
+  private relay: { post(message: object): Promise<boolean>; close(): void } | null = null
   private nativeRequests = new Map<string, (result: Extract<RelayMessage, { type: 'native-response' }>) => void>()
   private remoteDesktop?: DesktopDisplays
   private displayListeners = new Set<(displays: PhysicalDisplay[]) => void>()
@@ -46,7 +48,7 @@ export class WebOutputProvider implements OutputProvider {
     this.controller = true
     this.controllerId = this.sender
     this.channel?.postMessage({ type: 'controller', sender: this.sender })
-    if (snapshot) this.publish(snapshot)
+    if (snapshot && !isCloud) this.publish(snapshot)
     await this.relay?.post({ type: 'claim' })
     if (this.disposed) return
     this.controller = true
@@ -68,7 +70,7 @@ export class WebOutputProvider implements OutputProvider {
     if (!this.relay) return null
     const id = crypto.randomUUID()
     return new Promise((resolve) => {
-      const timeout = setTimeout(() => { this.nativeRequests.delete(id); resolve(null) }, 1800)
+      const timeout = setTimeout(() => { this.nativeRequests.delete(id); resolve(null) }, action === 'cache' ? 300000 : isCloud ? 12000 : 1800)
       this.nativeRequests.set(id, (result) => { clearTimeout(timeout); this.nativeRequests.delete(id); resolve(result) })
       void this.relay!.post({ type: 'native-request', id, action, args })
     })
@@ -99,6 +101,11 @@ export class WebOutputProvider implements OutputProvider {
   private async nativeAction(action = 'prepare', args: string[] = []): Promise<{ status: string; targets?: string[]; result?: unknown }> {
     const desktop = window.cathedralDesktop!
     switch (action) {
+      case 'cache': {
+        if (!/^[0-9a-f-]{36}$/.test(args[0] || '')) return { status: 'blocked' }
+        const response = await fetch(`/api/cloud/cache-media/${args[0]}`, { method: 'POST', headers: { 'X-Cathedral-Cloud': '1' }, signal: AbortSignal.timeout(300000) })
+        return { status: response.ok ? 'ok' : 'blocked' }
+      }
       case 'prepare': return this.nativeAudience()
       case 'list': return { status: 'ok', result: await desktop.listDisplays() }
       case 'assign': return { status: 'ok', result: await desktop.setDisplayRole(args[0], args[1] as MonitorRole) }
@@ -122,7 +129,7 @@ export class WebOutputProvider implements OutputProvider {
     displayIds = displayIds?.filter((id) => this.latest?.displays?.[id]?.source !== 'slide')
     const matches = (id: string) => {
       const connection = this.connections.get(`audience:${id}`)
-      return Boolean(connection && connection.mediaReady !== false && Date.now() - connection.at < 3500 &&
+      return Boolean(connection && connection.mediaReady !== false && Date.now() - connection.at < (isCloud ? 15000 : 3500) &&
         (!slideId || (connection.slideId === slideId && connection.mode === 'live')))
     }
     if (displayIds) return displayIds.length > 0 && displayIds.every(matches)
@@ -130,7 +137,7 @@ export class WebOutputProvider implements OutputProvider {
   }
 
   getMediaFeedback(slideId?: string): import('../../media/playback').MediaFeedback[] {
-    return [...this.connections.entries()].filter(([key, c]) => key.startsWith('audience:') && Date.now() - c.at < 3500 && (!slideId || c.slideId === slideId)).flatMap(([, c]) => c.media ?? [])
+    return [...this.connections.entries()].filter(([key, c]) => key.startsWith('audience:') && Date.now() - c.at < (isCloud ? 15000 : 3500) && (!slideId || c.slideId === slideId)).flatMap(([, c]) => c.media ?? [])
   }
 
   /** A mounted output requests the latest state, including when storage is full. */
@@ -194,7 +201,7 @@ export class WebOutputProvider implements OutputProvider {
           resolve('ready')
         }
         const unsubscribe = this.onConnectionsChanged(check)
-        const timeout = setTimeout(() => { unsubscribe(); resolve('unreachable') }, 8000)
+        const timeout = setTimeout(() => { unsubscribe(); resolve('unreachable') }, isCloud ? 20000 : 8000)
         check()
       })
     } catch {
@@ -219,7 +226,7 @@ export class WebOutputProvider implements OutputProvider {
     }
     if (message?.type === 'controller') {
       this.controllerId = message.sender ?? undefined
-      this.controller = message.sender === this.sender || (!message.sender && !window.location.hash.startsWith('#/output/'))
+      this.controller = message.sender === this.sender || (!isCloud && !message.sender && !window.location.hash.startsWith('#/output/'))
     } else if (message?.type === 'native-request' && typeof message.id === 'string' && window.cathedralDesktop && !window.location.hash.startsWith('#/output/')) {
       void this.nativeAction(message.action, message.args).catch(() => ({ status: 'blocked' })).then((result) => this.relay?.post({ type: 'native-response', id: message.id, platform: window.cathedralDesktop!.platform, ...result }))
     } else if (message?.type === 'native-response' && typeof message.id === 'string') {
@@ -255,7 +262,11 @@ export class WebOutputProvider implements OutputProvider {
       this.channel = new BroadcastChannel(CHANNEL)
       this.channel.onmessage = (event: MessageEvent<ChannelMessage>) => this.receive(event.data)
       if (typeof EventSource !== 'undefined' && !(window.cathedralDesktop && window.location.hash.startsWith('#/output/')))
-        this.relay = new LocalOutputRelay(this.sender, (message) => this.receive(message, true))
+        this.relay = isCloud ? new CloudOutputRelay(this.sender, (message) => this.receive(message, true), () => {
+          this.remoteDesktop = undefined; this.connections.clear(); this.audienceTargets = undefined; this.controller = false; this.controllerId = undefined; this.latest = null
+          for (const listener of this.connectionListeners) listener()
+          void this.discoverDesktop()
+        }) : new LocalOutputRelay(this.sender, (message) => this.receive(message, true))
     }
     return this.channel
   }
@@ -269,6 +280,11 @@ export class WebOutputProvider implements OutputProvider {
     // simulated monitors from local settings instead of pretending to detect
     // physical displays.
     return []
+  }
+
+  async cacheMedia(id: string): Promise<boolean> {
+    if (!isCloud) return true
+    return (await this.requestNative('cache', [id]))?.status === 'ok'
   }
 
   async openOutput(role: Exclude<MonitorRole, 'disabled'>): Promise<boolean> {

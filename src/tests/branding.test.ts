@@ -235,11 +235,11 @@ describe('branding persistence, reset and church isolation', () => {
   })
 })
 
-describe('Cathedral INTL defaults', () => {
+describe('Cathedral Presenter defaults', () => {
   it('moves the old placeholder identity to the new name, title and logo', () => {
     const migrated = normalizeBranding({ name: 'Grace Community Church', appTitle: 'Church Presenter', logoUrl: null })
-    expect(migrated.name).toBe('Campus Algarve')
-    expect(migrated.appTitle).toBe('CATHEDRAL INTL')
+    expect(migrated.name).toBe('Cathedral Presenter')
+    expect(migrated.appTitle).toBe('Cathedral Presenter')
     expect(migrated.logoUrl).toBe(DEFAULT_BRANDING.logoUrl)
   })
 

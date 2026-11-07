@@ -1,4 +1,4 @@
-/* CATHEDRAL INTL — local-first worship presentation workspace */
+/* Cathedral Presenter — local-first worship presentation workspace */
 
 .glass-calendar { position: fixed; inset: auto; margin: 0; width: 304px; max-width: calc(100vw - 16px); padding: 14px; border: 1px solid rgb(var(--wash-rgb) / 0.2); border-radius: var(--rounded-lg); color: var(--text); background: rgb(28 28 34 / 0.92); backdrop-filter: blur(28px) saturate(140%); -webkit-backdrop-filter: blur(28px) saturate(140%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 16px 48px rgb(0 0 0 / 0.5); }
 .glass-calendar-header { display: flex; align-items: center; gap: 4px; margin-bottom: 12px; }
@@ -396,7 +396,7 @@ iframe {
   padding: 18px 20px 14px;
 }
 
-.panel-header h3 {
+.panel-header :is(h2, h3) {
   margin-top: 5px;
   font-family: var(--font-display);
   font-size: 19px;
@@ -5391,7 +5391,7 @@ body:not(.output-mode) select:not([multiple]):not([size]) option {
   min-width: 0;
 }
 
-.template-body h3 {
+.template-body :is(h2, h3) {
   margin-top: 4px;
   font-family: var(--font-display);
   font-size: 18px;
@@ -9743,7 +9743,7 @@ body:not(.output-mode) select:not([multiple]):not([size]) option {
   padding: 15px 15px 10px;
 }
 
-.next-panel .panel-header h3 {
+.next-panel .panel-header :is(h2, h3) {
   margin-top: 0;
   font-size: 18px;
 }
@@ -9822,7 +9822,7 @@ body:not(.output-mode) select:not([multiple]):not([size]) option {
   padding: 12px 13px 9px;
 }
 
-.live-rundown .panel-header h3 {
+.live-rundown .panel-header :is(h2, h3) {
   overflow: hidden;
   margin-top: 0;
   font-size: 16px;
@@ -12783,7 +12783,7 @@ body.reduced-motion .media-shimmer {
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 8px 10px 8px 4px;
+  padding: 10px 16px 10px 20px;
   flex-shrink: 0;
   border-left: 1px solid var(--line);
   background: rgb(var(--wash-rgb) / 0.02);
@@ -12953,7 +12953,7 @@ body.reduced-motion .media-shimmer {
 
   .service-card-actions {
     flex-direction: column;
-    padding: 6px 8px;
+    padding: 10px 14px;
     gap: 1px;
   }
 
@@ -14044,7 +14044,7 @@ body:not(.output-mode) .home-hero {
 }
 
 body:not(.output-mode) .screen-heading h1,
-body:not(.output-mode) .panel-header h3 {
+body:not(.output-mode) .panel-header :is(h2, h3) {
   font-weight: 600;
 }
 
@@ -14439,7 +14439,7 @@ body:not(.output-mode) .screen[data-tone] {
 }
 
 /* Panel headings inside a screen get a short tone bar, so panels read as one section. */
-.screen[data-tone]:not(.home-screen) .panel-header h3::before {
+.screen[data-tone]:not(.home-screen) .panel-header :is(h2, h3)::before {
   display: inline-block;
   width: 4px;
   height: 0.9em;
@@ -16400,7 +16400,7 @@ body:not(.output-mode) .topbar {
     flex-direction: row;
     flex-wrap: wrap;
     gap: 2px 4px;
-    padding: 6px 10px;
+    padding: 10px 16px;
     border-top: 1px solid var(--line);
     border-left: 0;
   }
@@ -17304,7 +17304,7 @@ body:not(.output-mode) .output-status-action.is-go:disabled .output-status-go-ic
   }
 }
 
-/* Logos are round marks (the default Cathedral INTL logo is a circle with a
+/* Logos are round marks (the default Cathedral Presenter logo is a circle with a
    transparent outside): show them as circles with no tile behind them. */
 .brand-mark.has-logo {
   border: 0;
@@ -17576,7 +17576,7 @@ body:not(.output-mode) .template-body {
   gap: 14px;
 }
 
-.template-body h3 {
+.template-body :is(h2, h3) {
   line-height: 1.2;
   text-wrap: balance;
 }
@@ -20034,7 +20034,7 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
   font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 960px) {
   .bm-layout {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
@@ -20046,10 +20046,10 @@ body:not(.output-mode) .app-shell.is-nav-collapsed .nav-item[data-tone]:not(.is-
 
 /* The book and chapter panels use the full available height; translation
    controls sit above the preview rather than above the whole workspace. */
-@media (min-width: 1181px) {
+@media (min-width: 961px) {
   .bible-mode-screen {
     display: grid;
-    grid-template-columns: minmax(360px, 1.35fr) minmax(220px, 0.8fr) minmax(320px, 1.15fr);
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.8fr) minmax(0, 1.15fr);
     grid-template-rows: auto minmax(0, 1fr);
     gap: 10px 14px;
   }
@@ -20378,7 +20378,7 @@ body:not(.output-mode) .bible-screen :is(.bible-selector-grid > :nth-child(n + 4
 .bm-reference-line { display: inline-block; max-width: none; white-space: nowrap; }
 .bible-preview .bible-add { position: sticky; bottom: 0; z-index: 2; background: var(--surface-solid); }
 .bible-preview .panel-header { padding-top: 12px; padding-bottom: 10px; }
-.bible-preview .panel-header h3 { font-size: 16px; }
+.bible-preview .panel-header :is(h2, h3) { font-size: 16px; }
 .bible-preview-source { padding-bottom: 8px; }
 
 /* Live media controls stay on the operator; a frozen output holds motion. */
@@ -20456,8 +20456,67 @@ body.output-mode:has(.output-window.is-lower-third), .output-root:has(.output-wi
 .controller-pairing > .btn, .controller-pairing > .form-stack { margin-top: 12px; }
 
 .import-text-preview { max-height: 220px; overflow: auto; padding: 14px; border: 1px solid var(--line); border-radius: var(--rounded-sm); white-space: pre-wrap; }
+.cloud-settings-section { display: grid; gap: 16px; padding-block: 20px; border-block-start: 1px solid var(--line); min-width: 0; }
+.cloud-settings-section h3 { display: flex; align-items: center; gap: 8px; margin: 0; }
+.cloud-invitation-form { display: grid; grid-template-columns: minmax(140px, 1fr) minmax(120px, .6fr); gap: 12px; align-items: end; }
+.cloud-invitation-form > button { grid-column: 1 / -1; justify-self: start; min-height: 44px; }
+.cloud-copy-row { display: flex; gap: 8px; min-width: 0; }
+.cloud-copy-row input { flex: 1; min-width: 0; }
+.cloud-upload-progress { display: grid; gap: 8px; min-width: 0; width: 100%; }
+.cloud-upload-progress > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-2); }
+.cloud-upload-progress progress { width: 100%; accent-color: var(--accent); }
+.cloud-account-list { list-style: none; display: grid; gap: 12px; padding: 0; margin: 0; }
+.cloud-account-list li { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: var(--rounded-sm); }
+.cloud-account-list li > div { display: grid; gap: 3px; flex: 1; min-width: 140px; overflow-wrap: anywhere; }
+.cloud-account-list span, .cloud-account-list small { color: var(--text-2); }
+@media (max-width: 600px) { .cloud-invitation-form { grid-template-columns: minmax(0, 1fr); } }
 
 .output-audience.is-text .slide-canvas::before { display: none; }
 
 .drive-client-setup { flex-basis: 100%; min-width: 0; }
 .drive-client-setup .form-stack { padding-block: 12px; }
+.cloud-settings-section { min-width: 0; padding: 20px 0; border-top: 1px solid var(--border); }
+.cloud-settings-section h3 { display: flex; align-items: center; gap: 8px; }
+.cloud-settings-section a { overflow-wrap: anywhere; }
+.cloud-pair-code { padding: 16px; border: 1px solid var(--border); border-radius: 12px; margin-top: 12px; }
+.cloud-pair-code strong { font-size: clamp(20px, 3vw, 28px); letter-spacing: .12em; font-variant-numeric: tabular-nums; }
+.cloud-pair-code p { color: var(--text-muted); font-size: 13px; }
+.native-cloud-safety { display: flex; align-items: center; gap: 10px; padding: 8px 18px; background: #171b24; border-bottom: 1px solid #454956; flex-wrap: wrap; }
+.native-cloud-safety span { flex: 1; min-width: 120px; font-size: 12px; }
+.template-manager { display: grid; gap: 14px; min-width: 0; padding-block: 10px 24px; margin-bottom: 20px; border-bottom: 1px solid var(--line); }
+.template-manager-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.template-manager-head h2 { display: flex; align-items: center; gap: 8px; font-size: 18px; }
+.template-manager-actions { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
+.template-manager-actions .icon-btn { min-width: 40px; min-height: 40px; }
+@media (max-width: 600px) { .template-manager-head .heading-actions { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); } .template-manager-head .btn { white-space: normal; min-height: 44px; padding: 9px; } }
+.calendar-event { text-align: left; }
+.calendar-day-number:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Minimum UI insets: content must not touch a card, control or list border. */
+:root { --ui-inset-inline: 12px; --ui-inset-block: 8px; --ui-card-inset: 16px; }
+body:not(.output-mode) .rundown .rundown-item { padding: var(--ui-inset-block) var(--ui-inset-inline); min-height: 56px; }
+body:not(.output-mode) .rundown .rundown-item-main { min-height: 38px; padding-block: 2px; }
+body:not(.output-mode) .rundown .rundown-copy { min-width: 0; padding-block: 2px; }
+body:not(.output-mode) .rundown .rundown-copy > :is(strong, span) { line-height: 1.45; }
+body:not(.output-mode) .rundown .rundown-slide { padding: var(--ui-inset-block) var(--ui-inset-inline); min-height: 38px; }
+body:not(.output-mode) :is(.template-body,.media-inspector,.settings-section,.bible-preview-source) { padding-inline: max(var(--ui-card-inset), 1em); }
+body:not(.output-mode) :is(.field input,.field textarea,.field select) { padding-inline: var(--ui-inset-inline); }
+body:not(.output-mode) .btn:not(.btn-icon):not(.icon-btn) { padding-inline: max(var(--ui-inset-inline), 0.6em); }
+body:not(.output-mode) :is(.inline-note,.inline-warning,.toast) { padding: var(--ui-inset-block) var(--ui-inset-inline); line-height: 1.5; }
+.output-connection-help ol { display: grid; gap: 12px; padding-inline-start: 24px; color: var(--text-2); line-height: 1.55; }
+.output-connection-help > p { line-height: 1.55; }
+.output-connection-help .output-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.import-slide-previews { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.import-slide-previews > div { min-width: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; aspect-ratio: 16/9; background: #000; }
+.app-name-fit { display: block; width: 100%; min-width: 0; white-space: nowrap; font-family: 'Roboto Condensed Variable','Arial Narrow',sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: .025em; line-height: 1.2; }
+.brand-copy { flex: 1; min-width: 0; }
+.brand-copy strong.app-name-fit { overflow: visible; text-overflow: clip; font-family: 'Roboto Condensed Variable','Arial Narrow',sans-serif; font-weight: 600; letter-spacing: .025em; }
+.login-brand h1 { width: 100%; min-width: 0; }
+.login-brand h1 .app-name-fit { white-space: nowrap; }
+body:not(.output-mode) .bm-book-grid { grid-template-columns: repeat(auto-fill,minmax(48px,1fr)); }
+body:not(.output-mode) .bm-book { padding: 6px 8px; }
+body:not(.output-mode) .bm-number { padding: 8px; }
+body:not(.output-mode) :is(.badge,.source-pill,.status-chip) { padding-inline: 8px; padding-block: 4px; min-height: 24px; line-height: 1.25; }
+body:not(.output-mode) .service-card-main { padding: max(var(--ui-inset-block),12px) max(var(--ui-card-inset),16px); }
+.hardware-history { border-top: 1px solid var(--line); padding-top: 16px; }
+.hardware-history summary { cursor: pointer; color: var(--text-2); }
+.hardware-history ul { padding: 12px 0 0 20px; }

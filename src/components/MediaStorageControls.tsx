@@ -5,6 +5,7 @@ import { useT } from '../i18n/useT'
 import { navigate } from '../hooks/useHashRoute'
 import { syncMediaLibrary } from '../providers/media/library'
 import { useToasts } from '../store/useToasts'
+import { isCloud } from '../runtime'
 
 interface StorageStatus { scanner: { ready: boolean }; drive: { configured: boolean; connected: boolean; canManage: boolean; redirectUri?: string } }
 export function MediaStorageControls({ storage, onStorageChange, uploading }: { storage: 'local' | 'drive'; onStorageChange(value: 'local' | 'drive'): void; uploading: boolean }) {
@@ -14,6 +15,12 @@ export function MediaStorageControls({ storage, onStorageChange, uploading }: { 
   const [reason, setReason] = useState('')
   const [clientId, setClientId] = useState(''), [clientSecret, setClientSecret] = useState('')
   const [busy, setBusy] = useState(false)
+  const [progress, setProgress] = useState<{ name: string; phase: string; percent: number } | null>(null)
+  useEffect(() => {
+    const update = (event: Event) => setProgress((event as CustomEvent).detail)
+    window.addEventListener('cathedral:upload-progress', update)
+    return () => window.removeEventListener('cathedral:upload-progress', update)
+  }, [])
   useEffect(() => {
     let active = true
     const refresh = () => { void fetch('/api/media/status').then(async (response) => {
@@ -43,11 +50,12 @@ export function MediaStorageControls({ storage, onStorageChange, uploading }: { 
     <label className="media-storage-destination">
       {storage === 'local' ? <HardDrive size={17} aria-hidden="true" /> : <Cloud size={17} aria-hidden="true" />}
       <span>{t('storage.title')}</span>
-      <select value={storage} onChange={(event) => onStorageChange(event.target.value as 'local' | 'drive')} disabled={uploading}>
-        <option value="local">{t('storage.local')}</option>
+      <select value={isCloud ? 'drive' : storage} onChange={(event) => onStorageChange(event.target.value as 'local' | 'drive')} disabled={uploading}>
+        {!isCloud && <option value="local">{t('storage.local')}</option>}
         <option value="drive" disabled={!status?.drive.connected}>{t('storage.drive')}</option>
       </select>
     </label>
+    {uploading && progress && <div className="cloud-upload-progress" role="status"><span>{progress.name}</span><strong>{t(progress.phase === 'uploading' ? 'cloud.uploading' : progress.phase === 'publishing' ? 'cloud.savingDrive' : 'cloud.scanPending')}{progress.phase !== 'scanning' ? ` · ${progress.percent}%` : ''}</strong><progress max={100} value={progress.phase === 'scanning' ? undefined : progress.percent} /></div>}
     <span className={`media-storage-protection ${status?.scanner.ready ? 'is-ready' : ''}`} role="status">
       {status?.scanner.ready ? <ShieldCheck size={16} aria-hidden="true" /> : <ShieldAlert size={16} aria-hidden="true" />}
       {t(uploading ? 'storage.scanning' : status?.scanner.ready ? 'storage.protected' : reason === 'sign-in-required' ? 'storage.signIn' : status ? 'storage.scannerUnavailable' : 'storage.checking')}

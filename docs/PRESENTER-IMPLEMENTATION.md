@@ -1,4 +1,4 @@
-# Presenter implementation status — 6 November 2026
+# Presenter implementation status — 7 November 2026
 
 This supersedes the pending statuses in the original readiness review. Implementation is distinct from hardware acceptance and provider authorization.
 
@@ -6,12 +6,14 @@ This supersedes the pending statuses in the original readiness review. Implement
 | --- | --- | --- |
 | Media and audio | Shared play/pause/seek/volume/loop, foreground audio, silent backgrounds, audio files, end actions, render readiness, frozen frame and transport | Automated clock/freeze tests; real 38-second MOV loaded and inserted. Physical audio-device rehearsal remains. |
 | Backup and readiness | Portable ZIP with original media, songs, imported Bibles, checksums, antivirus restore, review before replacing services, new media IDs, disk checks and Present preflight | Server tests cover original bytes, remapping, infected atomic refusal and traversal. Internet-dependent links remain online resources. |
-| Shared installation | SQLite WAL workspace, optimistic conflict protection, 100 revisions, browser migration snapshot, recovery UI | Persistence/restart/conflict tests. Shared by local installation, not isolated per account or synchronized between computers. |
+| Shared installation | SQLite WAL workspace, optimistic conflict protection, 100 revisions, browser migration snapshot, recovery UI | Persistence/restart/conflict tests. Local installation remains shared. Cloud adds authenticated shared revisions and explicit native offline downloads; see the Netlify guide. |
 | Desktop runtime | Standalone bundled backend, native outputs, bounded output crash/load recovery, operator recovery, isolated native dependency packaging | Unsigned macOS arm64 app launched with renderer and database ready. Windows cross-build refused: native SQLite requires a Windows runner. GitHub validation passed on macOS arm64 and Windows x64: tests, target-native packaging, clean-profile startup and portable unsigned ZIP artifacts. [Validation run](https://github.com/lazarodeneto/church-presenter/actions/runs/42294726910). The workflow uses pinned Node 24 actions. |
 | Outputs and stage | Independent pinned slides, follow-live profiles, full/text/lower-third, safe margins, persistent backgrounds, layer clearing, private stage messages/countdown | Routing/privacy tests. Native OS detection currently reports only HP 527sh; Samsung physical retest awaits reconnection. Four-display hardware test remains. |
-| Operator workflow | Countdown toolbar, arrangements, OpenLyrics, text-only PPTX/plain-text import, cues, timed advance/loop, paired local controller API | Import bounds, controller permissions and cue atomicity tests. PPTX visual fidelity is not preserved. |
+| Operator workflow | Countdown toolbar, arrangements, OpenLyrics, visual PDF/PPTX/image import, optional text-only PPTX/plain-text import, cues, timed advance/loop, paired local controller API | Import bounds, controller permissions and cue atomicity tests. Visual imports preserve rendered pages; fonts may substitute and animations/embedded playback are not retained. |
 | Requested UI/content | Responsive video selectors, icon buttons for layer order, single-line Bible references, standard book typography, language flags, one-Bible default, tags and renaming, photographic soft-motion templates, supplied login video | Browser checks include a 274px inspector without clipped playback selections. Worship photograph shows both arms raised. |
 | Local/cloud media | Authenticated shared library, signatures and ClamAV, shared church Drive client setup with encrypted secrets, PKCE authorization and offline cache | Real local video confirmed. Google client/account authorization still required; protocol tests do not establish a live Google connection. |
+
+New cloud, import, template, branding and accessibility validation is documented in the [full audit](../FULL-AUDIT-REPORT.md). Historical desktop validation above predates this release; validate each new release on both runners.
 
 ## Release gates
 

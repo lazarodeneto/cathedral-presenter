@@ -1,0 +1,4 @@
+# Cathedral Presenter is a private application, not a public content website.
+# Authentication protects data; robots directives only control discovery.
+User-agent: *
+Disallow: /

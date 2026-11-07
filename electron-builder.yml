@@ -31,3 +31,6 @@ nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
+protocols:
+  - name: Cathedral Presenter
+    schemes: [cathedral-presenter]

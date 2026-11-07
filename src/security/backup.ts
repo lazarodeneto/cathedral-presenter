@@ -21,6 +21,7 @@ import type {
   SlideItem,
   SlideKind,
   TextAlign,
+  UserTemplate,
 } from '../types'
 import { LOCALES } from '../types'
 import { BACKGROUND_PRESETS } from '../data/templates'
@@ -73,6 +74,7 @@ export interface BackupData {
   media: Omit<MediaAsset, 'source'>[]
   mediaTags?: string[]
   librarySongs?: LibrarySong[]
+  userTemplates?: UserTemplate[]
   bibles: CustomBibleTranslation[]
   hiddenBibleIds?: string[]
   archivedBibleIds?: string[]
@@ -87,6 +89,7 @@ export function buildBackup(input: {
   media: MediaAsset[]
   mediaTags?: string[]
   librarySongs?: LibrarySong[]
+  userTemplates?: UserTemplate[]
   bibles?: CustomBibleTranslation[]
   hiddenBibleIds?: string[]
   archivedBibleIds?: string[]
@@ -107,6 +110,7 @@ export function buildBackup(input: {
     media,
     mediaTags: normalizeMediaTags(input.mediaTags),
     librarySongs: input.librarySongs ?? [],
+    userTemplates: normalizeUserTemplates(input.userTemplates ?? []),
     bibles: sanitizeCustomBibleTranslations(input.bibles ?? []),
     hiddenBibleIds: input.hiddenBibleIds ?? [],
     archivedBibleIds: input.archivedBibleIds ?? [],
@@ -117,6 +121,7 @@ export function buildBackup(input: {
 export interface ParsedBackup {
   services: Service[]
   librarySongs?: LibrarySong[] | null
+  userTemplates?: UserTemplate[] | null
   settings: AppSettings | null
   branding: Branding | null
   monitors: Monitor[] | null
@@ -271,7 +276,7 @@ function normalizeElement(value: unknown, seen: Set<string>): SlideElement | nul
     visible: bool(record.visible, true),
     text: record.text === undefined ? undefined : str(record.text, 12_000),
     source:
-      typeof record.source === 'string' && (isCinematicAsset(record.source) || /^(https:|blob:|\/api\/media\/files\/[0-9a-f-]{36}$|data:image\/(?:png|jpeg|webp|gif|avif);base64,)/i.test(record.source))
+      typeof record.source === 'string' && (isCinematicAsset(record.source) || /^\/api\/media\/files\/[0-9a-f-]{36}$/i.test(record.source) || validateImageDataUrl(record.source, 5_000_000) || validateMediaUrl(record.source, type === 'video' ? 'video' : type === 'audio' ? 'audio' : 'image').ok)
         ? record.source.slice(0, 5_000_000)
         : undefined,
     settings: {
@@ -468,6 +473,22 @@ function normalizeSettings(value: unknown, translationIds: Set<string>): AppSett
   }
 }
 
+export function normalizeUserTemplates(value: unknown): UserTemplate[] {
+  if (!Array.isArray(value)) return []
+  const result: UserTemplate[] = [], ids = new Set<string>(); let bytes = 0
+  for (const raw of value.slice(0, 75)) {
+    const entry = obj(raw)
+    if (!entry || !Array.isArray(entry.slides) || !oneLine(entry.name, 120)) continue
+    const seen = new Set<string>(), slides = entry.slides.slice(0, 20).map((slide) => normalizeSlide(slide, seen)).filter((slide): slide is Slide => Boolean(slide))
+    if (!slides.length) continue
+    const template: UserTemplate = { id: safeId(entry.id, 'template', ids), name: oneLine(entry.name, 120), description: str(entry.description, 600), category: allowed(entry.category, ['Scripture','Worship','Announcement','Message','Service','Blank'], 'Service'), slides, createdAt: oneLine(entry.createdAt, 40) || new Date().toISOString(), updatedAt: oneLine(entry.updatedAt, 40) || new Date().toISOString() }
+    bytes += JSON.stringify(template).length
+    if (bytes > 8 * 1024 * 1024) break
+    result.push(template)
+  }
+  return result
+}
+
 export function parseBackup(raw: string): ParsedBackup {
   if (raw.length > MAX_BACKUP_BYTES) throw new Error('backup-too-large')
   let parsed: unknown
@@ -517,6 +538,7 @@ export function parseBackup(raw: string): ParsedBackup {
 
   return {
     services,
+    userTemplates: Array.isArray(root.userTemplates) ? normalizeUserTemplates(root.userTemplates) : null,
     librarySongs: Array.isArray(root.librarySongs) ? root.librarySongs.slice(0, 3000).flatMap((entry) => {
       const song = obj(entry)
       if (!song || !oneLine(song.title, 200) || !str(song.lyrics, 60000)) return []

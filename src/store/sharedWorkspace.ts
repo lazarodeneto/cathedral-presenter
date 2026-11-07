@@ -1,10 +1,12 @@
 import { useAppStore, whenBibleTextsSaved } from './useAppStore'
 import { partializeWorkspace, mergeWorkspace } from './workspacePersistence'
+import { loadWorkspaceDocument, saveWorkspaceDocument } from './cloudTransfer'
+import { isCloud } from '../runtime'
+import { preferredLocale } from '../i18n/preferredLocale'
 
 export type WorkspaceStatus = 'loading' | 'saved' | 'saving' | 'offline' | 'conflict'
 let status: WorkspaceStatus = 'loading', revision = 0, current = '', pending = '', applying = false, initialized = false, writing = false
 const listeners = new Set<() => void>()
-const headers = { 'X-Cathedral-Workspace': '1', 'Content-Type': 'application/json' }
 function setStatus(value: WorkspaceStatus) { status = value; for (const listener of listeners) listener() }
 export const workspaceStatus = () => status
 export const onWorkspaceStatus = (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener) } }
@@ -19,21 +21,19 @@ function apply(document: unknown) {
   try {
     const state = useAppStore.getState()
     const merged = mergeWorkspace({ ...(document as object), activeServiceId: state.activeServiceId, selectedItemId: state.selectedItemId, selectedSlideId: state.selectedSlideId, selectedElementId: state.selectedElementId }, state)
-    useAppStore.setState({ ...merged, live: state.live, timers: state.timers, testMonitorId: state.testMonitorId })
+    useAppStore.setState({ ...merged, settings: { ...merged.settings, locale: preferredLocale() ?? state.settings.locale }, live: state.live, timers: state.timers, testMonitorId: state.testMonitorId })
     current = snapshot()
   } finally { applying = false }
 }
 async function load() {
-  const response = await fetch('/api/workspace', { headers, signal: AbortSignal.timeout(6000) })
-  if (!response.ok) throw new Error('workspace-unavailable')
-  return response.json() as Promise<{ revision: number; document: unknown }>
+  return loadWorkspaceDocument(`/api/workspace${isCloud ? `?revision=${revision}` : ''}`)
 }
 async function save() {
   if (writing || !pending || status === 'conflict') return
   writing = true; setStatus('saving')
   const document = pending; pending = ''
   try {
-    const response = await fetch('/api/workspace', { method: 'PUT', headers, body: JSON.stringify({ expectedRevision: revision, document: JSON.parse(document) }), signal: AbortSignal.timeout(10000) })
+    const response = await saveWorkspaceDocument(document, revision)
     if (response.status === 409) { pending ||= document; setStatus('conflict'); return }
     if (!response.ok) throw new Error('workspace-save-failed')
     revision = (await response.json()).revision
@@ -72,15 +72,14 @@ export async function initializeSharedWorkspace() {
   }, 2500)
 }
 export async function resolveWorkspaceConflict(choice: 'installation' | 'local') {
-  const latest = await load(); revision = latest.revision
+  const latest = await loadWorkspaceDocument('/api/workspace'); revision = latest.revision
   if (choice === 'installation') { pending = ''; if (latest.document) apply(latest.document); setStatus('saved') }
   else { pending = snapshot(); setStatus('saving'); await save() }
 }
 export async function restoreWorkspaceRevision(target: number) {
-  const response = await fetch(`/api/workspace/revisions/${target}`, { headers })
-  if (!response.ok) throw new Error('workspace-unavailable')
-  const old = await response.json(); if (!old.document) throw new Error('workspace-missing')
-  apply(old.document); pending = snapshot(); await save()
+  const old = await loadWorkspaceDocument(`/api/workspace/revisions/${target}`); if (!old.document) throw new Error('workspace-missing')
+  const latest = await loadWorkspaceDocument('/api/workspace'); revision = latest.revision
+  apply(old.document); pending = snapshot(); setStatus('saving'); await save()
 }
 
 if (import.meta.hot) import.meta.hot.accept(() => window.location.reload())

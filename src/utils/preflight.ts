@@ -1,4 +1,5 @@
 import type { Service } from '../types'
+import { isCloud } from '../runtime'
 export interface PreflightCheck { key: string; severity: 'ready' | 'warning' | 'error'; detail?: string }
 export async function checkService(service: Service): Promise<PreflightCheck[]> {
   const checks: PreflightCheck[] = []
@@ -17,6 +18,10 @@ export async function checkService(service: Service): Promise<PreflightCheck[]> 
     if (/^https?:/.test(source)) { checks.push({ key: 'internet', severity: navigator.onLine ? 'warning' : 'error', detail: asset.name }); return }
     if (!source.startsWith('data:') && !source.startsWith('/api/media/files/') && !source.startsWith('/media/')) { checks.push({ key: 'missing', severity: 'error', detail: asset.name }); return }
     try {
+      if (isCloud && source.startsWith('/api/media/files/')) {
+        const { webOutputProvider } = await import('../providers/output/WebOutputProvider')
+        if (!await webOutputProvider.cacheMedia(source.split('/').pop()!)) throw new Error('native-cache-unavailable')
+      }
       if (!source.startsWith('data:')) {
         const response = await fetch(source, { method: 'HEAD', signal: AbortSignal.timeout(5000) })
         if (!response.ok) throw new Error('missing')
@@ -43,7 +48,7 @@ export async function checkService(service: Service): Promise<PreflightCheck[]> 
   try {
     const health = await fetch('/api/workspace/health', { headers: { 'X-Cathedral-Workspace': '1' }, signal: AbortSignal.timeout(5000) }).then((r) => { if (!r.ok) throw new Error('storage'); return r.json() })
     checks.push({ key: 'storage', severity: health.writable ? 'ready' : 'error' })
-    if (health.freeBytes < 1024 ** 3) checks.push({ key: 'disk', severity: health.freeBytes < 50 * 1024 ** 2 ? 'error' : 'warning' })
+    if (typeof health.freeBytes === 'number' && Number.isFinite(health.freeBytes) && health.freeBytes < 1024 ** 3) checks.push({ key: 'disk', severity: health.freeBytes < 50 * 1024 ** 2 ? 'error' : 'warning' })
   } catch { checks.push({ key: 'storage', severity: 'warning' }) }
   return checks
 }

@@ -2,6 +2,7 @@ import { Unzip, UnzipInflate } from 'fflate'
 import { sanitizeSingleLine, sanitizeText } from '../security/text'
 import type { LibrarySong } from '../types'
 import { newId } from './id'
+import { isCloud } from '../runtime'
 
 function xml(raw: string) {
   if (raw.length > 2 * 1024 * 1024 || /<!DOCTYPE|<!ENTITY/i.test(raw)) throw new Error('unsafe-document')
@@ -52,8 +53,9 @@ export function importPowerPointText(bytes: Uint8Array): string[] {
 }
 export async function scanPresentation(file: File) {
   const extension = file.name.split('.').pop()?.toLowerCase()
-  const mime = extension === 'pptx' ? 'application/vnd.openxmlformats-officedocument.presentationml.presentation' : extension === 'xml' ? 'application/xml' : 'text/plain'
-  if (file.size > 12 * 1024 * 1024) throw new Error('document-too-large')
+  const mime = extension === 'pdf' ? 'application/pdf' : extension === 'json' ? 'application/json' : extension === 'pptx' ? 'application/vnd.openxmlformats-officedocument.presentationml.presentation' : extension === 'xml' ? 'application/xml' : 'text/plain'
+  if (file.size > 50 * 1024 * 1024) throw new Error('document-too-large')
+  if (isCloud) { const { uploadCloudFile } = await import('../providers/media/cloudUpload'); await uploadCloudFile(file, mime, true); return }
   const response = await fetch('/api/media/scan', { method: 'POST', headers: { 'Content-Type': mime, 'X-File-Name': encodeURIComponent(file.name), 'X-Cathedral-Media': '1' }, body: file })
   if (!response.ok) throw new Error((await response.json()).reason ?? 'scan-failed')
 }

@@ -300,9 +300,9 @@ export function MediaScreen() {
         <section className="media-library panel">
           <div className="panel-header">
             <div>
-              <h3>
+              <h2>
                 {t('mediaSearch.count', { shown: results.length, total: mediaLibrary.length })}
-              </h3>
+              </h2>
             </div>
             <label className="inline-select">
               <span>{t('add.destination')}</span>

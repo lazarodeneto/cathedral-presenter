@@ -527,7 +527,7 @@ export function BibleScreen() {
       </div>
 
       <div className="bible-layout">
-        <aside className="bible-side panel">
+        <aside className="bible-side panel" aria-label={t('bible.localLibrary')}>
           <div className="side-section">
             <span className="eyebrow">{t('bible.localLibrary')}</span>
             <div className="bible-translation-list">
@@ -609,13 +609,13 @@ export function BibleScreen() {
         <section className="bible-results panel">
           <div className="panel-header">
             <div>
-              <h3>
+              <h2>
                 {loading
                   ? t('common.loading')
                   : results.length === 1
                     ? t('bible.resultCountOne')
                     : t('bible.resultCount', { count: results.length })}
-              </h3>
+              </h2>
             </div>
             {loading && <Loader2 size={17} className="spin" />}
           </div>
@@ -648,13 +648,13 @@ export function BibleScreen() {
           </div>
         </section>
 
-        <aside className="bible-preview panel">
+        <aside className="bible-preview panel" aria-label={t('bible.preview')}>
           {selected ? (
             <>
               <div className="panel-header">
                 <div>
                   <span className="eyebrow">{t('bible.preview')}</span>
-                  <h3>{selected.reference}</h3>
+                  <h2>{selected.reference}</h2>
                 </div>
                 <span className="badge badge-amber"><LocaleFlag locale={primaryTranslation.language} size={15} />{selected.translationAbbreviation}</span>
               </div>

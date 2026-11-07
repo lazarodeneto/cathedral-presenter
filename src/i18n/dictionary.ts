@@ -1,5 +1,9 @@
+import { importStrings } from './importStrings'
 import { controlStrings } from './controlStrings'
 import { operationsStrings } from './operationsStrings'
+import { cloudStrings } from './cloudStrings'
+import { auditStrings } from './auditStrings'
+import { templateManagerStrings } from './templateManagerStrings'
 import { routingStrings } from './routingStrings'
 import { preflightStrings } from './preflightStrings'
 import { workspaceStrings } from './workspaceStrings'
@@ -39,7 +43,7 @@ const en: Dict = {
   'home.statInService': 'In this service',
   'common.datePlaceholder': 'DD/MM/YYYY',
   'common.openCalendar': 'Open calendar',
-  'app.name': 'CATHEDRAL INTL',
+  'app.name': 'Cathedral Presenter',
   'app.subtitle': 'Local-first worship presentation',
   'nav.home': 'Home',
   'nav.services': 'Services',
@@ -316,7 +320,7 @@ const en: Dict = {
   'media.url': 'Add URL media',
   'media.urlHint': 'Public HTTPS only. Private networks, credentials, and non-HTTPS URLs are blocked.',
   'media.youtube': 'YouTube embed',
-  'media.youtubeHint': 'Official privacy-enhanced embed only. CATHEDRAL INTL never downloads YouTube media.',
+  'media.youtubeHint': 'Official privacy-enhanced embed only. Cathedral Presenter never downloads YouTube media.',
   'media.qr': 'QR',
   'media.qrHint': 'Generate locally from a validated URL, text, or event.',
   'media.empty': 'No media yet. Upload a file or add a validated URL.',
@@ -514,13 +518,13 @@ const en: Dict = {
   'settings.transition': 'Default transition',
   'settings.transitionDuration': 'Duration',
   'settings.churchName': 'Church name',
-  'settings.churchNamePlaceholder': 'CATHEDRAL INTL',
+  'settings.churchNamePlaceholder': 'Cathedral Presenter',
   'settings.logo': 'Church logo',
   'settings.logoHint': 'PNG, JPEG, WebP, GIF, or AVIF up to 2 MB. SVG is rejected. Leave empty for the default mark.',
   'settings.uploadLogo': 'Upload logo',
   'settings.removeLogo': 'Remove logo',
   'settings.restoreDefault': 'Restore default',
-  'settings.identityFallback': 'An empty name falls back to “CATHEDRAL INTL” and the default mark.',
+  'settings.identityFallback': 'An empty name falls back to “Cathedral Presenter” and the default mark.',
   'settings.identityPreview': 'Header preview',
   'settings.outputsTitle': 'Monitor outputs',
   'settings.outputsSubtitle': 'Assign display roles, run a safe test pattern, and recover connections.',
@@ -550,8 +554,8 @@ const en: Dict = {
   'settings.importSuccess': 'Backup imported.',
   'settings.importError': 'That backup could not be validated.',
   'settings.importTooLarge': 'That backup is larger than 12 MB.',
-  'settings.importInvalidJson': 'That file is not valid JSON. Choose a CATHEDRAL INTL backup.',
-  'settings.importWrongFormat': 'That is not a CATHEDRAL INTL version 1 backup.',
+  'settings.importInvalidJson': 'That file is not valid JSON. Choose a Cathedral Presenter backup.',
+  'settings.importWrongFormat': 'That is not a Cathedral Presenter version 1 backup.',
   'settings.importEmpty': 'That backup does not contain any services.',
   'settings.importReadFailed': 'The backup could not be read. Check file permissions and try again.',
   'settings.backupContents': 'Backups include services, settings, branding, monitor roles, and media metadata. Media files and secrets are not included.',
@@ -1277,7 +1281,6 @@ const pt: Dict = {
   'home.lastBackup': 'Última cópia',
   'home.dataLocation': 'Local dos dados',
   'home.dataLocationValue': 'Armazenamento local do navegador',
-  'home.openCalendar': 'Abrir calendário',
   'calendar.title': 'Calendário de cultos',
   'calendar.subtitle': 'Planear, duplicar e abrir cultos por data.',
   'calendar.month': 'Mês',
@@ -1735,7 +1738,6 @@ const es: Dict = {
   'home.importBackup': 'Importar copia',
   'home.lastBackup': 'Última copia',
   'home.dataLocation': 'Ubicación de datos',
-  'home.openCalendar': 'Abrir calendario',
   'calendar.title': 'Calendario de servicios',
   'calendar.subtitle': 'Planifica, duplica y abre servicios por fecha.',
   'calendar.month': 'Mes',
@@ -3430,8 +3432,10 @@ export const dictionaries: Record<Locale, Dict> = {
 }
 
 for (const locale of Object.keys(dictionaries) as Locale[]) {
-  Object.assign(dictionaries[locale], authStrings[locale], bibleDefaultStrings[locale], hardwareStrings[locale], presentationStrings[locale], storageStrings[locale], playbackStrings[locale], workspaceStrings[locale], preflightStrings[locale], routingStrings[locale], controlStrings[locale], operationsStrings[locale])
+  Object.assign(dictionaries[locale], authStrings[locale], bibleDefaultStrings[locale], hardwareStrings[locale], presentationStrings[locale], storageStrings[locale], playbackStrings[locale], workspaceStrings[locale], preflightStrings[locale], routingStrings[locale], controlStrings[locale], operationsStrings[locale], cloudStrings[locale])
 }
+
+for (const locale of Object.keys(dictionaries) as Locale[]) Object.assign(dictionaries[locale], auditStrings[locale], templateManagerStrings[locale], importStrings[locale])
 
 export function translate(locale: Locale, key: string, vars?: Record<string, string | number>): string {
   const dictionary = dictionaries[locale] ?? dictionaries.en

@@ -1,3 +1,4 @@
+import { AppName } from './AppName'
 import { PanelLeftClose, PanelLeftOpen, Play, RotateCcw, Sparkles } from 'lucide-react'
 import { resetLayoutToDefault } from '../store/layoutReset'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -87,7 +88,7 @@ export function Sidebar({ current }: { current: RouteName }) {
   }
 
   return (
-    <aside className="sidebar">
+    <aside className="sidebar" aria-label={branding.appTitle}>
       {/* Decorative only: shown in an installed window, where the OS draws the real controls. */}
       <div className="window-controls" aria-hidden="true">
         <span />
@@ -97,8 +98,8 @@ export function Sidebar({ current }: { current: RouteName }) {
       <button className="brand" onClick={() => navigate('/home')} aria-label={t('nav.home')}>
         <BrandMark branding={branding} size="md" />
         <span className="brand-copy">
-          <strong>{branding.appTitle}</strong>
-          <span>{branding.name.trim() || t('app.subtitle')}</span>
+          <AppName>{branding.appTitle}</AppName>
+          {branding.name.trim() && branding.name !== branding.appTitle && <span>{branding.name}</span>}
         </span>
       </button>
 

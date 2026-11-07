@@ -1,4 +1,4 @@
-import { workspaceStorage } from './server/workspace'
+import { localServices } from './server/localServices'
 import { readFileSync } from 'node:fs'
 import { loadEnv } from 'vite'
 import { defineConfig } from 'vitest/config'
@@ -6,8 +6,6 @@ import type { Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { accountAuth } from './server/auth'
 import { letrasGospelProxy } from './server/letrasgospelProxy'
-import { outputRelay } from './server/outputRelay'
-import { mediaLibrary } from './server/mediaLibrary'
 import { PRODUCTION_CSP as CSP, securityHeaders } from './server/securityHeaders'
 
 const packageJson = JSON.parse(
@@ -21,7 +19,7 @@ function productionCsp(): Plugin {
     transformIndexHtml(html) {
       return html.replace(
         '</title>',
-        `</title>\n    <meta http-equiv="Content-Security-Policy" content="${CSP}" />`,
+        `</title>\n    <meta http-equiv="Content-Security-Policy" content="${CSP.replace(/; frame-ancestors 'none'/, '')}" />`,
       )
     },
   }
@@ -47,9 +45,7 @@ export default defineConfig({
     productionCsp(),
     letrasGospelProxy(),
     accountAuth(loadEnv(process.env.NODE_ENV ?? 'development', process.cwd(), '')),
-    outputRelay(),
-    mediaLibrary(loadEnv(process.env.NODE_ENV ?? 'development', process.cwd(), '')),
-    workspaceStorage(),
+    localServices(loadEnv(process.env.NODE_ENV ?? 'development', process.cwd(), '')),
   ],
   define: {
     __APP_VERSION__: JSON.stringify(packageJson.version),
@@ -64,7 +60,7 @@ export default defineConfig({
     rolldownOptions: {
       output: {
         codeSplitting: {
-          groups: [{ name: 'vendor', test: /\/node_modules\// }],
+          groups: [{ name: 'vendor', test: /\/node_modules\/(?!pdfjs-dist\/)/ }],
         },
       },
     },

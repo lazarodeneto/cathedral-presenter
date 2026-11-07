@@ -15,6 +15,12 @@ Open [localhost](http://localhost:4173) in a browser on the same computer. Keep 
 
 Sign in to upload/manage media. The first account on a clean installation becomes administrator. There is no universal administrator password. ClamAV and current signatures must be installed before importing files; missing protection blocks imports. Google Drive uses one authorized church account and needs administrator OAuth setup.
 
+## Cloud hosting
+
+The cloud application is hosted at [Cathedral Presenter](https://cathedral-presenter-algarve.netlify.app). Netlify builds the cloud mode; it does not replace the installed engine for physical TV/projector outputs. See the [deployment guide](docs/NETLIFY-DEPLOYMENT.md) for owner enrollment, shared church Drive, antivirus workers, pairing and recovery. Cloud signup requires a private owner bootstrap or administrator invitation.
+
+Import PDF, visual PowerPoint (.pptx), Gamma PDF/PPTX exports and image sequences through Import presentation. Visual imports preserve rendered pages; review fonts and previews before presenting. PowerPoint animations and embedded playback are not reproduced as static slides. Create/import/export reusable layouts in Templates.
+
 ## Verify and build
 
 ```sh
@@ -33,6 +39,7 @@ Packaged apps include the frontend/backend/runtime and store private data in the
 - [Operator guide](docs/OPERATIONS.md): playback, stage timers, cues, portable backup/recovery and local controllers.
 - [Implementation status and remaining gates](docs/PRESENTER-IMPLEMENTATION.md).
 - [Physical displays](docs/DESKTOP-OUTPUTS.md), [media/Drive](docs/MEDIA-STORAGE.md), [accounts](docs/ACCOUNTS.md).
-- [Security audit and fixes](docs/audits/security-2026-11-06.md).
+- [Full audit and verified limits](FULL-AUDIT-REPORT.md), [action plan](ACTION-PLAN.md).
+- [Netlify deployment and cloud operations](docs/NETLIFY-DEPLOYMENT.md).
 
-This is a shared local installation, not an Internet-hosted multi-tenant service. Credentials and user media stay outside Git. Signing/notarization, antivirus provisioning, Google authorization and a full rehearsal on the intended display/audio hardware remain deployment gates. Advanced NDI/SDI, genlock, blending and licensed provider integrations are not implemented.
+The installed runtime provides shared local/offline operation; the Netlify cloud app adds authenticated shared content and paired native control. This is one church workspace, not isolated multi-tenant SaaS. Credentials and user media stay outside Git. Signing/notarization, antivirus provisioning, Google authorization and a full rehearsal on the intended display/audio hardware remain deployment gates. Advanced NDI/SDI, genlock, blending and licensed provider integrations are not implemented.

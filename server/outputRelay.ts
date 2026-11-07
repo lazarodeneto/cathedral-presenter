@@ -15,6 +15,7 @@ export function createOutputRelay() {
   const clients = new Set<ServerResponse>()
   let controller: string | null = null
   let snapshot: unknown = null
+  const publishers = new Set<(message: Record<string, unknown>) => void>()
   const send = (message: unknown) => {
     const event = `data: ${JSON.stringify(message)}\n\n`
     for (const client of clients) {
@@ -68,11 +69,18 @@ export function createOutputRelay() {
           if (!message.snapshot?.audience || !message.snapshot?.confidence) throw new Error('Invalid snapshot')
           if (controller === message.sender) { snapshot = message; send(message) }
         } else if (message.type !== 'claim') send(message)
+        for (const listener of publishers) listener(message)
         res.writeHead(204).end()
       } catch { res.writeHead(400).end() }
     })
   }
-  return { handler, dispatch: send, close: () => { for (const client of clients) client.end(); clients.clear() } }
+  const dispatch = (message: unknown) => {
+    const item = message as { type?: string; sender?: string | null; snapshot?: unknown }
+    if (item.type === 'controller') controller = item.sender ?? null
+    if (item.type === 'snapshot' && item.snapshot) snapshot = message
+    send(message)
+  }
+  return { handler, dispatch, readSnapshot: () => snapshot, onPublish: (listener: (message: Record<string, unknown>) => void) => { publishers.add(listener); return () => { publishers.delete(listener) } }, close: () => { for (const client of clients) client.end(); clients.clear(); publishers.clear() } }
 }
 
 function install(server: { middlewares: { use: (handler: Connect.NextHandleFunction) => unknown }; httpServer?: { once(event: string, listener: () => void): unknown } | null }) {

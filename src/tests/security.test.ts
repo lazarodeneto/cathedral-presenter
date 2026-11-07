@@ -351,6 +351,15 @@ describe('imported element style values', () => {
     media: [],
   })
 
+  it('rejects imported media that targets private hosts, credentials or executable files', () => {
+    const service = createServiceSkeleton({ title: 'Imported', date: '2026-11-01', time: '10:00', locale: 'en' })
+    const sources = ['https://127.0.0.1/private.png', 'https://user:password@example.com/image.png', 'https://example.com/active.svg', 'blob:https://example.com/stale', 'https://example.com/photo.png', '/api/media/files/01234567-0123-4123-8123-0123456789ab']
+    service.items[0].slides[0].elements = sources.map((source, index) => ({ id: `el_${index}`, type: 'image', source, x: 0, y: 0, width: 10, height: 10, zIndex: index, opacity: 1, visible: true }))
+    const elements = parseBackup(JSON.stringify(backupForService(service))).services[0].items[0].slides[0].elements
+    expect(elements.slice(0, 4).every((element) => element.source === undefined)).toBe(true)
+    expect(elements.slice(4).map((element) => element.source)).toEqual(sources.slice(4))
+  })
+
   it('drops CSS that would fetch a remote resource and keeps template fields to known values', () => {
     const service = createServiceSkeleton({ title: 'Imported', date: '2026-11-01', time: '10:00', locale: 'en' })
     service.items[0].slides[0].elements = [

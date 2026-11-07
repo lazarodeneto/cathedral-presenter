@@ -1,6 +1,6 @@
 import { PresentationImport } from '../components/PresentationImport'
 import { useMemo, useState } from 'react'
-import { Archive, ArchiveRestore, CalendarDays, Copy, Pencil, Play, Plus, Search, SlidersHorizontal, Trash2, X } from 'lucide-react'
+import { Archive, ArchiveRestore, CalendarDays, Copy, FolderOpen, Pencil, Plus, Search, SlidersHorizontal, Trash2, X } from 'lucide-react'
 import type { Service } from '../types'
 import { useLocale, useT } from '../i18n/useT'
 import { useAppStore } from '../store/useAppStore'
@@ -10,7 +10,6 @@ import { formatNumericDateTime, formatToolbarDate } from '../utils/dates'
 import { flatSlides } from '../store/serviceUtils'
 import {
   DEFAULT_QUERY,
-  presentationProblem,
   queryServices,
   SERVICE_TYPE_KEYS,
   SERVICE_TYPES,
@@ -168,7 +167,6 @@ export function ServicesScreen() {
         <ul className="services-list" aria-label={t(`culto.view.${query.view}`)}>
           {results.map((service) => {
             const slideCount = flatSlides(service).length
-            const problem = presentationProblem(service)
             return (
               <li key={service.id} className={`service-card panel is-${service.status}`}>
                 <button className="service-card-main" onClick={() => navigate(`/service/${service.id}`)}>
@@ -196,13 +194,12 @@ export function ServicesScreen() {
                 <div className="service-card-actions" role="group" aria-label={t('culto.actionsFor', { title: service.title })}>
                   <button
                     className="btn btn-ghost btn-sm service-card-present"
-                    onClick={() => navigate(`/service/${service.id}/present`)}
-                    disabled={Boolean(problem)}
-                    title={problem ? t(`culto.problem.${problem}`) : `${t('editor.present')}: ${service.title}`}
-                    aria-label={`${t('editor.present')}: ${service.title}`}
+                    onClick={() => navigate(`/service/${service.id}`)}
+                    title={`${t('common.open')}: ${service.title}`}
+                    aria-label={`${t('common.open')}: ${service.title}`}
                   >
-                    <Play size={14} />
-                    {t('editor.present')}
+                    <FolderOpen size={14} />
+                    {t('common.open')}
                   </button>
                   <button className="btn btn-ghost btn-sm" onClick={() => setEditing(service)} aria-label={`${t('culto.editDetails')}: ${service.title}`} title={`${t('culto.editDetails')}: ${service.title}`}>
                     <Pencil size={14} />

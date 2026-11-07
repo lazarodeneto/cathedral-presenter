@@ -15,7 +15,10 @@ export function HardwareOutputs() {
   const [error, setError] = useState(false)
   const desktop = useDesktopDisplays()
   const system = desktop ? desktop.platform === 'darwin' ? 'macOS' : desktop.platform === 'win32' ? 'Windows' : 'Linux' : operatingSystem()
-  const physical = monitors.filter((monitor) => !monitor.simulated)
+  // Only current OS detections are output cards. AirPlay can change ids and
+  // resolutions on reconnect; saved assignments must not masquerade as new TVs.
+  const physical = monitors.filter((monitor) => !monitor.simulated && monitor.status !== 'disconnected')
+  const history = [...new Set(monitors.filter((monitor) => !monitor.simulated && monitor.status === 'disconnected' && !physical.some((current) => current.name === monitor.name)).map((monitor) => monitor.name))]
   if (!desktop)
     return (
       <div className="hardware-browser-note">
@@ -194,6 +197,7 @@ export function HardwareOutputs() {
         ))}
       </div>
       <p className="field-hint">{t('hardware.extended')}</p>
+      {history.length > 0 && <details className="hardware-history"><summary>{t('hardware.history')}</summary><p className="field-hint">{t('hardware.historyHelp')}</p><ul>{history.map((name) => <li key={name}>{name}</li>)}</ul></details>}
     </div>
   )
 }

@@ -1,4 +1,6 @@
 import { WorkspaceGate, WorkspaceNotice } from './components/WorkspaceStorage'
+import { NativeCloudSafety } from './components/settings/NativeCloudSettings'
+import { OutputConnectionDialog } from './components/OutputConnectionDialog'
 import { usePhysicalDisplays } from './hooks/usePhysicalDisplays'
 import { lazy, Suspense, useEffect } from 'react'
 import { SCREEN_META, type ScreenName } from './components/ScreenIcon'
@@ -188,6 +190,7 @@ function App() {
             ? t('nav.home')
             : t(`nav.${route.name}`)
     document.title = `${label} · ${branding.appTitle}`
+    document.documentElement.lang = useAppStore.getState().settings.locale
   }, [activeService, branding.appTitle, isLive, isOutput, route.id, route.name, t])
 
   useEffect(() => {
@@ -257,6 +260,8 @@ function App() {
       <Sidebar current={route.name} />
       <div className="app-main">
         <TopBar route={route} />
+        <NativeCloudSafety />
+        <OutputConnectionDialog />
         <WorkspaceNotice />
         <main className="app-content">
           <ErrorBoundary key={route.name}>

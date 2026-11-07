@@ -8,6 +8,8 @@ import { useT } from '../i18n/useT'
 import { navigate } from '../hooks/useHashRoute'
 import { SlideRenderer } from '../components/SlideRenderer'
 import { SCREEN_META, ScreenIcon } from '../components/ScreenIcon'
+import { TemplateManager } from '../components/TemplateManager'
+import { userTemplateItem } from '../utils/userTemplates'
 
 const categoryIcons: Record<string, LucideIcon> = {
   All: Grid2X2, Scripture: BookOpen, Worship: Music2, Announcement: Megaphone,
@@ -69,6 +71,12 @@ export function TemplatesScreen() {
         </div>
       </div>
 
+      <TemplateManager bases={allTemplates} canAdd={Boolean(activeService)} categoryLabel={categoryLabel} onAdd={(template) => {
+        if (!activeService) return
+        addItem(activeService.id, sectionId || activeService.sections[0]?.id || '', userTemplateItem(template))
+        push(t('templates.added'), 'success'); navigate(`/service/${activeService.id}`)
+      }} />
+
       {!activeService && (
         <div className="inline-note">
           {t('templates.needService')}{' '}
@@ -107,7 +115,7 @@ export function TemplatesScreen() {
             <div className="template-body">
               <div>
                 <span className="eyebrow template-category"><Icon size={14} aria-hidden="true" />{categoryLabel(template.category)}</span>
-                <h3>{template.name}</h3>
+                <h2>{template.name}</h2>
                 <p>{template.description}</p>
               </div>
               <button

@@ -5,6 +5,7 @@ import type { Branding, LibrarySong, MediaAsset, Monitor } from '../types'
 import { LOCALES } from '../types'
 import { BIBLE_TRANSLATIONS } from '../data/bible'
 import { normalizeMediaTags } from '../utils/mediaTags'
+import { normalizeUserTemplates } from '../security/backup'
 
 const bundledIds = new Set(BIBLE_TRANSLATIONS.map((t) => t.id))
 
@@ -199,6 +200,7 @@ export function partializeWorkspace(state: AppState) {
     recentPassages: state.recentPassages,
     recentSongs: state.recentSongs,
     librarySongs: state.librarySongs,
+    userTemplates: state.userTemplates,
     bibleDefaultsVersion: 2,
     customBibles: state.customBibles.map((entry) =>
       isBibleTextStored(entry.translation.id, entry.books) ? { ...entry, books: {} } : entry,
@@ -283,6 +285,7 @@ export function mergeWorkspace(persisted: unknown, current: AppState): AppState 
     recentPassages: sanitizeRecentPassages(value.recentPassages, current.recentPassages, translationIds),
     recentSongs: sanitizeRecentSongs(value.recentSongs, current.recentSongs),
     librarySongs: sanitizeLibrarySongs(value.librarySongs, current.librarySongs),
+    userTemplates: Array.isArray(value.userTemplates) ? normalizeUserTemplates(value.userTemplates) : current.userTemplates,
     bibleDefaultsVersion: 2,
     customBibles,
     hiddenBibleIds: upgradingBibles ? [] : sanitizeHiddenBibleIds(value.hiddenBibleIds),

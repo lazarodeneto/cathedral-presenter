@@ -38,7 +38,7 @@ export function createMediaPackages(directory: string, options: {
     const backup = await readJson(req)
     parseBackup(JSON.stringify(backup))
     const ids = new Set<string>(backup.media.filter((asset) => asset.provider === 'upload').map((asset) => asset.id).filter((id) => UUID.test(id)))
-    for (const match of JSON.stringify(backup.services).matchAll(/\/api\/media\/files\/([0-9a-f-]{36})/gi)) ids.add(match[1])
+    for (const match of JSON.stringify([backup.services, backup.userTemplates ?? []]).matchAll(/\/api\/media\/files\/([0-9a-f-]{36})/gi)) ids.add(match[1])
     const assets: Manifest['assets'] = []; let bytes = 0
     for (const id of ids) {
       const asset = options.find(id)

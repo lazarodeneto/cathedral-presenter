@@ -30,7 +30,7 @@ export function createWorkspace(root: string) {
       const chunks: Buffer[] = []; let bytes = 0
       for await (const chunk of req) { bytes += chunk.length; if (bytes > LIMIT) throw new Error('workspace-too-large'); chunks.push(chunk) }
       const input = JSON.parse(Buffer.concat(chunks).toString())
-      const allowed = new Set(['services', 'otherChurchServices', 'branding', 'brandingProfiles', 'churchId', 'settings', 'mediaLibrary', 'mediaTags', 'recentPassages', 'recentSongs', 'librarySongs', 'bibleDefaultsVersion', 'customBibles', 'hiddenBibleIds', 'archivedBibleIds', 'deletedBibleIds'])
+      const allowed = new Set(['userTemplates', 'services', 'otherChurchServices', 'branding', 'brandingProfiles', 'churchId', 'settings', 'mediaLibrary', 'mediaTags', 'recentPassages', 'recentSongs', 'librarySongs', 'bibleDefaultsVersion', 'customBibles', 'hiddenBibleIds', 'archivedBibleIds', 'deletedBibleIds'])
       const document = input.document && typeof input.document === 'object' ? Object.fromEntries(Object.entries(input.document).filter(([key]) => allowed.has(key))) : null
       if (!Number.isSafeInteger(input.expectedRevision) || !document || typeof document !== 'object' || !Array.isArray(document.services) || !Array.isArray(document.librarySongs) || document.services.length > 1000 || document.librarySongs.length > 5000) throw new Error('invalid-workspace')
       const result = db.transaction(() => {
@@ -45,7 +45,19 @@ export function createWorkspace(root: string) {
       json(res, result === null ? 409 : 200, result === null ? { reason: 'workspace-conflict', revision: read()?.revision ?? 0 } : { revision: result })
     })().catch((error) => { if (!res.headersSent) json(res, error instanceof Error && error.message === 'workspace-too-large' ? 413 : 503, { reason: 'workspace-save-failed' }) })
   }
-  return { handle, close: () => db.close() }
+  return {
+    handle, readCurrent: () => decode(read()),
+    replace(document: unknown, expectedRevision: number) {
+      if (!document || typeof document !== 'object' || !Array.isArray((document as { services?: unknown }).services)) throw new Error('invalid-workspace')
+      const serialized = JSON.stringify(document); if (Buffer.byteLength(serialized) > LIMIT) throw new Error('workspace-too-large')
+      return db.transaction(() => {
+        if ((read()?.revision ?? 0) !== expectedRevision) throw new Error('workspace-conflict')
+        const result = db.prepare('INSERT INTO revisions(createdAt,document) VALUES (?,?)').run(new Date().toISOString(), gzipSync(serialized))
+        db.prepare('DELETE FROM revisions WHERE revision NOT IN (SELECT revision FROM revisions ORDER BY revision DESC LIMIT 100)').run()
+        return Number(result.lastInsertRowid)
+      })()
+    }, close: () => db.close(),
+  }
 }
 
 export function workspaceStorage(): Plugin {

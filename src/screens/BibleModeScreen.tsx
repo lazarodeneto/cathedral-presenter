@@ -1,3 +1,4 @@
+import { showOutputConnection } from '../components/OutputConnectionDialog'
 import { BibleReference } from '../components/BibleReference'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowLeft, BookOpen, Eraser, Languages, MonitorPlay, Radio, ScrollText } from 'lucide-react'
@@ -156,8 +157,7 @@ export function BibleModeScreen() {
     try {
       const result = await webOutputProvider.prepareAudience()
       if (result !== 'ready') {
-        push(t(`presentation.${result}`), 'error')
-        if (result === 'chooseDisplays') navigate('/settings/outputs')
+        showOutputConnection(result)
         return
       }
       if (!useAppStore.getState().live && !startLive(startService.id, flatSlides(startService)[0].slide.id)) {
@@ -406,7 +406,7 @@ export function BibleModeScreen() {
                   messageVisible={Boolean(visibleScripture && live?.messageVisible && live.message)}
                 />
               ) : (
-                <div className="bm-preview-empty" aria-label={t(pick.chapter === null ? 'biblemode.pickChapter' : 'biblemode.pickVerse')} />
+                <div className="bm-preview-empty" role="img" aria-label={t(pick.chapter === null ? 'biblemode.pickChapter' : 'biblemode.pickVerse')} />
               )}
               {visibleScripture && audienceConfirmed && (
                 <span className="bm-on-screen">

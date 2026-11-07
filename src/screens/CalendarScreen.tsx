@@ -200,7 +200,7 @@ export function CalendarScreen() {
                   const isTodayCell = iso === today
                   const isHighlightedWeekday = isDateOnWeekday(iso, highlightWeekday)
                   return (
-                    <button
+                    <div
                       key={iso}
                       className={`calendar-cell ${outside ? 'is-outside' : ''} ${
                         selectedDate === iso ? 'is-selected' : ''
@@ -208,13 +208,15 @@ export function CalendarScreen() {
                         isHighlightedWeekday ? 'is-highlighted-weekday' : ''
                       }`}
                       onClick={() => pickDate(iso)}
-                      onDoubleClick={() => createOn(iso)}
+                      role="group"
+                      aria-label={formatLongDate(iso, locale)}
                     >
-                      <span className="calendar-day-number">{date.getDate()}</span>
+                      <button type="button" className="calendar-day-number" aria-label={formatLongDate(iso, locale)} onDoubleClick={() => createOn(iso)}>{date.getDate()}</button>
                       <span className="calendar-events">
                         {entries.slice(0, 2).map((service) => (
-                          <span
+                          <button type="button"
                             key={service.id}
+                            aria-label={`${service.title} · ${formatTime(service.time, locale)}`}
                             className={`calendar-event event-${(service.eventType || 'service').toLowerCase().replace(/\s+/g, '-')}`}
                             onClick={(event) => {
                               event.stopPropagation()
@@ -223,34 +225,25 @@ export function CalendarScreen() {
                           >
                             <span className="calendar-event-time">{formatTime(service.time, locale)}</span>
                             <span className="calendar-event-title">{service.title}</span>
-                          </span>
+                          </button>
                         ))}
                         {entries.length > 2 && (
                           <span className="calendar-more">+{entries.length - 2}</span>
                         )}
                         {entries.length === 0 && (
-                          <span
+                          <button type="button"
                             className="calendar-add-service"
-                            role="button"
-                            tabIndex={0}
                             aria-label={t('calendar.createOnDate', { date: formatLongDate(iso, locale) })}
                             onClick={(event) => {
                               event.stopPropagation()
                               createOn(iso)
                             }}
-                            onKeyDown={(event) => {
-                              if (event.key === 'Enter' || event.key === ' ') {
-                                event.preventDefault()
-                                event.stopPropagation()
-                                createOn(iso)
-                              }
-                            }}
                           >
                             <Plus size={16} aria-hidden="true" />
-                          </span>
+                          </button>
                         )}
                       </span>
-                    </button>
+                    </div>
                   )
                 })}
               </div>

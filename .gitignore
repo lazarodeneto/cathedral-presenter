@@ -20,7 +20,12 @@ test-results/
 
 # Generated desktop runtime and installers
 desktop/build/
+worker/build/
 release/
+.netlify/
+.firecrawl/
 
 # Detailed local audit working copy (sanitized report is in docs/audits)
 security_best_practices_report.md
+
+public/pdfjs/

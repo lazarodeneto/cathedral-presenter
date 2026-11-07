@@ -1,0 +1,18 @@
+services:
+  scanner:
+    build:
+      context: ..
+      dockerfile: worker/Dockerfile
+    restart: unless-stopped
+    environment:
+      CATHEDRAL_CLOUD_ORIGIN: ${CATHEDRAL_CLOUD_ORIGIN:?Set the deployed site URL}
+      CATHEDRAL_WORKER_TOKEN: ${CATHEDRAL_WORKER_TOKEN:?Set the private scanner token}
+    volumes:
+      - scanner-data:/data
+      - scanner-signatures:/var/lib/clamav
+    read_only: true
+    tmpfs:
+      - /tmp
+volumes:
+  scanner-data:
+  scanner-signatures:

@@ -30,6 +30,7 @@ export function mediaError(reason: string | undefined, t: (key: string) => strin
   if (reason === 'virus-detected') return t('storage.virusDetected')
   if (reason === 'scanner-unavailable') return t('storage.scannerUnavailable')
   if (reason === 'sign-in-required') return t('storage.signIn')
+  if (reason === 'scan-pending') return t('cloud.scanPending')
   if (reason === 'media-service-unavailable' || reason?.startsWith('drive-')) return t('storage.failed')
   switch (reason) {
     case 'file-too-large':

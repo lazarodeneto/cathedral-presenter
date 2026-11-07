@@ -1,4 +1,5 @@
 import { checkService, type PreflightCheck } from '../utils/preflight'
+import { showOutputConnection } from '../components/OutputConnectionDialog'
 import { PreflightDialog } from '../components/editor/PreflightDialog'
 import { MediaPlaybackSettings } from '../components/editor/MediaPlaybackSettings'
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
@@ -536,8 +537,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
       setPreflight(null)
       const result = await webOutputProvider.prepareAudience()
       if (result !== 'ready') {
-        push(t(`presentation.${result}`), 'error')
-        if (result === 'chooseDisplays') navigate('/settings/outputs')
+        showOutputConnection(result)
         return
       }
       if (useAppStore.getState().live?.serviceId === service.id) jumpLive(activeSlide.id)
@@ -2011,7 +2011,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                 )}
                 {selectedElement.type === 'qr' && (
                   <div className="inline-note">
-                    {selectedElement.settings?.variant ?? 'text'} · {(selectedElement.settings?.payload ?? selectedElement.text ?? '').length} chars
+                    {t('editor.characters', { count: (selectedElement.settings?.payload ?? selectedElement.text ?? '').length })}
                   </div>
                 )}
                 {selectedElement.type === 'embed' && (

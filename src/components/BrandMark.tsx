@@ -8,7 +8,7 @@ export function BrandMark({
   branding: Pick<Branding, 'name' | 'logoUrl'>
   size?: 'sm' | 'md' | 'lg' | 'xl'
 }) {
-  const label = branding.name.trim() || 'CATHEDRAL INTL'
+  const label = branding.name.trim() || 'Cathedral Presenter'
   const initials = label
     .split(/\s+/)
     .slice(0, 2)

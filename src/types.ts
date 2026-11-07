@@ -490,6 +490,16 @@ export interface LibrarySong {
   updatedAt: string
 }
 
+export interface UserTemplate {
+  id: string
+  name: string
+  description: string
+  category: string
+  slides: Slide[]
+  createdAt: string
+  updatedAt: string
+}
+
 export interface SlideTemplate {
   id: string
   name: string

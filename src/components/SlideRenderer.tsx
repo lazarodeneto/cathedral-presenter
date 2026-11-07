@@ -841,7 +841,7 @@ export function SlideRenderer({
           ) : (
             <>
               <span className="eyebrow slide-eyebrow">
-                {branding.name.trim() || 'CATHEDRAL INTL'}
+                {branding.name.trim() || 'Cathedral Presenter'}
               </span>
               <h1 style={slideTextStyle(slide)}>{titleHeadline}</h1>
               {titleSub && <p>{titleSub}</p>}
