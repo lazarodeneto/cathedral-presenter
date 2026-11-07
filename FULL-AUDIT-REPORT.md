@@ -12,7 +12,7 @@ The principal remaining issues are external service authorization, hardware acce
 
 | Check | Observed result |
 | --- | --- |
-| Application tests, including real PostgreSQL integration in an isolated temporary schema | 68 files, **436 tests passed**; all integration tests enabled |
+| Application tests, including real PostgreSQL integration in an isolated temporary schema | 69 files, **439 tests passed**; all integration tests enabled |
 | TypeScript, ESLint, translation audit, local build and worker build | Passed |
 | Dependency audit | **0 known vulnerabilities** at audit time; this does not establish absence of exploitable flaws |
 | Translation coverage | Seven locales, 1,806 dictionary keys, 1,027 literal translation call keys, no missing keys or placeholder errors |
@@ -39,6 +39,7 @@ Severity describes application impact; confidence is Confirmed, Likely or Hypoth
 | Drive boundary | High, fixed | Confirmed | Files placed directly in Drive must not be treated as scanned | Only known matching scanned files are refreshed; encrypted server-side OAuth data, PKCE, user-bound one-use state and resumable upload recovery |
 | API boundaries | High, fixed | Confirmed | Public hosting introduces CSRF, role, quota and durable-rate-limit boundaries | Exact-origin checks, bounded bodies, durable rate limits, serialized upload quotas, explicit installation capabilities, parameterized SQL and conservative error responses |
 | Import safety | High, fixed | Confirmed | Office external relationships, malformed archives and private-network media references can cross trust boundaries | ZIP/XML bounds, reject external media relationships and entities, fresh restricted LibreOffice profile, scan original and generated PDF, validated public media URLs, executable media and stale blob references removed |
+| Library persistence | High, fixed | Confirmed | Adding a song or Bible reloaded before the shared workspace save completed, discarding the new item on reload | Flush the latest workspace before reload; stop on offline/conflict and keep the item in memory; regression tests cover Bible text, song data, failed saves and reverted changes |
 | Workspace integrity | High, fixed | Confirmed | Concurrent operators and partial uploads could overwrite durable content | Optimistic revisions, immutable bounded chunks, checksums, 100-version recovery history and explicit conflict handling; PostgreSQL and restart tests |
 | Native control | High, mitigated | Confirmed | A public browser cannot enumerate or own OS display windows | Outbound paired native runtime, short-lived pairing codes, scoped hashed installation tokens, restricted native commands, local emergency black and revocation tests. No arbitrary remote IPC or LAN listener added |
 | Local backend | Medium, fixed | Confirmed | Local conversion/static serving needs same-origin controls and correct PDF worker MIME types | Loopback host/origin/header checks, signed-in conversions, private temp files, correct JavaScript/WASM types and complete bounded reads |

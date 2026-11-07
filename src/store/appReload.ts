@@ -1,5 +1,8 @@
 import type { Toast } from '../types'
 import { useAppStore, whenBibleTextsSaved } from './useAppStore'
+import { flushSharedWorkspace, workspaceStatus } from './sharedWorkspace'
+import { useToasts } from './useToasts'
+import { translate } from '../i18n/dictionary'
 
 const FLASH_KEY = 'church-presenter:after-reload'
 const FOCUS_KEY = 'church-presenter:after-reload-focus'
@@ -30,6 +33,11 @@ export async function reloadAfterAdd(
 ): Promise<void> {
   useAppStore.getState().saveNow()
   await whenBibleTextsSaved()
+  if (!await flushSharedWorkspace()) {
+    const key = workspaceStatus() === 'conflict' ? 'workspace.conflict' : 'workspace.offline'
+    useToasts.getState().push(translate(useAppStore.getState().settings.locale, key), 'error')
+    return
+  }
   try {
     sessionStorage.setItem(FLASH_KEY, JSON.stringify({ message, tone } satisfies Flash))
     if (focus) sessionStorage.setItem(FOCUS_KEY, JSON.stringify(focus))

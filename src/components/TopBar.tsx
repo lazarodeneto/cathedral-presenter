@@ -1,4 +1,5 @@
 import { onWorkspaceStatus, workspaceStatus } from '../store/sharedWorkspace'
+import { isCloud } from '../runtime'
 import { AccountMenu } from './AccountMenu'
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { CalendarDays, Check, Clock3, Search, TriangleAlert, X } from 'lucide-react'
@@ -221,13 +222,13 @@ export function TopBar({ route }: { route: Route }) {
           <span
             className="topbar-status"
             title={
-              lastSavedAt
+              isCloud ? t(sharedStatus === 'saved' ? 'cloud.workspaceSaved' : sharedStatus === 'saving' ? 'workspace.saving' : sharedStatus === 'conflict' ? 'cloud.workspaceConflict' : 'cloud.workspaceOffline') : lastSavedAt
                 ? `${t('status.storageLocal')} · ${formatClock(locale, new Date(lastSavedAt))}`
                 : t('status.storageLocal')
             }
           >
             <Check size={14} strokeWidth={2.4} aria-hidden="true" />
-            {t(sharedStatus === 'saved' ? 'workspace.saved' : sharedStatus === 'saving' ? 'workspace.saving' : 'status.storageLocal')}
+            {t(sharedStatus === 'saved' ? (isCloud ? 'cloud.workspaceSaved' : 'workspace.saved') : sharedStatus === 'saving' ? 'workspace.saving' : isCloud ? (sharedStatus === 'conflict' ? 'cloud.workspaceConflict' : 'cloud.workspaceOffline') : 'status.storageLocal')}
           </span>
           <span className="topbar-clock">
             <Clock3 size={14} aria-hidden="true" />

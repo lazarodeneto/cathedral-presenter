@@ -5,7 +5,7 @@ import { isCloud } from '../runtime'
 import { preferredLocale } from '../i18n/preferredLocale'
 
 export type WorkspaceStatus = 'loading' | 'saved' | 'saving' | 'offline' | 'conflict'
-let status: WorkspaceStatus = 'loading', revision = 0, current = '', pending = '', applying = false, initialized = false, writing = false
+let status: WorkspaceStatus = 'loading', revision = 0, current = '', pending = '', applying = false, initialized = false, initializationComplete = false, writing = false
 const listeners = new Set<() => void>()
 function setStatus(value: WorkspaceStatus) { status = value; for (const listener of listeners) listener() }
 export const workspaceStatus = () => status
@@ -62,14 +62,31 @@ export async function initializeSharedWorkspace() {
   useAppStore.subscribe(() => {
     if (applying) return
     const next = snapshot()
-    if (next === current || next === pending) return
+    if (next === current && !writing) { pending = ''; clearTimeout(timer); return }
+    if (next === pending) return
     pending = next; clearTimeout(timer); timer = setTimeout(() => void save(), 600)
   })
+  initializationComplete = true
   setInterval(() => {
     if (document.hidden || writing || status === 'conflict') return
     if (pending) { void save(); return }
     void load().then((stored) => { if (writing || pending) return; if (!stored.document && stored.revision === 0) { pending = snapshot(); void save(); return }; if (stored.revision !== revision) { if (useAppStore.getState().live) { setStatus('conflict'); return }; revision = stored.revision; if (stored.document) apply(stored.document) }; setStatus('saved') }).catch(() => setStatus('offline'))
   }, 2500)
+}
+/** Wait until the latest in-memory library is durably saved before a page reload. */
+export async function flushSharedWorkspace(): Promise<boolean> {
+  if (import.meta.env.MODE === 'test' && !initialized) return true
+  await whenBibleTextsSaved()
+  const deadline = Date.now() + 30000
+  while (Date.now() < deadline) {
+    if (status === 'offline' || status === 'conflict') return false
+    if (!initializationComplete || writing) { await new Promise((resolve) => setTimeout(resolve, 50)); continue }
+    const latest = snapshot()
+    if (latest === current && !pending) return true
+    pending = latest
+    await save()
+  }
+  return false
 }
 export async function resolveWorkspaceConflict(choice: 'installation' | 'local') {
   const latest = await loadWorkspaceDocument('/api/workspace'); revision = latest.revision

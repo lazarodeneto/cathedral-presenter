@@ -90,3 +90,17 @@ for (const locale of Object.keys(syncMediaErrors) as Locale[]) {
  const [missing, conflict] = syncMediaErrors[locale]
  Object.assign(cloudStrings[locale], { 'cloud.syncMediaMissing': missing, 'cloud.syncMediaConflict': conflict })
 }
+
+const workspaceStatusLabels: Record<Locale, [string, string, string]> = {
+ en: ['Saved to the cloud', 'Cloud unavailable', 'Sync needs attention'],
+ pt: ['Guardado na nuvem', 'Nuvem indisponível', 'Sincronização requer atenção'],
+ 'pt-BR': ['Salvo na nuvem', 'Nuvem indisponível', 'Sincronização requer atenção'],
+ es: ['Guardado en la nube', 'Nube no disponible', 'Sincronización requiere atención'],
+ fr: ['Enregistré dans le cloud', 'Cloud indisponible', 'Synchronisation à vérifier'],
+ de: ['In der Cloud gespeichert', 'Cloud nicht erreichbar', 'Synchronisierung prüfen'],
+ it: ['Salvato nel cloud', 'Cloud non disponibile', 'Sincronizzazione da verificare'],
+}
+for (const locale of Object.keys(workspaceStatusLabels) as Locale[]) {
+ const [saved, offline, conflict] = workspaceStatusLabels[locale]
+ Object.assign(cloudStrings[locale], { 'cloud.workspaceSaved': saved, 'cloud.workspaceOffline': offline, 'cloud.workspaceConflict': conflict })
+}
