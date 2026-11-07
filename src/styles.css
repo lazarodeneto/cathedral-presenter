@@ -20520,3 +20520,7 @@ body:not(.output-mode) .service-card-main { padding: max(var(--ui-inset-block),1
 .hardware-history { border-top: 1px solid var(--line); padding-top: 16px; }
 .hardware-history summary { cursor: pointer; color: var(--text-2); }
 .hardware-history ul { padding: 12px 0 0 20px; }
+.desktop-downloads { display: grid; gap: 10px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; }
+.desktop-downloads p { margin: 0; line-height: 1.5; }
+.desktop-downloads-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.desktop-downloads-actions .btn { min-height: 40px; white-space: normal; }

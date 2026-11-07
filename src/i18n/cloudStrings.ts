@@ -39,3 +39,17 @@ for (const locale of Object.keys(permission) as Locale[]) {
  const [title, copy, allow] = permission[locale]
  Object.assign(cloudStrings[locale], { 'cloud.permissionTitle': title, 'cloud.permissionCopy': copy, 'cloud.permissionAllow': allow })
 }
+
+const desktopDownloads: Record<Locale, [string, string, string]> = {
+ en: ['Download the desktop app', 'Install the app on the presentation computer to connect TVs and projectors.', 'Test builds are not yet digitally signed; your system may display a security warning.'],
+ pt: ['Descarregar a aplicação para computador', 'Instale a aplicação no computador de apresentação para ligar TVs e projetores.', 'As versões de teste ainda não estão assinadas digitalmente; o sistema pode apresentar um aviso de segurança.'],
+ 'pt-BR': ['Baixar o aplicativo para computador', 'Instale o aplicativo no computador de apresentação para conectar TVs e projetores.', 'As versões de teste ainda não estão assinadas digitalmente; o sistema pode mostrar um aviso de segurança.'],
+ es: ['Descargar la aplicación de escritorio', 'Instala la aplicación en el ordenador de presentación para conectar televisores y proyectores.', 'Las versiones de prueba aún no tienen firma digital; el sistema puede mostrar un aviso de seguridad.'],
+ fr: ['Télécharger l’application de bureau', 'Installez l’application sur l’ordinateur de présentation pour connecter les téléviseurs et projecteurs.', 'Les versions de test ne sont pas encore signées numériquement ; le système peut afficher un avertissement de sécurité.'],
+ de: ['Desktop-App herunterladen', 'Installieren Sie die App auf dem Präsentationscomputer, um Fernseher und Projektoren zu verbinden.', 'Die Testversionen sind noch nicht digital signiert; das System kann eine Sicherheitswarnung anzeigen.'],
+ it: ['Scarica l’app per computer', 'Installa l’app sul computer della presentazione per collegare TV e proiettori.', 'Le versioni di prova non sono ancora firmate digitalmente; il sistema potrebbe mostrare un avviso di sicurezza.'],
+}
+for (const locale of Object.keys(desktopDownloads) as Locale[]) {
+ const [title, hint, unsigned] = desktopDownloads[locale]
+ Object.assign(cloudStrings[locale], { 'cloud.downloadTitle': title, 'cloud.downloadHint': hint, 'cloud.downloadUnsigned': unsigned })
+}

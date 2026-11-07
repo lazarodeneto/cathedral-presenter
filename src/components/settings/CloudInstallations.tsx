@@ -4,6 +4,7 @@ import { authClient } from '../../auth/client'
 import { useT } from '../../i18n/useT'
 import { useToasts } from '../../store/useToasts'
 import { COMPUTER_KEY, selectCloudComputer } from '../../providers/output/CloudOutputRelay'
+import { DesktopDownloads } from '../DesktopDownloads'
 type Computer = { id: string; name: string; connected: boolean; platform: string; revoked: boolean; expiresAt: string; canScan: boolean }
 export function CloudInstallations() {
   const t = useT(), push = useToasts((s) => s.push), { data: session } = authClient.useSession()
@@ -14,6 +15,7 @@ export function CloudInstallations() {
   return <section className="cloud-settings-section">
     <h3><Monitor size={18} />{t('cloud.computers')}</h3>
     <p className="field-hint">{t('cloud.downloadApp')}</p>
+    <DesktopDownloads />
     <label className="field"><span>{t('cloud.outputComputer')}</span><select value={chosen} onChange={(e) => { setChosen(e.target.value); selectCloudComputer(e.target.value) }}><option value="">{t('cloud.chooseComputer')}</option>{rows.filter((c) => !c.revoked).map((c) => <option key={c.id} value={c.id}>{c.name} · {c.platform === 'darwin' ? 'macOS' : c.platform === 'win32' ? 'Windows' : 'Linux'} · {t(c.connected ? 'cloud.connected' : 'cloud.notConnected')}</option>)}</select></label>
     <button className="btn btn-ghost btn-sm" onClick={() => void refresh()}><RefreshCw size={14} />{t('hardware.refresh')}</button>
     {admin && <><form className="cloud-invitation-form" onSubmit={async (event) => { event.preventDefault(); setBusy(true); setCode(''); try { const response = await fetch('/api/installations/pair', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, canScan: scan }) }); const data = await response.json(); if (!response.ok) throw new Error(); setCode(data.code); setExpires(data.expiresAt) } catch { push(t('cloud.failed'), 'error') } finally { setBusy(false) } }}>

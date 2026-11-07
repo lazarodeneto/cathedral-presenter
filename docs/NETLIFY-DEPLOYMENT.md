@@ -47,6 +47,10 @@ For an always-on scanner, build `npm run worker:build`, then use `worker/compose
 
 Alternatively, explicitly authorize scanning for a paired native installation with current ClamAV signatures. It scans only while running and connected. If no ready trusted scanner is online, uploads are blocked; if no converter is available, visual PPTX import explains the requirement. PDF and image imports are also scanned. Scanning is not a guarantee that a file is harmless.
 
+## Native downloads
+
+The app links to a separate public [downloads repository](https://github.com/lazarodeneto/cathedral-presenter-downloads/releases/latest). The private source repository and church data are not published there. Build Windows x64, macOS Apple Silicon and macOS Intel installers using the manual Desktop installers workflow; verify each clean-profile startup and publish SHA-256 checksums. The initial release is a test preview: installers are unsigned, and the macOS packages are not notarized. Obtain signing identities before a production release.
+
 ## Native installations and offline use
 
 In the cloud app, an administrator generates a short-lived pairing code and assigns scanner capability deliberately. Enter the code in the installed app's Cloud settings. Select the intended computer in the browser. Revoke installations that are no longer trusted.
