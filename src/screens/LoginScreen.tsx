@@ -161,6 +161,7 @@ export function LoginScreen({
             </>
           )}
           {cloud && !cloudReady && <p className="login-note" role="alert">{t('cloud.unavailable')}</p>}
+          {cloud && <a className="login-switch" href="https://github.com/lazarodeneto/cathedral-presenter-downloads/releases/latest" target="_blank" rel="noreferrer">{t('cloud.downloadTitle')}</a>}
           {(!cloud || session) && <a className={session ? 'login-submit' : 'login-offline'} href="#/home">
             {t(cloud ? 'cloud.online' : 'auth.offline')}
           </a>}

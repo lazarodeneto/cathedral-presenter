@@ -4,7 +4,7 @@ Updated 7 November 2026. Detailed evidence: [full audit](FULL-AUDIT-REPORT.md).
 
 | Order | Priority | Action | Status / acceptance |
 | --- | --- | --- | --- |
-| 1 | Immediate | Durable cloud accounts, roles, workspace, private media, output pairing and safe imports | Implemented; 434 automated tests pass including real PostgreSQL integration |
+| 1 | Immediate | Durable cloud accounts, roles, workspace, private media, output pairing and safe imports | Implemented; 436 automated tests pass including real PostgreSQL integration |
 | 2 | Quick win | Branding, fitted uppercase title, translations, minimum spacing, Bible layout, service Open action and accessible calendar controls | Implemented; seven locales checked; 20 responsive route checks pass |
 | 3 | Immediate | Commit, merge and synchronize main; connect GitHub continuous deployment; verify release health | Release verification in deployment guide |
 | 4 | Immediate | Activate owner account with a private one-use bootstrap link | Requires owner to choose their own password; no shared administrator password |

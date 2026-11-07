@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
-import { readFile, mkdtemp, rm } from 'node:fs/promises'
+import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createServer } from 'node:http'
@@ -182,14 +182,76 @@ describe.skipIf(!databaseUrl)('cloud PostgreSQL and account integration', () => 
       const list = (await (await request('/api/installations', { cookie: adminCookie })).json()).installations as { id: string; name: string }[]
       const id = list.find((i) => i.name === 'Native fixture')!.id
       expect(await readFile(join(root,'.data','cloud-link','credentials'),'utf8')).not.toContain('token')
-      expect((await local('sync',{ direction: 'download' })).status).toBe(200)
+      expect((await local('sync',{ direction: 'download', authorized: true })).status).toBe(200)
       expect(workspace.readCurrent().revision).toBe(1)
+      const firstLocal = workspace.readCurrent()
+      workspace.replace({ ...firstLocal.document, services: [{ id: 'local-service', title: 'Local edit' }] }, firstLocal.revision)
+      await bridge.sync.tick()
+      expect(bridge.status().syncConflict).toBe(false)
+      let online = await (await request('/api/workspace', { cookie: adminCookie })).json()
+      const onlineParts = []
+      for (let i = 0; i < online.documentParts.count; i++) onlineParts.push(Buffer.from(await (await request(`/api/workspace/content/${online.documentParts.id}/${i}`, { cookie: adminCookie })).arrayBuffer()))
+      expect(JSON.parse(Buffer.concat(onlineParts).toString()).services[0].title).toBe('Local edit')
+      const offlineCopy = workspace.readCurrent()
+      workspace.replace({ ...offlineCopy.document, services: [{ id: 'local-service', title: 'Queued offline' }] }, offlineCopy.revision)
+      network = false
+      await bridge.sync.tick()
+      expect(bridge.status().syncError).toBe('offline')
+      expect(workspace.readCurrent().document.services[0].title).toBe('Queued offline')
+      network = true
+      await bridge.sync.tick()
+      const reconnected = await (await request('/api/workspace', { cookie: adminCookie })).json()
+      expect(reconnected.revision).toBeGreaterThan(online.revision)
+      online = reconnected
+      const cloudOnly = await request('/api/workspace', { method: 'PUT', cookie: adminCookie, body: { expectedRevision: online.revision, document: { services: [{ id: 'remote-service', title: 'Online only' }], librarySongs: [] } } })
+      expect(cloudOnly.status).toBe(200)
+      const cloudRevision = (await cloudOnly.json()).revision
+      await bridge.sync.tick()
+      expect(workspace.readCurrent().document.services[0].title).toBe('Online only')
+      const latestLocal = workspace.readCurrent()
+      workspace.replace({ ...latestLocal.document, services: [{ id: 'local-service', title: 'Offline change' }] }, latestLocal.revision)
+      const remoteEdit = await request('/api/workspace', { method: 'PUT', cookie: adminCookie, body: { expectedRevision: cloudRevision, document: { services: [{ id: 'remote-service', title: 'Online change' }], librarySongs: [] } } })
+      expect(remoteEdit.status).toBe(200)
+      await bridge.sync.tick()
+      expect(bridge.status().syncConflict).toBe(true)
+      expect(workspace.readCurrent().document.services[0].title).toBe('Offline change')
+      const imageId = randomUUID(), infectedId = randomUUID(), imagePath = join(root, 'local-image.png')
+      const imageBytes = Buffer.concat([png, Buffer.alloc(2 * 1024 * 1024 + 10)])
+      await writeFile(imagePath, imageBytes)
+      bridge.setMediaSource(async (id) => {
+        if (id !== imageId && id !== infectedId) throw new Error('media-missing')
+        return { asset: { id, name: 'local-image.png', size: imageBytes.length, mime: 'image/png', kind: 'image', source: `/api/media/files/${id}`, provider: 'upload', status: 'ready', addedAt: new Date().toISOString() }, path: imagePath }
+      })
+      const withImage = workspace.readCurrent()
+      workspace.replace({ ...withImage.document, mediaLibrary: [{ id: imageId, source: `/api/media/files/${imageId}` }] }, withImage.revision)
+      let infected = false
+      const worker = createCloudWorker({ origin, token: workerToken, root, allowLocalTests: true, request: ((input: string | URL | Request, init?: RequestInit) => app.handle(new Request(input, init), { ip: '127.0.0.1' })) as typeof fetch, scan: async (file) => file.endsWith('scanner-health.txt') || !infected ? 'clean' : 'infected' })
+      await worker.runOnce()
+      let workerBusy = false
+      const workerTimer = setInterval(() => { if (!workerBusy) { workerBusy = true; void worker.runOnce().catch(() => {}).finally(() => { workerBusy = false }) } }, 100)
+      try {
+        expect((await local('sync', { direction: 'upload', authorized: true })).status).toBe(200)
+        expect(bridge.status().syncConflict).toBe(false)
+        const uploaded = await request(`/api/media/files/${imageId}?metadata=1`, { cookie: adminCookie })
+        expect((await uploaded.json()).asset).toMatchObject({ id: imageId, sha256: digest(imageBytes), scan: 'clean' })
+        const restarted = createNativeCloud({ root, environment: { CATHEDRAL_CLOUD_ORIGIN: origin }, relay, workspace, allowLocalTests: true, autoStart: false, request: ((input: string | URL | Request, init?: RequestInit) => app.handle(new Request(input, init), { ip: '127.0.0.1' })) as typeof fetch })
+        expect(restarted.status().syncEnabled).toBe(true)
+        restarted.close()
+        const current = workspace.readCurrent(), before = await (await request('/api/workspace', { cookie: adminCookie })).json()
+        workspace.replace({ ...current.document, mediaLibrary: [{ id: infectedId, source: `/api/media/files/${infectedId}` }] }, current.revision)
+        infected = true
+        const rejected = await local('sync', { direction: 'upload', authorized: true })
+        expect(rejected.status).toBe(409)
+        expect((await rejected.json()).reason).toBe('virus-detected')
+        expect((await (await request('/api/workspace', { cookie: adminCookie })).json()).revision).toBe(before.revision)
+        expect((await request(`/api/media/files/${infectedId}?metadata=1`, { cookie: adminCookie })).status).toBe(404)
+      } finally { clearInterval(workerTimer); while (workerBusy) await new Promise((resolve) => setTimeout(resolve, 10)) }
       const channel = `/api/output-relay?installation=${id}`
       const claim = () => request(channel, { method: 'POST', cookie: adminCookie, body: { type: 'claim', sender: 'online-operator' } })
       const live = () => request(channel, { method: 'POST', cookie: adminCookie, body: { type: 'snapshot', sender: 'online-operator', snapshot: { audience: { mode: 'live', slide: { id: 'live-fixture' } }, confidence: { mode: 'live' }, transport: { publisher: 'online-operator', sequence: Date.now() } } } })
       await claim(); await live(); await bridge.poll()
       expect(relay.readSnapshot()).toMatchObject({ snapshot: { audience: { mode: 'live' } } })
-      expect((await local('sync',{ direction: 'download' })).status).toBe(409)
+      expect((await local('sync',{ direction: 'download', authorized: true })).status).toBe(409)
       await local('black',{})
       expect(relay.readSnapshot()).toMatchObject({ snapshot: { audience: { mode: 'blank', messageVisible: false } } })
       await new Promise((r) => setTimeout(r,50)); await claim(); await live(); await bridge.poll()
@@ -198,7 +260,7 @@ describe.skipIf(!databaseUrl)('cloud PostgreSQL and account integration', () => 
       expect(bridge.status()).toMatchObject({ online: false, blocked: true })
       expect(relay.readSnapshot()).toMatchObject({ snapshot: { audience: { mode: 'blank' } } })
     } finally { bridge.close(); relay.close(); workspace.close(); await new Promise<void>((resolve) => server.close(() => resolve())); await rm(root, { recursive: true, force: true }) }
-  })
+  }, 30000)
   it('keeps converted presentation pages private until a leased scanner completes them', async () => {
     await request('/api/worker/claim',{method:'POST',bearer:workerToken,body:{ready:true,converter:true}})
     const source=Buffer.from([80,75,3,4,0,0,0,0]),pdf=Buffer.from('%PDF-1.3\nConverted fixture')

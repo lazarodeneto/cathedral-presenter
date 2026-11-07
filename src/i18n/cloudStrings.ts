@@ -53,3 +53,40 @@ for (const locale of Object.keys(desktopDownloads) as Locale[]) {
  const [title, hint, unsigned] = desktopDownloads[locale]
  Object.assign(cloudStrings[locale], { 'cloud.downloadTitle': title, 'cloud.downloadHint': hint, 'cloud.downloadUnsigned': unsigned })
 }
+
+const syncLabels: Record<Locale, [string, string, string, string, string, string]> = {
+ en: ['Upload this computer', 'Choose which library to use first. Both locations keep revision history.', 'Automatic sync is active when connected. Edits made in both places are paused for review.', 'Both copies changed. Choose a copy to keep; the previous version remains in history.', 'Replace the online workspace with this computer’s copy? Media will be scanned and uploaded first. Previous online revisions remain available.', 'Replace this computer’s workspace with the online copy? Media will be downloaded first. Previous local revisions remain available.'],
+ pt: ['Enviar este computador', 'Escolha primeiro qual biblioteca pretende usar. Os dois locais conservam o histórico de revisões.', 'A sincronização automática funciona quando há ligação. Alterações nos dois locais são pausadas para revisão.', 'Ambas as cópias foram alteradas. Escolha uma; a versão anterior permanece no histórico.', 'Substituir o espaço online pela cópia deste computador? As mídias serão analisadas e enviadas primeiro. As revisões online anteriores serão mantidas.', 'Substituir o espaço deste computador pela cópia online? As mídias serão descarregadas primeiro. As revisões locais anteriores serão mantidas.'],
+ 'pt-BR': ['Enviar este computador', 'Escolha primeiro qual biblioteca usar. Os dois locais mantêm o histórico de revisões.', 'A sincronização automática funciona quando há conexão. Alterações nos dois locais ficam pausadas para revisão.', 'As duas cópias foram alteradas. Escolha uma; a versão anterior permanece no histórico.', 'Substituir o espaço online pela cópia deste computador? As mídias serão analisadas e enviadas primeiro. As revisões online anteriores serão mantidas.', 'Substituir o espaço deste computador pela cópia online? As mídias serão baixadas primeiro. As revisões locais anteriores serão mantidas.'],
+ es: ['Enviar este ordenador', 'Elige primero qué biblioteca usar. Ambos lugares conservan el historial.', 'La sincronización automática funciona con conexión. Los cambios en ambos lugares se detienen para revisión.', 'Ambas copias cambiaron. Elige una; la versión anterior permanece en el historial.', '¿Sustituir el espacio online por la copia de este ordenador? Los archivos se analizarán y enviarán primero. Se conservarán las versiones online anteriores.', '¿Sustituir el espacio de este ordenador por la copia online? Los archivos se descargarán primero. Se conservarán las versiones locales anteriores.'],
+ fr: ['Envoyer cet ordinateur', 'Choisissez d’abord la bibliothèque à utiliser. Les deux emplacements conservent leur historique.', 'La synchronisation automatique fonctionne lorsque la connexion est active. Les modifications des deux côtés sont mises en attente pour vérification.', 'Les deux copies ont changé. Choisissez-en une ; la version précédente reste dans l’historique.', 'Remplacer l’espace en ligne par la copie de cet ordinateur ? Les médias seront analysés et envoyés avant. Les versions en ligne précédentes seront conservées.', 'Remplacer l’espace de cet ordinateur par la copie en ligne ? Les médias seront téléchargés avant. Les versions locales précédentes seront conservées.'],
+ de: ['Diesen Computer hochladen', 'Wählen Sie zuerst die Bibliothek. Beide Orte behalten ihren Versionsverlauf.', 'Die automatische Synchronisierung läuft bei Verbindung. Änderungen auf beiden Seiten werden zur Prüfung angehalten.', 'Beide Kopien wurden geändert. Wählen Sie eine; die vorherige Version bleibt im Verlauf.', 'Online-Arbeitsbereich durch die Kopie dieses Computers ersetzen? Medien werden zuerst geprüft und hochgeladen. Frühere Online-Versionen bleiben erhalten.', 'Arbeitsbereich dieses Computers durch die Online-Kopie ersetzen? Medien werden zuerst heruntergeladen. Frühere lokale Versionen bleiben erhalten.'],
+ it: ['Carica questo computer', 'Scegli prima quale raccolta usare. Entrambe le posizioni conservano la cronologia.', 'La sincronizzazione automatica funziona quando connesso. Le modifiche su entrambi i lati vengono sospese per la verifica.', 'Entrambe le copie sono cambiate. Scegline una; la versione precedente resta nella cronologia.', 'Sostituire lo spazio online con la copia di questo computer? I file verranno prima analizzati e caricati. Le versioni online precedenti resteranno disponibili.', 'Sostituire lo spazio di questo computer con la copia online? I file verranno prima scaricati. Le versioni locali precedenti resteranno disponibili.'],
+}
+const syncUnavailable: Record<Locale, string> = {
+ en: 'Sync paused. Check the connection, Drive authorization and antivirus scanner; your existing copies are safe.',
+ pt: 'Sincronização pausada. Verifique a ligação, a autorização do Drive e o antivírus; as cópias existentes estão seguras.',
+ 'pt-BR': 'Sincronização pausada. Verifique a conexão, a autorização do Drive e o antivírus; as cópias existentes estão seguras.',
+ es: 'Sincronización en pausa. Comprueba la conexión, la autorización de Drive y el antivirus; las copias existentes están seguras.',
+ fr: 'Synchronisation suspendue. Vérifiez la connexion, l’autorisation Drive et l’antivirus ; les copies existantes sont conservées.',
+ de: 'Synchronisierung angehalten. Prüfen Sie Verbindung, Drive-Berechtigung und Virenscanner; vorhandene Kopien bleiben erhalten.',
+ it: 'Sincronizzazione sospesa. Controlla connessione, autorizzazione Drive e antivirus; le copie esistenti sono conservate.',
+}
+for (const locale of Object.keys(syncLabels) as Locale[]) {
+ const [upload, choose, automatic, conflict, uploadConfirm, downloadConfirm] = syncLabels[locale]
+ Object.assign(cloudStrings[locale], { 'cloud.uploadWorkspace': upload, 'cloud.syncChoose': choose, 'cloud.syncAutomatic': automatic, 'cloud.syncConflict': conflict, 'cloud.syncUploadConfirm': uploadConfirm, 'cloud.syncDownloadConfirm': downloadConfirm, 'cloud.syncUnavailable': syncUnavailable[locale] })
+}
+
+const syncMediaErrors: Record<Locale, [string, string]> = {
+ en: ['A media file is missing on this computer. Restore it before syncing.', 'A media file has the same ID but different content. Resolve the duplicate before syncing.'],
+ pt: ['Falta um ficheiro de mídia neste computador. Restaure-o antes de sincronizar.', 'Um ficheiro de mídia tem o mesmo identificador, mas conteúdo diferente. Resolva o duplicado antes de sincronizar.'],
+ 'pt-BR': ['Falta um arquivo de mídia neste computador. Restaure-o antes de sincronizar.', 'Um arquivo de mídia tem o mesmo identificador, mas conteúdo diferente. Resolva a duplicação antes de sincronizar.'],
+ es: ['Falta un archivo multimedia en este ordenador. Restáuralo antes de sincronizar.', 'Un archivo multimedia tiene el mismo identificador pero contenido diferente. Resuelve el duplicado antes de sincronizar.'],
+ fr: ['Un fichier média manque sur cet ordinateur. Restaurez-le avant la synchronisation.', 'Un fichier média a le même identifiant mais un contenu différent. Résolvez le doublon avant la synchronisation.'],
+ de: ['Eine Mediendatei fehlt auf diesem Computer. Stellen Sie sie vor der Synchronisierung wieder her.', 'Eine Mediendatei hat dieselbe Kennung, aber anderen Inhalt. Beheben Sie das Duplikat vor der Synchronisierung.'],
+ it: ['Un file multimediale manca su questo computer. Ripristinalo prima della sincronizzazione.', 'Un file multimediale ha lo stesso identificativo ma contenuto diverso. Risolvi il duplicato prima della sincronizzazione.'],
+}
+for (const locale of Object.keys(syncMediaErrors) as Locale[]) {
+ const [missing, conflict] = syncMediaErrors[locale]
+ Object.assign(cloudStrings[locale], { 'cloud.syncMediaMissing': missing, 'cloud.syncMediaConflict': conflict })
+}

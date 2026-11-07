@@ -12,7 +12,7 @@ The principal remaining issues are external service authorization, hardware acce
 
 | Check | Observed result |
 | --- | --- |
-| Application tests, including real PostgreSQL integration in an isolated temporary schema | 66 files, **434 tests passed**; all integration tests enabled |
+| Application tests, including real PostgreSQL integration in an isolated temporary schema | 68 files, **436 tests passed**; all integration tests enabled |
 | TypeScript, ESLint, translation audit, local build and worker build | Passed |
 | Dependency audit | **0 known vulnerabilities** at audit time; this does not establish absence of exploitable flaws |
 | Translation coverage | Seven locales, 1,806 dictionary keys, 1,027 literal translation call keys, no missing keys or placeholder errors |
@@ -80,5 +80,5 @@ See [ACTION-PLAN.md](ACTION-PLAN.md) for execution order and [deployment operati
 - Physical Samsung and four-independent-screen tests, end-to-end audio timing, long-duration playback and offline rehearsal remain unverified.
 - Native Office parsing still processes complex untrusted formats; keep LibreOffice patched and prefer the dedicated non-root worker. Static PDF/image exports are a useful fidelity fallback.
 - Unsigned native packages are not signed/notarized releases. NDI/SDI adapters, genlock, edge blending, hardware key/fill, arbitrary audio-device routing and licensed provider integrations are not implemented.
-- This is one shared church workspace, not isolated multi-tenant SaaS. Backup retention and access policies should reflect that model.
+- This is one shared church workspace, not isolated multi-tenant SaaS. Native synchronization requires an initial explicit choice, uses revision baselines and pauses for conflicts instead of merging edits. Backup retention and access policies should reflect that model.
 - Security controls and dependency scans reduce risk; they cannot establish that all vulnerability classes are absent.

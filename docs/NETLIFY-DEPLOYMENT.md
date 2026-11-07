@@ -41,7 +41,7 @@ The private local deployment setup file contains the bootstrap token for this in
 
 ## Church Drive and antivirus
 
-An administrator configures a Google OAuth client in Settings → Media storage, adds the exact callback shown by the app to the Google console, and authorizes the common church account. Refresh credentials are encrypted on the server. Files placed directly into Drive do not bypass quarantine or automatically become trusted.
+An administrator configures a Google OAuth client in Settings → Media storage, adds the exact callback shown by the app to the Google console, and authorizes the common church account. Refresh credentials are encrypted on the server. Files placed directly into Drive do not bypass quarantine or automatically become trusted. For an external OAuth app in Google Testing status, refresh tokens can expire after seven days; production readiness and any Google verification requirements must be reviewed before relying on unattended sync.
 
 For an always-on scanner, build `npm run worker:build`, then use `worker/compose.yml` on a trusted Docker host. Set `CATHEDRAL_CLOUD_ORIGIN` and the private `CATHEDRAL_WORKER_TOKEN` outside Git. The non-root container installs ClamAV, refreshes signatures and includes LibreOffice/fonts for visual PPTX conversion. Its persistent volumes contain signatures and work data; the root filesystem is read-only. The Docker image has not been run on an external host in this audit.
 
@@ -55,7 +55,7 @@ The app links to a separate public [downloads repository](https://github.com/laz
 
 In the cloud app, an administrator generates a short-lived pairing code and assigns scanner capability deliberately. Enter the code in the installed app's Cloud settings. Select the intended computer in the browser. Revoke installations that are no longer trusted.
 
-Use the installed app's explicit offline-copy action before a service. It downloads the cloud workspace and verified media into the local installation while preserving local recovery history. This is a download workflow, not automatic bidirectional merge of arbitrary offline edits. Full portable ZIP backups with original media are created/restored through the native app; cloud JSON backups reference the shared media library.
+In the installed app, choose the initial workspace direction explicitly: download the online copy or upload this computer’s copy. The other side is replaced only after confirmation and its previous revisions remain in history. Once a common baseline is established, the app synchronizes local and cloud revisions when connected, pausing while live. New media is scanned before publishing to Drive, and cloud media is cached and rechecked before the local workspace changes. If both sides changed, sync pauses and asks the operator to choose; it does not automatically merge edits. A connected scanner and authorized church Drive are required for media uploads. Full portable ZIP backups with original media are created/restored through the native app; cloud JSON backups reference the shared media library.
 
 Assign displays only after they appear in the OS as extended displays. Current displays and historical names are shown separately. Emergency black is available locally even if the cloud connection is lost. A disconnected cloud link does not prove a physical TV has changed.
 

@@ -17,7 +17,7 @@ export interface CloudIdentity { id: string; role: string; installationId?: stri
 export interface WorkerIdentity { id: string }
 interface UploadJob { id: string; name: string; mime: string; size: string | number; sha256: string; parts: number; kind: string; status: string; attempts: number; result: { mediaId: string; partHashes: string[]; driveSession?: string; scanClean?: boolean; next?: number; checkedAttempt?: number; convertPdf?: boolean } }
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-const extensions: Record<string, string[]> = { 'image/jpeg': ['jpg','jpeg'], 'image/png': ['png'], 'image/gif': ['gif'], 'image/webp': ['webp'], 'video/mp4': ['mp4','m4v'], 'video/webm': ['webm'], 'video/quicktime': ['mov'], 'audio/mpeg': ['mp3'], 'audio/wav': ['wav'], 'audio/ogg': ['ogg'], 'audio/flac': ['flac'], 'audio/mp4': ['m4a'] }
+const extensions: Record<string, string[]> = { 'image/jpeg': ['jpg','jpeg'], 'image/png': ['png'], 'image/gif': ['gif'], 'image/webp': ['webp'], 'image/avif': ['avif'], 'video/mp4': ['mp4','m4v'], 'video/webm': ['webm'], 'video/quicktime': ['mov'], 'audio/mpeg': ['mp3'], 'audio/wav': ['wav'], 'audio/ogg': ['ogg'], 'audio/flac': ['flac'], 'audio/mp4': ['m4a'] }
 const documents: Record<string, string[]> = { 'application/pdf': ['pdf'], 'application/json': ['json'], 'application/xml': ['xml'], 'text/plain': ['txt','md'], 'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['pptx'] }
 export function createCloudMedia(pool: Pool, env: CloudEnvironment, storage: CloudStorage, drive: CloudDrive) {
   const scannerStatus = async () => {

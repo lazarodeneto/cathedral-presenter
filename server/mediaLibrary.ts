@@ -241,7 +241,7 @@ export function createMediaLibrary(root: string, env: Record<string, string | un
       else res.destroy()
     })
   }
-  return { handle, ensureCached, close: () => database.close() }
+  return { handle, ensureCached, async getForSync(id: string) { if (!UUID.test(id)) throw new MediaError('media-missing', 404); await ensureCached(id); const asset = find(id); if (!asset || asset.scan !== 'clean') throw new MediaError('media-missing', 404); return { asset, path: join(files, id) } }, close: () => database.close() }
 }
 
 export function mediaLibrary(environment: Record<string, string> = {}): Plugin {

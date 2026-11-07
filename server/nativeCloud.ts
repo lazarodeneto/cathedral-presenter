@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import type { Connect } from 'vite'
 import { cloudEncryption } from './cloud/crypto'
 import { createCloudWorker } from './cloudWorker'
+import { createNativeWorkspaceSync } from './nativeWorkspaceSync'
 import type { createOutputRelay } from './outputRelay'
 import type { createWorkspace } from './workspace'
 import type { MediaAsset } from '../src/types'
@@ -26,9 +27,10 @@ export function createNativeCloud(options: Options) {
   const cipher = cloudEncryption({ CATHEDRAL_ENCRYPTION_KEY: readFileSync(keyFile, 'utf8') })
   let link: Link | undefined
   try { const saved = cipher.decrypt<Link>(readFileSync(credentials, 'utf8')); if (saved.origin === origin.origin && Date.parse(saved.expiresAt) > Date.now()) link = saved } catch { /* Missing or expired pairing needs a fresh administrator code. */ }
-  let cursor = 0, online = false, lastError = '', stopped = false, timer: ReturnType<typeof setTimeout> | undefined, workerTimer: ReturnType<typeof setTimeout> | undefined
+  let cursor = 0, online = false, lastError = '', stopped = false, timer: ReturnType<typeof setTimeout> | undefined, workerTimer: ReturnType<typeof setTimeout> | undefined, syncTimer: ReturnType<typeof setTimeout> | undefined
   let queue: Promise<unknown> = Promise.resolve(), blocked = false, lastSnapshot: Record<string, unknown> | undefined, cache: ((id: string) => Promise<void>) | undefined
-  let worker: ReturnType<typeof createCloudWorker> | undefined, workerToken = '', syncBusy = false
+  let worker: ReturnType<typeof createCloudWorker> | undefined, workerToken = ''
+  let mediaSource: ((id: string) => Promise<{ asset: MediaAsset; path: string }>) | undefined
   const seen = new Set<string>()
   const api = async (path: string, init: RequestInit = {}) => {
     if (!link) throw new Error('cloud-not-connected')
@@ -112,7 +114,15 @@ export function createNativeCloud(options: Options) {
     if (bytes.length !== part.size || createHash('sha256').update(bytes).digest('hex') !== part.sha256) throw new Error('file-changed')
     return { revision: Number(data.revision), document: JSON.parse(bytes.toString()) }
   }
-  const status = () => ({ connected: Boolean(link), online, name: link?.name, expiresAt: link?.expiresAt, canScan: link?.canScan, origin: origin.origin, blocked, error: lastError, syncBusy })
+  const sync = createNativeWorkspaceSync({
+    file: join(directory, 'workspace-sync.json'), workspace, installation: () => link?.id,
+    request: api, download: cloudDocument,
+    cache: async (id) => { if (!cache) throw new Error('media-unavailable'); await cache(id) },
+    source: async (id) => { if (!mediaSource) throw new Error('media-unavailable'); return mediaSource(id) },
+    isLive: () => Boolean(((lastSnapshot ?? relay.readSnapshot()) as { snapshot?: OutputSnapshot } | undefined)?.snapshot?.audience.mode === 'live'),
+  })
+  const syncTick = async () => { if (stopped) return; if (online) await sync.tick(); if (!stopped) syncTimer = setTimeout(() => void syncTick(), 15000) }
+  const status = () => ({ connected: Boolean(link), online, name: link?.name, expiresAt: link?.expiresAt, canScan: link?.canScan, origin: origin.origin, blocked, error: lastError, ...sync.status() })
   const handler: Connect.NextHandleFunction = (req, res, next) => {
     const path = req.url?.split('?')[0] || ''
     if (!path.startsWith('/api/cloud/')) return next()
@@ -127,40 +137,29 @@ export function createNativeCloud(options: Options) {
       const body = size ? JSON.parse(Buffer.concat(chunks).toString()) : {}
       if (path === '/api/cloud/connect') {
         if (body.authorized !== true) throw new Error('authorization-required')
+        if (sync.status().syncBusy) throw new Error('sync-busy')
         const code = String(body.code || '').replaceAll('-','').replaceAll(' ','')
         if (!/^[A-Fa-f0-9]{12}$/.test(code)) throw new Error('invalid-pairing-code')
         const response = await request(`${origin.origin}/api/installations/pair/complete`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, platform: process.platform }), signal: AbortSignal.timeout(20000) })
         if (!response.ok) throw new Error('invalid-pairing-code')
         const data = await response.json() as Link
         if (!/^[A-Za-z0-9_-]{43}$/.test(data.token) || !/^[0-9a-f-]{36}$/.test(data.id) || !Number.isFinite(Date.parse(data.expiresAt))) throw new Error('invalid-pairing-code')
+        if (link?.id !== data.id) sync.reset()
         link = { ...data, origin: origin.origin }; writeFileSync(credentials, cipher.encrypt(link), { mode: 0o600 }); cursor = 0
         return json(200, status())
       }
-      if (path === '/api/cloud/disconnect') { link = undefined; worker = undefined; workerToken = ''; online = false; cursor = 0; if (existsSync(credentials)) unlinkSync(credentials); return json(200, status()) }
+      if (path === '/api/cloud/disconnect') { if (sync.status().syncBusy) throw new Error('sync-busy'); sync.reset(); link = undefined; worker = undefined; workerToken = ''; online = false; cursor = 0; if (existsSync(credentials)) unlinkSync(credentials); return json(200, status()) }
       if (path === '/api/cloud/black') { black(); return json(200, status()) }
       if (path === '/api/cloud/resume') { blocked = false; cursor = 0; seen.clear(); return json(200, status()) }
       const media = /^\/api\/cloud\/cache-media\/([0-9a-f-]{36})$/.exec(path)
       if (media) { if (!cache) throw new Error('media-unavailable'); await cache(media[1]); return json(200, { cached: true }) }
       if (path === '/api/cloud/sync') {
-        if (syncBusy) throw new Error('sync-busy')
-        const snapshot = (lastSnapshot ?? relay.readSnapshot()) as { snapshot?: OutputSnapshot } | undefined
-        if (snapshot?.snapshot?.audience.mode === 'live') throw new Error('stop-live-before-sync')
-        if (body.direction !== 'download') throw new Error('invalid-sync-direction')
-        syncBusy = true
-        try {
-          const local = workspace.readCurrent(), cloud = await cloudDocument()
-          if (!cloud.document) throw new Error('workspace-missing')
-          // Precache every referenced private asset before the local copy becomes active.
-          const ids = new Set<string>(), serialized = JSON.stringify(cloud.document)
-          for (const match of serialized.matchAll(/\/api\/media\/files\/([0-9a-f-]{36})/g)) ids.add(match[1])
-          if (cache) for (const id of ids) await cache(id)
-          const revision = workspace.replace(cloud.document, local.revision)
-          return json(200, { revision, cloudRevision: cloud.revision, cached: ids.size })
-        } finally { syncBusy = false }
+        if (!['download', 'upload'].includes(body.direction) || body.authorized !== true) throw new Error('authorization-required')
+        return json(200, await sync.transfer(body.direction))
       }
       return json(404, { reason: 'not-found' })
     })().catch((error) => json(409, { reason: error instanceof Error && /^[a-z-]{1,80}$/.test(error.message) ? error.message : 'cloud-unavailable' }))
   }
-  if (options.autoStart !== false) { void poll(); void scanTick() }
-  return { handler, remote, status, poll, black, setMediaCache(fn: (id: string) => Promise<void>) { cache = fn }, close() { stopped = true; clearTimeout(timer); clearTimeout(workerTimer); unsubscribe() } }
+  if (options.autoStart !== false) { void poll(); void scanTick(); void syncTick() }
+  return { handler, remote, status, poll, black, sync, setMediaCache(fn: (id: string) => Promise<void>) { cache = fn }, setMediaSource(fn: (id: string) => Promise<{ asset: MediaAsset; path: string }>) { mediaSource = fn }, close() { stopped = true; clearTimeout(timer); clearTimeout(workerTimer); clearTimeout(syncTimer); unsubscribe() } }
 }

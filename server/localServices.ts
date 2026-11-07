@@ -11,6 +11,7 @@ export function createLocalServices(root: string, environment: Record<string,str
   const cloud = createNativeCloud({ root, environment, relay, workspace })
   const media = createMediaLibrary(root, environment, undefined, undefined, cloud.remote)
   cloud.setMediaCache(media.ensureCached)
+  cloud.setMediaSource(media.getForSync)
   return { handlers: [createControllerApi(relay.dispatch), relay.handler, cloud.handler, createPresentationFiles(root, environment).handle, media.handle, workspace.handle], close() { cloud.close(); relay.close(); media.close(); workspace.close() } }
 }
 export function localServices(environment: Record<string,string>): Plugin {
