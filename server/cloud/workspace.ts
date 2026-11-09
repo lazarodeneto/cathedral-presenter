@@ -91,7 +91,13 @@ export function createCloudWorkspace(pool: Pool, storage: CloudStorage) {
         const body = await readJson(req, 1024), size = Number(body.size), hash = String(body.sha256)
         if (!Number.isSafeInteger(size) || size < 1 || size > LIMIT || !/^[a-f0-9]{64}$/.test(hash)) throw new CloudError('invalid-workspace')
         const id = randomUUID(), parts = Math.ceil(size / CHUNK_BYTES)
-        await pool.query(`INSERT INTO cp_uploads(id,kind,owner_id,name,mime,size,sha256,parts) VALUES($1,'workspace',$2,'workspace.json','application/json',$3,$4,$5)`, [id, userId, size, hash, parts])
+        await transaction(pool, async (client) => {
+          // Serialize quota checks so concurrent requests cannot bypass the upload limit.
+          await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`workspace-upload:${userId}`])
+          const pending = (await client.query("SELECT count(*) AS count FROM cp_uploads WHERE kind='workspace' AND owner_id=$1 AND created_at>now()-interval '1 hour'", [userId])).rows[0]
+          if (Number(pending.count) >= 30) throw new CloudError('upload-busy', 429)
+          await client.query(`INSERT INTO cp_uploads(id,kind,owner_id,name,mime,size,sha256,parts) VALUES($1,'workspace',$2,'workspace.json','application/json',$3,$4,$5)`, [id, userId, size, hash, parts])
+        })
         return json({ id, parts, chunkBytes: CHUNK_BYTES }, 201)
       }
       const pending = /^\/api\/workspace\/uploads\/([0-9a-f-]{36})(?:\/(\d+))?$/.exec(path)

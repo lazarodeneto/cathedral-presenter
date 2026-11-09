@@ -119,6 +119,15 @@ describe.skipIf(!databaseUrl)('cloud PostgreSQL and account integration', () => 
     const unchanged = await (await request('/api/workspace?revision=2', { cookie: adminCookie })).json()
     expect(unchanged).toMatchObject({ revision: 2, unchanged: true, document: null })
   })
+  it('limits concurrent and repeated workspace uploads per account', async () => {
+    const body = { size: 1, sha256: digest(Buffer.from('x')) }
+    const before = Number((await pool.query("SELECT count(*) FROM cp_uploads WHERE kind='workspace' AND created_at>now()-interval '1 hour'")).rows[0].count)
+    const attempts = await Promise.all(Array.from({ length: 35 }, () => request('/api/workspace/uploads', { method: 'POST', cookie: adminCookie, body })))
+    const accepted = attempts.filter((response) => response.status === 201)
+    expect(accepted).toHaveLength(30 - before)
+    expect(attempts.filter((response) => response.status === 429)).toHaveLength(35 - accepted.length)
+    for (const response of accepted) await pool.query('DELETE FROM cp_uploads WHERE id=$1', [(await response.json()).id])
+  })
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLbtAAAAABJRU5ErkJggg==', 'base64')
   async function mediaFixture() {
     const response = await request('/api/media/uploads', { method: 'POST', cookie: adminCookie, body: { name: 'picture.png', mime: 'image/png', size: png.length, sha256: digest(png) } })
