@@ -20,6 +20,7 @@ import {
   Radio,
   Palette,
   RotateCcw,
+  RefreshCw,
   ShieldCheck,
   SlidersHorizontal,
   Trash2,
@@ -28,6 +29,7 @@ import {
   SquarePlay,
 } from 'lucide-react'
 import type { AppSettings, MonitorRole } from '../types'
+import type { UpdateStatus } from '../providers/output/desktop'
 import { LOCALE_OPTIONS } from '../i18n/dictionary'
 import { bibleTranslationsWith } from '../providers/bible/customBibles'
 import { useAppStore } from '../store/useAppStore'
@@ -48,7 +50,7 @@ import { LanguageFilterSelect } from '../components/LanguageFilterSelect'
 import { SortSelect } from '../components/SortSelect'
 import { LocaleFlag } from '../components/LocaleFlag'
 
-type Tab = 'general' | 'bibles' | 'identity' | 'outputs' | 'data' | 'security' | 'shortcuts'
+type Tab = 'general' | 'bibles' | 'identity' | 'outputs' | 'data' | 'security' | 'shortcuts' | 'update'
 
 const TABS: { id: Tab; icon: typeof SlidersHorizontal; labelKey: string; tone: ScreenTone }[] = [
   { id: 'general', icon: SlidersHorizontal, labelKey: 'settings.general', tone: 'blue' },
@@ -58,6 +60,7 @@ const TABS: { id: Tab; icon: typeof SlidersHorizontal; labelKey: string; tone: S
   { id: 'data', icon: Database, labelKey: 'settings.data', tone: 'cyan' },
   { id: 'security', icon: ShieldCheck, labelKey: 'settings.security', tone: 'blue' },
   { id: 'shortcuts', icon: Keyboard, labelKey: 'settings.shortcuts', tone: 'amber' },
+  { id: 'update', icon: RefreshCw, labelKey: 'settings.update', tone: 'blue' },
 ]
 
 
@@ -127,13 +130,33 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
   const validTab = (TABS.find((tab) => tab.id === initialTab)?.id ?? 'general') as Tab
   const [tab, setTab] = useState<Tab>(validTab)
   const [confirm, setConfirm] = useState<'reset' | 'clear' | null>(null)
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({ state: 'current', version: __APP_VERSION__ })
 
   useEffect(() => {
     setTab(validTab)
   }, [validTab])
 
+  useEffect(() => window.cathedralDesktop?.onUpdateStatus?.(setUpdateStatus), [])
+
   // Goes through the router so a tab with unsaved changes (Branding) can ask first.
   const selectTab = (next: Tab) => navigate(`/settings/${next}`)
+
+  const checkForUpdate = async () => {
+    setUpdateStatus({ state: 'checking' })
+    const result = await window.cathedralDesktop?.checkForUpdate?.()
+    setUpdateStatus(result ?? { state: 'unsupported' })
+  }
+
+  const downloadUpdate = async () => {
+    setUpdateStatus({ state: 'downloading', percent: 0 })
+    const result = await window.cathedralDesktop?.downloadUpdate?.()
+    if (result) setUpdateStatus(result)
+  }
+
+  const installUpdate = async () => {
+    setUpdateStatus({ state: 'installing' })
+    await window.cathedralDesktop?.installUpdate?.()
+  }
 
   const openOutput = async (role: MonitorRole) => {
     if (role === 'disabled') {
@@ -353,6 +376,40 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
               <div className="setting-footnote">
                 <Palette size={14} />
                 {t('settings.unsavedChanges')}
+              </div>
+            </section>
+          )}
+
+          {tab === 'update' && (
+            <section className="settings-section">
+              <div className="settings-section-head">
+                <span className="settings-icon">
+                  <RefreshCw size={18} />
+                </span>
+                <div>
+                  <h2>{t('settings.update')}</h2>
+                  <p>{t('settings.updateCopy')}</p>
+                </div>
+              </div>
+              <div className="update-panel">
+                <div className="update-panel-meta">
+                  <div><span>{t('settings.updateVersionLabel')}</span><strong>{__APP_VERSION__}</strong></div>
+                  <div><span>{t('settings.updateDateLabel')}</span><strong>{formatNumericDateTime(new Date().toISOString())}</strong></div>
+                  <div><span>{t('settings.updateChannelLabel')}</span><strong>{t('settings.updateChannel')}</strong></div>
+                </div>
+                <div className="update-panel-status">
+                  {updateStatus.state === 'current' && <ShieldCheck className="update-status-success-icon" size={19} aria-hidden="true" />}
+                  <strong>{t(`settings.updateStatus.${updateStatus.state}`)}</strong>
+                  {updateStatus.version && <span>{updateStatus.version}</span>}
+                  {updateStatus.percent !== undefined && <span>{updateStatus.percent}%</span>}
+                </div>
+                <div className="update-panel-details">
+                  <strong>{t('settings.updateIncludes')}</strong>
+                  <p>{t('settings.updateComponents')}</p>
+                </div>
+                {updateStatus.state === 'available' && <button className="btn btn-primary" onClick={() => void downloadUpdate()}><Download size={16} />{t('settings.updateDownload')}</button>}
+                {updateStatus.state === 'downloaded' && <button className="btn btn-primary" onClick={() => void installUpdate()}><RefreshCw size={16} />{t('settings.updateInstall')}</button>}
+                {!['available', 'downloaded', 'downloading', 'installing'].includes(updateStatus.state) && <button className="btn btn-primary" onClick={() => void checkForUpdate()}><RefreshCw size={16} />{t('settings.updateCheck')}</button>}
               </div>
             </section>
           )}

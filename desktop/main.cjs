@@ -4,6 +4,7 @@ const { mkdirSync, readFileSync, writeFileSync } = require('node:fs')
 const path = require('node:path')
 const { pathToFileURL } = require('node:url')
 const { createDisplayManager } = require('./display-manager.cjs')
+const { autoUpdater } = require('electron-updater')
 
 // Only the local application receives native capabilities. Never disable web security.
 const verifying = process.argv.includes('--verify-runtime')
@@ -26,6 +27,23 @@ app.on('open-url', (event, value) => {
 app.on('second-instance', () => { if (operator && !operator.isDestroyed()) { if (operator.isMinimized()) operator.restore(); operator.show(); operator.focus() } })
 let displays
 let quitting = false
+let updaterReady = false
+function sendUpdateStatus(status) {
+  if (operator && !operator.isDestroyed()) operator.webContents.send('app:update-status', status)
+}
+function configureUpdater() {
+  if (!app.isPackaged) return
+  autoUpdater.autoDownload = false
+  autoUpdater.autoInstallOnAppQuit = false
+  autoUpdater.setFeedURL({ provider: 'github', owner: 'lazarodeneto', repo: 'church-presenter' })
+  autoUpdater.on('checking-for-update', () => sendUpdateStatus({ state: 'checking' }))
+  autoUpdater.on('update-available', (info) => sendUpdateStatus({ state: 'available', version: info.version }))
+  autoUpdater.on('update-not-available', () => sendUpdateStatus({ state: 'current', version: app.getVersion() }))
+  autoUpdater.on('download-progress', (progress) => sendUpdateStatus({ state: 'downloading', percent: Math.round(progress.percent) }))
+  autoUpdater.on('update-downloaded', (info) => sendUpdateStatus({ state: 'downloaded', version: info.version }))
+  autoUpdater.on('error', (error) => sendUpdateStatus({ state: 'error', message: error.message }))
+  updaterReady = true
+}
 function protect(window) {
   window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
   window.webContents.on('will-navigate', (event, url) => {
@@ -99,6 +117,7 @@ app.whenReady().then(async () => {
     backgroundColor: '#0b0b0c',
     webPreferences: preferences(),
   })
+  configureUpdater()
   protect(operator)
   displays = createDisplayManager({
     screen,
@@ -152,6 +171,30 @@ app.whenReady().then(async () => {
   for (const [name, handler] of Object.entries({
     // Fixed local destination; renderers cannot choose a URL or protocol to launch.
     'app:media-browser': () => shell.openExternal(`${BASE}/#/media`),
+    'app:update-check': async () => {
+      if (!updaterReady) return { state: 'unsupported' }
+      try {
+        const result = await autoUpdater.checkForUpdates()
+        if (!result?.updateInfo) return { state: 'current', version: app.getVersion() }
+        if (result.updateInfo.version === app.getVersion()) return { state: 'current', version: app.getVersion() }
+        return { state: 'available', version: result.updateInfo.version }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Update check failed'
+        if (/404|no published releases|latest release/i.test(message)) return { state: 'current', version: app.getVersion() }
+        return { state: 'error', message }
+      }
+    },
+    'app:update-download': async () => {
+      if (!updaterReady) return { state: 'unsupported' }
+      try { await autoUpdater.downloadUpdate(); return { state: 'downloading' } }
+      catch (error) { return { state: 'error', message: error instanceof Error ? error.message : 'Update download failed' } }
+    },
+    'app:update-install': () => {
+      if (!updaterReady) return { state: 'unsupported' }
+      quitting = true
+      setImmediate(() => autoUpdater.quitAndInstall(false, true))
+      return { state: 'installing' }
+    },
     'displays:list': () => displays.list(),
     'displays:assign': (id, role) => displays.setRole(id, role),
     'displays:open': (id) => displays.open(id),

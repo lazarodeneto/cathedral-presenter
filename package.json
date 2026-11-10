@@ -1,7 +1,7 @@
 {
   "name": "church-presenter",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "Local-first church presentation operator workspace",
   "scripts": {
@@ -32,6 +32,7 @@
     "@noble/hashes": "^2.4.0",
     "better-auth": "^1.7.18",
     "better-sqlite3": "^13.0.3",
+    "electron-updater": "^6.8.11",
     "fflate": "^0.8.3",
     "lucide-react": "^1.62.0",
     "nodemailer": "^10.3.1",

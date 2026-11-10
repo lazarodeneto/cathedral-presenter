@@ -1,6 +1,6 @@
 import { OutputProfileEditor } from './OutputProfileEditor'
 import { useState } from 'react'
-import { Monitor, RefreshCw } from 'lucide-react'
+import { CheckCircle2, Monitor, RefreshCw } from 'lucide-react'
 import { useT } from '../../i18n/useT'
 import { useAppStore } from '../../store/useAppStore'
 import { operatingSystem, reconcilePhysicalDisplays } from '../../providers/output/desktop'
@@ -18,6 +18,8 @@ export function HardwareOutputs() {
   // Only current OS detections are output cards. AirPlay can change ids and
   // resolutions on reconnect; saved assignments must not masquerade as new TVs.
   const physical = monitors.filter((monitor) => !monitor.simulated && monitor.status !== 'disconnected')
+  const assignedCount = physical.filter((monitor) => !monitor.isOperator && monitor.role !== 'disabled').length
+  const openCount = physical.filter((monitor) => monitor.outputOpen).length
   const history = [...new Set(monitors.filter((monitor) => !monitor.simulated && monitor.status === 'disconnected' && !physical.some((current) => current.name === monitor.name)).map((monitor) => monitor.name))]
   if (!desktop)
     return (
@@ -96,6 +98,23 @@ export function HardwareOutputs() {
         </button>
       </div>
       <p className="field-hint">{t('hardware.help')}</p>
+      <div className="hardware-summary" aria-label={t('hardware.title')}>
+        <div className="hardware-summary-card">
+          <Monitor size={16} aria-hidden="true" />
+          <strong>{physical.length}</strong>
+          <span>{t('hardware.title')}</span>
+        </div>
+        <div className="hardware-summary-card">
+          <CheckCircle2 size={16} aria-hidden="true" />
+          <strong>{assignedCount}</strong>
+          <span>{t('output.audience')}</span>
+        </div>
+        <div className="hardware-summary-card">
+          <Monitor size={16} aria-hidden="true" />
+          <strong>{openCount}</strong>
+          <span>{t('hardware.open')}</span>
+        </div>
+      </div>
       {error && (
         <p className="inline-warning" role="alert">
           {t('hardware.error')}

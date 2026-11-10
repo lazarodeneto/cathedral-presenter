@@ -23,7 +23,14 @@ export interface DesktopDisplays {
   openRole(role: Exclude<MonitorRole, 'disabled'>): Promise<boolean>
   closeRole(role: Exclude<MonitorRole, 'disabled'>): Promise<void>
   onDisplaysChanged(listener: (displays: PhysicalDisplay[]) => void): () => void
+  checkForUpdate?(): Promise<UpdateResult>
+  downloadUpdate?(): Promise<UpdateResult>
+  installUpdate?(): Promise<UpdateResult>
+  onUpdateStatus?(listener: (status: UpdateStatus) => void): () => void
 }
+export type UpdateState = 'checking' | 'current' | 'available' | 'downloading' | 'downloaded' | 'installing' | 'unsupported' | 'error'
+export interface UpdateStatus { state: UpdateState; version?: string; percent?: number; message?: string }
+export interface UpdateResult extends UpdateStatus {}
 declare global {
   interface Window {
     cathedralDesktop?: DesktopDisplays

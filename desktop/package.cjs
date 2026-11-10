@@ -18,7 +18,7 @@ async function run(command, args, cwd) {
   try {
     const original = JSON.parse(readFileSync(path.join(root, 'package.json')))
     const lock = JSON.parse(readFileSync(path.join(root, 'package-lock.json')))
-    const dependencies = Object.fromEntries(['better-auth', 'better-sqlite3', 'fflate'].map((name) => [name, lock.packages[`node_modules/${name}`].version]))
+    const dependencies = Object.fromEntries(['better-auth', 'better-sqlite3', 'electron-updater', 'fflate'].map((name) => [name, lock.packages[`node_modules/${name}`].version]))
     const metadata = { private: true, name: original.name, version: original.version, description: original.description, author: original.author ?? 'Cathedral Presenter', main: 'desktop/main.cjs', dependencies, devDependencies: { electron: lock.packages['node_modules/electron'].version } }
     await writeFile(path.join(stage, 'package.json'), JSON.stringify(metadata, null, 2))
     await cp(path.join(root, 'dist'), path.join(stage, 'dist'), { recursive: true })

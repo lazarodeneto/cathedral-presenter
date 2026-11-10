@@ -2,6 +2,11 @@ appId: church.cathedral.presenter
 productName: Cathedral Presenter
 directories:
   output: release
+publish:
+  provider: github
+  owner: lazarodeneto
+  repo: church-presenter
+  releaseType: release
 files:
   - dist/**
   - desktop/main.cjs

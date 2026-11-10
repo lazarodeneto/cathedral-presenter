@@ -9,7 +9,7 @@ import { navigate, type Route } from '../hooks/useHashRoute'
 import { useDialogFocus } from '../hooks/useDialogFocus'
 import { useShortcutHandlers } from '../shortcuts/registry'
 import { useShortcutLabel } from '../shortcuts/useShortcutLabel'
-import { formatClock, formatLongDate, formatToolbarDate } from '../utils/dates'
+import { formatClock, formatLongDate, intlLocale } from '../utils/dates'
 import { LanguageMenu } from './LanguageMenu'
 import { SCREEN_META, type ScreenName } from './ScreenIcon'
 
@@ -24,6 +24,28 @@ const DESTINATIONS = [
   { path: '/templates', key: 'nav.templates', icon: 'template' },
   { path: '/settings', key: 'nav.settings', icon: 'settings' },
 ]
+
+function formatLiveDate(date: Date, locale: Parameters<typeof intlLocale>[0]): string {
+  const parts = new Intl.DateTimeFormat(intlLocale(locale), {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).formatToParts(date)
+  const value = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? ''
+  const weekday = value('weekday').replace(/-feira$/, '').replace(/\.$/, '')
+  const month = value('month').replace(/\.$/, '')
+  const dateLabel = `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)}, ${value('day')} ${month} ${value('year')}`
+  return dateLabel
+}
+
+function formatLiveTime(date: Date) {
+  return {
+    hours: String(date.getHours()).padStart(2, '0'),
+    minutes: String(date.getMinutes()).padStart(2, '0'),
+    seconds: String(date.getSeconds()).padStart(2, '0'),
+  }
+}
 
 /** A destination's section icon in its tone, as in the sidebar. */
 function CommandIcon({ path }: { path: string }) {
@@ -125,9 +147,6 @@ export function TopBar({ route }: { route: Route }) {
   const t = useT()
   const locale = useAppStore((state) => state.settings.locale)
   const setLocale = useAppStore((state) => state.setLocale)
-  const activeService = useAppStore((state) =>
-    state.services.find((service) => service.id === state.activeServiceId),
-  )
   const live = useAppStore((state) => state.live)
   const sharedStatus = useSyncExternalStore(onWorkspaceStatus, workspaceStatus)
   const lastSavedAt = useAppStore((state) => state.lastSavedAt)
@@ -143,7 +162,8 @@ export function TopBar({ route }: { route: Route }) {
   useShortcutHandlers('global', { 'app.search': () => setCommandOpen(true) })
   const searchKey = useShortcutLabel('app.search')
 
-  const label = 'CATHEDRAL PRESENTER'
+  const dateLabel = formatLiveDate(clock, locale)
+  const timeLabel = formatLiveTime(clock)
 
   // The screen's own icon and tone (a service uses the Services tone) colour the bar.
   const screen = (route.name === 'service' ? 'services' : route.name) as ScreenName
@@ -153,15 +173,14 @@ export function TopBar({ route }: { route: Route }) {
     <>
       <header className="topbar" data-tone={meta.tone}>
         <div className="topbar-breadcrumb">
-          {route.name === 'service' && activeService ? (
-            // The rundown already shows the service title; here the screen name and the date.
-            <span className="topbar-title-stack">
-              <strong>{label}</strong>
-              <small>{formatToolbarDate(activeService.date, locale)}</small>
+          <span className="topbar-live-datetime">
+            <span><CalendarDays size={14} aria-hidden="true" />{dateLabel}</span>
+            <span aria-hidden="true"> - </span>
+            <span>
+              <Clock3 size={14} aria-hidden="true" />
+              {timeLabel.hours}h {timeLabel.minutes}m {timeLabel.seconds}s
             </span>
-          ) : (
-            <strong>{label}</strong>
-          )}
+          </span>
           {live && (
             <button className="live-chip" onClick={() => navigate(`/service/${live.serviceId}`)}>
               <span className="live-dot" />
@@ -205,10 +224,6 @@ export function TopBar({ route }: { route: Route }) {
           >
             <Check size={14} strokeWidth={2.4} aria-hidden="true" />
             {t(sharedStatus === 'saved' ? (isCloud ? 'cloud.workspaceSaved' : 'workspace.saved') : sharedStatus === 'saving' ? 'workspace.saving' : isCloud ? (sharedStatus === 'conflict' ? 'cloud.workspaceConflict' : 'cloud.workspaceOffline') : 'status.storageLocal')}
-          </span>
-          <span className="topbar-clock">
-            <Clock3 size={14} aria-hidden="true" />
-            {formatClock(locale, clock)}
           </span>
           <span className="topbar-divider" aria-hidden="true" />
           <LanguageMenu locale={locale} onChange={setLocale} label={t('settings.language')} />
