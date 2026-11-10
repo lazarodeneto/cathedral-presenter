@@ -29,7 +29,7 @@ export interface DesktopDisplays {
   onUpdateStatus?(listener: (status: UpdateStatus) => void): () => void
 }
 export type UpdateState = 'idle' | 'checking' | 'current' | 'available' | 'downloading' | 'downloaded' | 'installing' | 'unsupported' | 'error'
-export interface UpdateStatus { state: UpdateState; version?: string; percent?: number; message?: string }
+export interface UpdateStatus { state: UpdateState; version?: string; percent?: number; message?: string; manual?: boolean }
 export interface UpdateResult extends UpdateStatus {}
 declare global {
   interface Window {

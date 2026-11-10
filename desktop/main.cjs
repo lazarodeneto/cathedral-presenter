@@ -28,6 +28,31 @@ app.on('second-instance', () => { if (operator && !operator.isDestroyed()) { if 
 let displays
 let quitting = false
 let updaterReady = false
+let manualUpdateUrl
+async function checkMacRelease() {
+  manualUpdateUrl = undefined
+  const response = await fetch('https://api.github.com/repos/lazarodeneto/cathedral-presenter/releases?per_page=30', { headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'Cathedral-Presenter' }, signal: AbortSignal.timeout(15000) })
+  if (!response.ok) throw new Error(`Release lookup failed: ${response.status}`)
+  const releases = await response.json()
+  if (!Array.isArray(releases)) throw new Error('Invalid release data')
+  const parse = (value) => /^(?:v)?(\d+)\.(\d+)\.(\d+)$/.exec(value)?.slice(1).map(Number)
+  const current = parse(app.getVersion())
+  if (!current) throw new Error('Invalid installed version')
+  const candidates = releases.filter((release) => !release.draft && parse(release.tag_name)).sort((a, b) => {
+    const left = parse(a.tag_name), right = parse(b.tag_name)
+    return right[0] - left[0] || right[1] - left[1] || right[2] - left[2]
+  })
+  if (!candidates.length) throw new Error('No published releases')
+  const release = candidates[0], latest = parse(release.tag_name)
+  const comparison = latest[0] - current[0] || latest[1] - current[1] || latest[2] - current[2]
+  if (comparison <= 0) return { state: 'current', version: app.getVersion() }
+  const arch = process.arch === 'arm64' ? 'arm64' : 'x64'
+  const asset = release.assets?.find((item) => item.name.endsWith(`-${arch}.dmg`))
+  const url = asset?.browser_download_url
+  if (typeof url !== 'string' || !url.startsWith(`https://github.com/lazarodeneto/cathedral-presenter/releases/download/${encodeURIComponent(release.tag_name)}/`)) throw new Error('No installer for this Mac')
+  manualUpdateUrl = url
+  return { state: 'available', version: latest.join('.'), manual: true }
+}
 function sendUpdateStatus(status) {
   if (operator && !operator.isDestroyed()) operator.webContents.send('app:update-status', status)
 }
@@ -174,6 +199,7 @@ app.whenReady().then(async () => {
     'app:update-check': async () => {
       if (!updaterReady) return { state: 'unsupported' }
       try {
+        if (process.platform === 'darwin') return await checkMacRelease()
         const result = await autoUpdater.checkForUpdates()
         if (!result?.updateInfo) return { state: 'error', message: 'Update information unavailable' }
         if (!result.isUpdateAvailable) return { state: 'current', version: app.getVersion() }
@@ -185,6 +211,11 @@ app.whenReady().then(async () => {
     },
     'app:update-download': async () => {
       if (!updaterReady) return { state: 'unsupported' }
+      if (process.platform === 'darwin') {
+        if (!manualUpdateUrl) return { state: 'error', message: 'No installer selected' }
+        try { await shell.openExternal(manualUpdateUrl); return { state: 'available', manual: true } }
+        catch (error) { return { state: 'error', message: error instanceof Error ? error.message : 'Download failed' } }
+      }
       try { await autoUpdater.downloadUpdate(); return { state: 'downloaded' } }
       catch (error) { return { state: 'error', message: error instanceof Error ? error.message : 'Update download failed' } }
     },

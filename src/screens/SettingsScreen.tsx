@@ -155,9 +155,14 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
   }
 
   const downloadUpdate = async () => {
+    const previous = updateStatus
     setUpdateStatus({ state: 'downloading', percent: 0 })
-    const result = await window.cathedralDesktop?.downloadUpdate?.()
-    if (result) setUpdateStatus(result)
+    try {
+      const result = await window.cathedralDesktop?.downloadUpdate?.()
+      setUpdateStatus(result?.manual ? { ...previous, ...result } : result ?? { state: 'unsupported' })
+    } catch {
+      setUpdateStatus({ state: 'error' })
+    }
   }
 
   const installUpdate = async () => {
@@ -411,6 +416,7 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
                   {updateStatus.percent !== undefined && <span>{updateStatus.percent}%</span>}
                 </div>
                 {updateStatus.state === 'error' && <div className="update-panel-details"><p>{t('settings.updateErrorHelp')}</p></div>}
+                {updateStatus.state === 'available' && updateStatus.manual && <div className="update-panel-details"><p>{t('settings.updateManualHelp')}</p></div>}
                 {updateStatus.state === 'available' && <button className="btn btn-primary" onClick={() => void downloadUpdate()}><Download size={16} />{t('settings.updateDownload')}</button>}
                 {updateStatus.state === 'downloaded' && <button className="btn btn-primary" onClick={() => void installUpdate()}><RefreshCw size={16} />{t('settings.updateInstall')}</button>}
                 {!['available', 'downloaded', 'downloading', 'installing'].includes(updateStatus.state) && <button className="btn btn-primary" onClick={() => void checkForUpdate()}><RefreshCw size={16} />{t('settings.updateCheck')}</button>}

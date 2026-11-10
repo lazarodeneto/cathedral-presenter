@@ -540,8 +540,12 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
       setPreflight(null)
       const result = await webOutputProvider.prepareAudience()
       if (result !== 'ready') {
+        const targetId = pendingGridSlideRef.current ?? activeSlide.id
         pendingGridSlideRef.current = null
-        showOutputConnection(result)
+        showOutputConnection(result, () => {
+          pendingGridSlideRef.current = targetId
+          void goLiveRef.current()
+        })
         return
       }
       const targetId = pendingGridSlideRef.current ?? activeSlide.id

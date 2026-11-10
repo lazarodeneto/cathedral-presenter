@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AppWindow, CheckCircle2, CircleAlert, LoaderCircle, Monitor, RefreshCw } from 'lucide-react'
 import { Modal } from './Modal'
 import { useT } from '../i18n/useT'
@@ -7,8 +7,8 @@ import { webOutputProvider } from '../providers/output/WebOutputProvider'
 import { isCloud } from '../runtime'
 import { DesktopDownloads } from './DesktopDownloads'
 
-export function showOutputConnection(reason: string) {
-  window.dispatchEvent(new CustomEvent('cathedral:output-connection', { detail: reason }))
+export function showOutputConnection(reason: string, onBrowserOpened?: () => void) {
+  window.dispatchEvent(new CustomEvent('cathedral:output-connection', { detail: { reason, onBrowserOpened } }))
 }
 
 export function OutputConnectionDialog() {
@@ -17,10 +17,13 @@ export function OutputConnectionDialog() {
   const [busy, setBusy] = useState(false)
   const [desktopState, setDesktopState] = useState<'checking' | 'connected' | 'unavailable'>('unavailable')
   const [browserError, setBrowserError] = useState(false)
+  const resumePresentation = useRef<(() => void) | undefined>(undefined)
 
   useEffect(() => {
     const open = (event: Event) => {
-      setReason(String((event as CustomEvent).detail))
+      const detail = (event as CustomEvent<{ reason: string; onBrowserOpened?: () => void }>).detail
+      resumePresentation.current = detail.onBrowserOpened
+      setReason(detail.reason)
       setDesktopState('checking')
       setBrowserError(false)
       void webOutputProvider.discoverDesktop().then(() => {
@@ -38,7 +41,12 @@ export function OutputConnectionDialog() {
     setBusy(true)
     setBrowserError(false)
     try {
-      if (await webOutputProvider.openBrowserOutput('audience')) setReason('')
+      if (await webOutputProvider.openBrowserOutput('audience')) {
+        setReason('')
+        const resume = resumePresentation.current
+        resumePresentation.current = undefined
+        resume?.()
+      }
       else setBrowserError(true)
     } finally {
       setBusy(false)

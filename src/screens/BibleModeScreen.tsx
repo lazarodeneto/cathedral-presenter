@@ -157,7 +157,7 @@ export function BibleModeScreen() {
     try {
       const result = await webOutputProvider.prepareAudience()
       if (result !== 'ready') {
-        showOutputConnection(result)
+        showOutputConnection(result, () => { void goLiveWithVerse(verse) })
         return
       }
       if (!useAppStore.getState().live && !startLive(startService.id, flatSlides(startService)[0].slide.id)) {
