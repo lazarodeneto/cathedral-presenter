@@ -28,6 +28,8 @@ import { mediaTagStrings } from './mediaTagStrings'
 type Dict = Record<string, string>
 
 const en: Dict = {
+  'editor.gridView': 'Slide grid',
+  'editor.canvasView': 'Editor view',
   'editor.notLive': 'Not live',
   'editor.outputStatus': 'Audience output',
   'live.doubleClickHint': 'Double-click a slide to show it live',

@@ -802,4 +802,5 @@ export const BACKGROUND_PRESETS: {
   { id: 'stars', nameKey: 'background.stars', tone: 'dark' as const },
   { id: 'rays', nameKey: 'background.rays', tone: 'dark' as const },
   { id: 'breathe', nameKey: 'background.breathe', tone: 'dark' as const },
+  ...Array.from({ length: 20 }, (_, index) => ({ id: `cinematic-motion-${index + 1}` as BackgroundPreset, nameKey: `Cinematic ${index + 1}`, tone: 'dark' as const })),
 ]

@@ -2397,13 +2397,17 @@ dialog.modal::backdrop {
 .scripture-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 12px;
   padding-top: 1.5%;
   color: currentColor;
   font-size: clamp(5px, 0.8cqw, 12px);
   letter-spacing: 0.05em;
   opacity: 0.58;
+}
+
+.scripture-footer .translation-tag {
+  margin: 0;
 }
 
 .scripture-footer .brand-mark {
@@ -3840,13 +3844,19 @@ body:not(.output-mode) select:not([multiple]):not([size]) option {
 
 .calendar-day-number {
   display: grid;
+  align-self: center;
+  box-sizing: border-box;
   width: 21px;
   height: 21px;
+  margin-inline: auto;
+  padding: 0;
   place-items: center;
   border-radius: 50%;
   color: var(--muted);
   font-size: var(--text-meta);
   font-weight: 550;
+  line-height: 1;
+  text-align: center;
 }
 
 .calendar-cell.is-today .calendar-day-number {
@@ -6798,6 +6808,17 @@ body:not(.output-mode) select:not([multiple]):not([size]) option {
   flex-direction: column;
 }
 
+.slide-view-switch {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.slide-view-switch > .btn { width: 140px; justify-content: center; }
+.editor-stage.is-slide-grid > :not(.slide-view-switch, .presentation-slide-grid) { display: none; }
+.presentation-slide-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); align-content: start; gap: 12px; padding-bottom: 20px; }
+.presentation-slide-grid .slide-thumb { width: 100%; min-width: 0; }
+
 .editor-stage-head {
   display: flex;
   min-height: 35px;
@@ -6907,20 +6928,13 @@ body:not(.output-mode) select:not([multiple]):not([size]) option {
   gap: 8px;
 }
 
-.workspace-bible-actions {
-  display: flex;
-  flex: 0 0 auto;
-  justify-content: center;
-  padding: 10px 0 12px;
-}
-
-.workspace-bible-actions .workspace-bible-mode {
+.slide-view-switch .workspace-bible-mode {
   color: var(--danger-text);
   background: rgb(var(--danger-rgb) / 0.13);
   border-color: rgb(var(--danger-rgb) / 0.35);
 }
 
-.workspace-bible-actions .workspace-bible-mode:hover {
+.slide-view-switch .workspace-bible-mode:hover {
   color: var(--text);
   background: rgb(var(--danger-rgb) / 0.25);
 }
@@ -7373,6 +7387,7 @@ body:not(.output-mode) select:not([multiple]):not([size]) option {
   justify-content: space-between;
   margin-bottom: 8px;
 }
+.slide-strip-grid-button { margin-left: auto; margin-right: 12px; }
 
 .slide-thumbs-row {
   display: flex;
@@ -17699,6 +17714,32 @@ body:not(.output-mode) .template-body > .btn {
    Looping, slow and soft: colour fields that drift behind the text (a
    stand-in for motion video). The moving layer is ::before so the base
    gradient stays put. Thumbnails stay still; reduced motion stops all. */
+.bg-worship-motion { position: relative; isolation: isolate; overflow: hidden; background: linear-gradient(var(--worship-angle), hsl(var(--worship-a) 45% 8%), hsl(var(--worship-b) 48% 5%)); }
+.bg-cinematic-motion { position: relative; isolation: isolate; overflow: hidden; background: #070910; }
+.bg-cinematic-motion::before { position: absolute; z-index: 0; inset: -5%; content: ''; pointer-events: none; background-image: linear-gradient(rgb(0 0 0 / .2), rgb(0 0 0 / .3)), var(--cinematic-image); background-size: cover; background-position: center; animation: worship-cinematic-pan var(--cinematic-duration) ease-in-out infinite var(--cinematic-direction); }
+@keyframes worship-cinematic-pan { from { transform: scale(1.01) translate(-1%, -.5%); } to { transform: scale(1.13) translate(1%, .5%); } }
+.cinematic-atmosphere { position: absolute; z-index: 1; inset: 0; overflow: hidden; pointer-events: none; }
+.cinematic-atmosphere::before, .cinematic-atmosphere::after { position: absolute; content: ''; pointer-events: none; }
+.cinematic-atmosphere::before { inset: -35%; background: radial-gradient(ellipse at 25% 62%, rgb(var(--cinematic-glow) / .14), transparent 24%), radial-gradient(ellipse at 70% 42%, rgb(var(--cinematic-glow) / .1), transparent 28%), radial-gradient(ellipse at 48% 75%, rgb(210 224 255 / .09), transparent 30%); filter: blur(12px); animation: cinematic-mist 19s ease-in-out infinite alternate var(--cinematic-flow); }
+.cinematic-atmosphere::after { inset: -15%; background-image: radial-gradient(circle at 14% 22%, rgb(var(--cinematic-glow) / .75) 0 .15%, transparent .35%), radial-gradient(circle at 32% 68%, rgb(var(--cinematic-glow) / .6) 0 .1%, transparent .3%), radial-gradient(circle at 55% 35%, rgb(255 255 255 / .65) 0 .08%, transparent .25%), radial-gradient(circle at 72% 76%, rgb(var(--cinematic-glow) / .7) 0 .13%, transparent .33%), radial-gradient(circle at 85% 19%, rgb(255 255 255 / .55) 0 .1%, transparent .3%); animation: cinematic-particles 14s ease-in-out infinite alternate var(--cinematic-flow); }
+@keyframes cinematic-mist { from { transform: translate(-8%, 3%) scale(1); opacity: .5; } to { transform: translate(9%, -4%) scale(1.16); opacity: 1; } }
+@keyframes cinematic-particles { from { transform: translate(-2%, 5%); opacity: .25; } 50% { opacity: .85; } to { transform: translate(3%, -7%); opacity: .4; } }
+.is-thumbnail .cinematic-atmosphere::before, .is-thumbnail .cinematic-atmosphere::after { animation: none; }
+@media (prefers-reduced-motion: reduce) { .cinematic-atmosphere::before, .cinematic-atmosphere::after { animation: none; } }
+body.reduced-motion .cinematic-atmosphere::before, body.reduced-motion .cinematic-atmosphere::after { animation: none; }
+@media (prefers-reduced-motion: reduce) { .bg-cinematic-motion::before { animation: none; } }
+body.reduced-motion .bg-cinematic-motion::before { animation: none; }
+.bg-worship-motion::before { position: absolute; z-index: 0; inset: -25%; content: ''; pointer-events: none; background: var(--worship-pattern); animation: var(--worship-motion) var(--worship-duration) ease-in-out infinite alternate; }
+@keyframes worship-rays { from { transform: rotate(-7deg) scale(1.05); opacity: .55; } to { transform: rotate(8deg) scale(1.2); opacity: 1; } }
+@keyframes worship-waves { from { transform: translate(-5%, -5%) scale(1); } to { transform: translate(8%, 9%) scale(1.12); } }
+@keyframes worship-sparkle { from { transform: translate(-3%, 3%) scale(1); opacity: .45; } to { transform: translate(4%, -4%) scale(1.12); opacity: 1; } }
+@keyframes worship-rings { from { transform: scale(.9) rotate(-5deg); opacity: .6; } to { transform: scale(1.2) rotate(8deg); opacity: 1; } }
+@keyframes worship-beams { from { transform: translateX(-8%) skewX(-4deg); opacity: .55; } to { transform: translateX(8%) skewX(4deg); opacity: 1; } }
+.background-preset-section { margin: 14px 0; }
+.background-preset-section h3, .background-preset-section > strong { display: block; margin: 0 0 8px; font-size: 13px; }
+.motion-swatch-icon { position: absolute; right: 4px; bottom: 3px; z-index: 2; color: white; font-size: 9px; text-shadow: 0 1px 4px #000; }
+@media (prefers-reduced-motion: reduce) { .bg-worship-motion::before { animation: none; } }
+body.reduced-motion .bg-worship-motion::before { animation: none; }
 .bg-flow,
 .bg-ember,
 .bg-tide,
@@ -17848,7 +17889,7 @@ body:not(.output-mode) .template-body > .btn {
 .is-thumbnail::before,
 .is-thumbnail .has-motion,
 .is-thumbnail .has-motion > *,
-.preset-swatch::before {
+.preset-swatch:not(.bg-worship-motion):not(.bg-cinematic-motion)::before {
   animation: none !important;
 }
 
@@ -19201,6 +19242,30 @@ body:not(.output-mode) .rundown .rundown-slide.is-active:not(.is-live) > span:fi
   font-size: clamp(7px, 1.5cqw, 30px);
 }
 
+/* The Bible reference sits at the bottom of the slide and must remain legible
+   over dark backgrounds: larger type, a clean white outline, and white text
+   for both the book/verse and translation. */
+.slide-canvas .scripture-footer .translation-tag {
+  gap: 0.7em;
+  padding: 0.42em 1em;
+  border: 1.5px solid rgb(255 255 255 / 0.9);
+  color: #fff;
+  background: transparent;
+  box-shadow: 0 0.25em 1em rgb(0 0 0 / 0.35);
+  font-size: clamp(8px, 1.35cqw, 26px);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 1;
+}
+
+.slide-canvas .scripture-footer .translation-tag-code {
+  padding: 0;
+  color: #fff;
+  background: transparent;
+  font-size: 0.9em;
+  font-weight: 750;
+}
+
 .slide-canvas .scripture-secondary .translation-tag {
   font-size: clamp(6px, 1.2cqw, 24px);
 }
@@ -20505,6 +20570,8 @@ body:not(.output-mode) :is(.inline-note,.inline-warning,.toast) { padding: var(-
 .output-connection-help ol { display: grid; gap: 12px; padding-inline-start: 24px; color: var(--text-2); line-height: 1.55; }
 .output-connection-help > p { line-height: 1.55; }
 .output-connection-help .output-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.browser-output-option { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: var(--rounded-sm); background: rgb(var(--wash-rgb) / 0.04); }
+.browser-output-option p { margin: 0; color: var(--muted); }
 .import-slide-previews { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
 .import-slide-previews > div { min-width: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; aspect-ratio: 16/9; background: #000; }
 .app-name-fit { display: block; width: 100%; min-width: 0; white-space: nowrap; font-family: 'Roboto Condensed Variable','Arial Narrow',sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: .025em; line-height: 1.2; }

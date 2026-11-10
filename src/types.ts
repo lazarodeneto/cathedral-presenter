@@ -25,6 +25,8 @@ export interface ProviderSecurityProfile {
 }
 
 export type BackgroundPreset =
+  | `cinematic-motion-${number}`
+  | `worship-motion-${number}`
   | 'aurora'
   | 'golden'
   | 'graphite'

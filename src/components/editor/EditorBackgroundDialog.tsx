@@ -6,6 +6,7 @@ import { useAppStore } from '../../store/useAppStore'
 import { useT } from '../../i18n/useT'
 import { prepareUploadedMedia } from '../../providers/media/mediaWorkflow'
 import { Modal } from '../Modal'
+import { isMotionBackground, worshipBackgroundStyle } from '../../utils/worshipBackgrounds'
 
 export function EditorBackgroundDialog({
   open,
@@ -68,8 +69,8 @@ export function EditorBackgroundDialog({
       className="editor-background-dialog"
     >
       <div className="background-dialog-preview">
-        <div className={`preset-swatch bg-${background.preset ?? 'graphite'}`}>
-          <span />
+        <div className={`preset-swatch bg-${background.preset ?? 'graphite'} ${background.preset?.startsWith('worship-motion-') ? 'bg-worship-motion' : ''} ${background.preset?.startsWith('cinematic-motion-') ? 'bg-cinematic-motion' : ''}`} style={worshipBackgroundStyle(background.preset)}>
+          {background.preset?.startsWith('cinematic-motion-') && <span className="cinematic-atmosphere" aria-hidden="true" />}
         </div>
         <div>
           <strong>{t('editor.backgroundPreset')}</strong>
@@ -77,13 +78,16 @@ export function EditorBackgroundDialog({
         </div>
       </div>
 
-      <div className="preset-grid is-wide">
-        {BACKGROUND_PRESETS.map((preset) => (
+      {([false, true] as const).map((motion) => <section key={String(motion)} className="background-preset-section">
+        <h3>{t(motion ? 'background.motion' : 'background.static')}</h3>
+        <div className="preset-grid is-wide">
+        {BACKGROUND_PRESETS.filter((preset) => motion ? preset.id.startsWith('cinematic-motion-') : !isMotionBackground(preset.id)).map((preset) => (
           <button
             key={preset.id}
-            className={`preset-swatch bg-${preset.id} ${
+            className={`preset-swatch bg-${preset.id} ${preset.id.startsWith('worship-motion-') ? 'bg-worship-motion' : ''} ${preset.id.startsWith('cinematic-motion-') ? 'bg-cinematic-motion' : ''} ${
               background.type === 'preset' && background.preset === preset.id ? 'is-active' : ''
             }`}
+            style={worshipBackgroundStyle(preset.id)}
             onClick={() =>
               setSlideBackground(serviceId, itemId, slide.id, {
                 type: 'preset',
@@ -91,12 +95,17 @@ export function EditorBackgroundDialog({
                 tone: preset.tone,
               })
             }
+            onDoubleClick={() => {
+              setSlideBackground(serviceId, itemId, slide.id, { type: 'preset', preset: preset.id, tone: preset.tone })
+              onClose()
+            }}
             aria-label={t(preset.nameKey)}
           >
-            <span />
+            {motion && <span className="cinematic-atmosphere" aria-hidden="true" />}{motion && <span className="motion-swatch-icon" aria-hidden="true">▶</span>}
           </button>
         ))}
-      </div>
+        </div>
+      </section>)}
 
       <div
         className="editor-background-upload"

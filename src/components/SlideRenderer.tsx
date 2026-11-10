@@ -1,6 +1,6 @@
 import { useMediaPlayback } from '../media/useMediaPlayback'
+import { worshipBackgroundStyle } from '../utils/worshipBackgrounds'
 import type { SlideAspect } from '../utils/outputFormats'
-import { LocaleFlag } from './LocaleFlag'
 import { ART_DOVE, isCinematicAsset } from '../assets/templateArt'
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react'
 import * as QRCode from 'qrcode'
@@ -738,17 +738,17 @@ export function SlideRenderer({
   return (
     <div
       ref={rootRef}
-      className={`slide-canvas is-aspect-${aspectRatio} bg-${background.preset ?? 'graphite'} tone-${tone} align-${align} ${
+      className={`slide-canvas is-aspect-${aspectRatio} bg-${background.preset ?? 'graphite'} ${background.preset?.startsWith('worship-motion-') ? 'bg-worship-motion' : ''} ${background.preset?.startsWith('cinematic-motion-') ? 'bg-cinematic-motion' : ''} tone-${tone} align-${align} ${
         compact ? 'is-compact' : ''
       } ${thumbnail ? 'is-thumbnail' : ''} ${interactive ? 'is-interactive' : ''} ${interactive && selectedElementId ? 'has-selection' : ''} ${messageVisible && message ? 'has-alert' : ''} ${className}`}
       style={
         backgroundImage
           ? {
-              backgroundPosition,
+              ...worshipBackgroundStyle(background.preset), backgroundPosition,
               backgroundSize,
               backgroundImage: `linear-gradient(180deg, rgba(11,10,8,${background.overlay ?? 0.35}), rgba(11,10,8,${background.overlay ?? 0.35})), url("${backgroundImage}")`,
             }
-          : undefined
+          : worshipBackgroundStyle(background.preset)
       }
       onPointerDown={(event) => {
         if (!interactive) return
@@ -758,6 +758,7 @@ export function SlideRenderer({
         onTextLayerPointerDown(event)
       }}
     >
+      {background.preset?.startsWith('cinematic-motion-') && <span className="cinematic-atmosphere" aria-hidden="true" />}
       {showSafeArea && <div className="safe-area" />}
       {interactive && showGrid && (
         <div
@@ -783,25 +784,29 @@ export function SlideRenderer({
         <div className={`scripture-layout ${secondary ? 'is-bilingual' : ''}`} style={{ zIndex: contentZ }}>
           <div className="scripture-stack" ref={fitRef}>
             <section className="scripture-block scripture-primary">
-              <span className="translation-tag">
-                <span className="translation-tag-code"><LocaleFlag locale={primary.language} size={16} />{primary.abbreviation}</span>
-                <span className="translation-tag-ref">{primary.reference}</span>
-              </span>
               <p style={scriptureTextStyle(1)}>{primary.text}</p>
             </section>
             {secondary && (
               <>
                 <span className="scripture-divider" />
                 <section className="scripture-block scripture-secondary">
-                  <span className="translation-tag">
-                <span className="translation-tag-code"><LocaleFlag locale={secondary.language} size={16} />{secondary.abbreviation}</span>
-                <span className="translation-tag-ref">{secondary.reference}</span>
-              </span>
                   <p style={scriptureTextStyle(0.8)}>{secondary.text}</p>
                 </section>
               </>
             )}
           </div>
+          <footer className="scripture-footer" aria-label="Bible reference">
+            <span className="translation-tag">
+              <span className="translation-tag-ref">{primary.reference}</span>
+              <span className="translation-tag-code">{primary.abbreviation}</span>
+            </span>
+            {secondary && (
+              <span className="translation-tag">
+                <span className="translation-tag-ref">{secondary.reference}</span>
+                <span className="translation-tag-code">{secondary.abbreviation}</span>
+              </span>
+            )}
+          </footer>
         </div>
       ) : slide.kind === 'timer' ? (
         <TimerFace slide={slide} smooth={!compact} />

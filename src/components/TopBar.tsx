@@ -13,21 +13,6 @@ import { formatClock, formatLongDate, formatToolbarDate } from '../utils/dates'
 import { LanguageMenu } from './LanguageMenu'
 import { SCREEN_META, type ScreenName } from './ScreenIcon'
 
-const LABELS: Record<string, string> = {
-  home: 'nav.home',
-  calendar: 'nav.calendar',
-  services: 'nav.services',
-  bible: 'nav.bible',
-  biblemode: 'nav.biblemode',
-  songs: 'nav.songs',
-  media: 'nav.media',
-  templates: 'nav.templates',
-  settings: 'nav.settings',
-  service: 'editor.currentOutput',
-  live: 'live.title',
-  output: 'output.role',
-}
-
 const DESTINATIONS = [
   { path: '/home', key: 'nav.home', icon: 'house' },
   { path: '/services', key: 'nav.services', icon: 'calendar' },
@@ -158,30 +143,21 @@ export function TopBar({ route }: { route: Route }) {
   useShortcutHandlers('global', { 'app.search': () => setCommandOpen(true) })
   const searchKey = useShortcutLabel('app.search')
 
-  const label =
-    route.name === 'service' && activeService
-      ? formatToolbarDate(activeService.date, locale)
-      : route.name === 'output'
-        ? t('output.role')
-        : t(LABELS[route.name] || 'nav.home')
+  const label = 'CATHEDRAL PRESENTER'
 
   // The screen's own icon and tone (a service uses the Services tone) colour the bar.
   const screen = (route.name === 'service' ? 'services' : route.name) as ScreenName
   const meta = SCREEN_META[screen] ?? SCREEN_META.home
-  const ScreenGlyph = meta.icon
 
   return (
     <>
       <header className="topbar" data-tone={meta.tone}>
         <div className="topbar-breadcrumb">
-          <span className="topbar-screen-icon tone-chip" data-tone={meta.tone} aria-hidden="true">
-            <ScreenGlyph size={15} strokeWidth={2} />
-          </span>
           {route.name === 'service' && activeService ? (
             // The rundown already shows the service title; here the screen name and the date.
             <span className="topbar-title-stack">
-              <strong>{t('nav.services')}</strong>
-              <small>{label}</small>
+              <strong>{label}</strong>
+              <small>{formatToolbarDate(activeService.date, locale)}</small>
             </span>
           ) : (
             <strong>{label}</strong>

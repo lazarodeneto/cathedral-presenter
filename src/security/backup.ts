@@ -189,7 +189,7 @@ const SLIDE_KINDS: readonly SlideKind[] = [
 const CONTENT_TYPES: readonly ContentType[] = ['song', 'bible', 'announcement', 'sermon', 'blank', 'media', 'timer']
 const ELEMENT_TYPES: readonly ElementType[] = ['text', 'image', 'video', 'audio', 'shape', 'qr', 'embed', 'message']
 const ALIGNMENTS: readonly TextAlign[] = ['left', 'center', 'right']
-const PRESETS = BACKGROUND_PRESETS.map((preset) => preset.id)
+const PRESETS = [...BACKGROUND_PRESETS.map((preset) => preset.id), ...Array.from({ length: 150 }, (_, index) => `worship-motion-${index + 1}` as BackgroundPreset)]
 const MONITOR_ROLES: readonly MonitorRole[] = ['audience', 'confidence', 'broadcast', 'disabled']
 const MONITOR_STATUSES: readonly MonitorStatus[] = ['ready', 'connecting', 'disconnected', 'test', 'unsupported']
 

@@ -176,7 +176,9 @@ export class WebOutputProvider implements OutputProvider {
       await this.takeControl()
       const desktop = window.cathedralDesktop
       let opened = false
-      if (desktop) {
+      if (this.hasBrowserOutput('audience')) {
+        opened = true
+      } else if (desktop) {
         const native = await this.nativeAudience()
         if (native.status !== 'opened') return native.status
         targets = native.targets
@@ -296,6 +298,11 @@ export class WebOutputProvider implements OutputProvider {
         return false
       }
     }
+    return this.openBrowserOutput(role)
+  }
+
+  /** Open a browser-based output even when the desktop shell is available. */
+  async openBrowserOutput(role: Exclude<MonitorRole, 'disabled'>): Promise<boolean> {
     if (typeof window === 'undefined') return false
     const existing = this.windows.get(role)
     if (existing && !existing.closed) {
@@ -320,6 +327,11 @@ export class WebOutputProvider implements OutputProvider {
     )
     this.windows.set(role, opened)
     return Boolean(opened)
+  }
+
+  private hasBrowserOutput(role: Exclude<MonitorRole, 'disabled'>): boolean {
+    const existing = this.windows.get(role)
+    return Boolean(existing && !existing.closed)
   }
 
   closeOutput(role: Exclude<MonitorRole, 'disabled'>): void {

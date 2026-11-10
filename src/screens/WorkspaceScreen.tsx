@@ -1,4 +1,5 @@
 import { checkService, type PreflightCheck } from '../utils/preflight'
+import { isMotionBackground, worshipBackgroundStyle } from '../utils/worshipBackgrounds'
 import { showOutputConnection } from '../components/OutputConnectionDialog'
 import { PreflightDialog } from '../components/editor/PreflightDialog'
 import { MediaPlaybackSettings } from '../components/editor/MediaPlaybackSettings'
@@ -261,6 +262,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   const push = useToasts((state) => state.push)
   const [connectingOutput, setConnectingOutput] = useState(false)
   const connectingOutputRef = useRef(false)
+  const pendingGridSlideRef = useRef<string | null>(null)
 
   const service = services.find((entry) => entry.id === serviceId) ?? null
   const [preflight, setPreflight] = useState<PreflightCheck[] | null>(null)
@@ -335,6 +337,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
   const [messageFit, setMessageFit] = useState<Record<string, number>>({})
   const [mobileRundown, setMobileRundown] = useState(false)
   const [mobileInspector, setMobileInspector] = useState(false)
+  const [slideGrid, setSlideGrid] = useState(false)
   const [endOpen, setEndOpen] = useState(false)
   const thumbsRef = useRef<HTMLDivElement>(null)
   // Keep the live slide in view in the slide strip as the presenter moves through the service.
@@ -537,11 +540,14 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
       setPreflight(null)
       const result = await webOutputProvider.prepareAudience()
       if (result !== 'ready') {
+        pendingGridSlideRef.current = null
         showOutputConnection(result)
         return
       }
-      if (useAppStore.getState().live?.serviceId === service.id) jumpLive(activeSlide.id)
-      else startLive(service.id, activeSlide.id)
+      const targetId = pendingGridSlideRef.current ?? activeSlide.id
+      pendingGridSlideRef.current = null
+      if (useAppStore.getState().live?.serviceId === service.id) jumpLive(targetId)
+      else startLive(service.id, targetId)
     } finally { connectingOutputRef.current = false; setConnectingOutput(false) }
   }
   goLiveRef.current = goLive
@@ -1121,7 +1127,34 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
         </aside>
 
         <section className="editor-center">
-          <div className="editor-stage">
+          <div className={`editor-stage ${slideGrid ? 'is-slide-grid' : ''}`}>
+            <div className="slide-view-switch">
+              <button
+                type="button"
+                className="btn btn-secondary workspace-bible-mode"
+                onClick={() => navigate(`/biblemode/${encodeURIComponent(service.id)}`)}
+              >
+                <BookOpenText size={16} aria-hidden="true" />
+                {t('nav.biblemode')}
+              </button>
+              <button type="button" className="btn btn-secondary btn-sm" onClick={() => setSlideGrid((value) => !value)} aria-pressed={slideGrid}>
+                {slideGrid ? <Pencil size={15} /> : <LayoutGrid size={15} />}
+                {t(slideGrid ? 'editor.canvasView' : 'editor.gridView')}
+              </button>
+            </div>
+            {slideGrid && <div className="presentation-slide-grid" aria-label={t('editor.gridView')}>
+              {allSlides.map((entry, index) => {
+                const isLiveSlide = isLive && live?.currentSlideId === entry.slide.id && !live.blank && !live.scripture
+                const isActive = entry.slide.id === activeSlide?.id && entry.item.id === activeItem?.id
+                return <button key={entry.slide.id} type="button" className={`slide-thumb ${isActive ? 'is-active' : ''} ${isLiveSlide ? 'is-live' : ''}`}
+                  onClick={() => { selectItem(entry.item.id); selectSlide(entry.item.id, entry.slide.id) }}
+                  onDoubleClick={() => { selectItem(entry.item.id); selectSlide(entry.item.id, entry.slide.id); selectElement(null); if (isLive) sendSlideLive(entry.slide.id); else { pendingGridSlideRef.current = entry.slide.id; void goLive() } }}
+                  title={t('live.doubleClickHint')}>
+                  <span className="slide-thumb-canvas"><SlideRenderer slide={entry.slide} branding={branding} aspectRatio={slideAspectRatio} compact thumbnail />{isLiveSlide && <span className="slide-thumb-live">{t('status.live')}</span>}</span>
+                  <span className="slide-thumb-label"><span className="slide-thumb-number">{index + 1}</span><small>{slideLabel(entry.slide, entry.item.title, { short: true })}</small></span>
+                </button>
+              })}
+            </div>}
             <div className="editor-stage-head">
               <button className="mobile-drawer-toggle mobile-rundown-toggle" onClick={() => setMobileRundown(true)} aria-label={t('editor.rundown')}>
                 <Menu size={18} />
@@ -1361,18 +1394,14 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                 {t('editor.canvasHint')} · {t('editor.keyboardHint')}
               </span>
             </div>
-            <div className="workspace-bible-actions">
-              <button type="button" className="btn btn-secondary workspace-bible-mode"
-                onClick={() => navigate(`/biblemode/${encodeURIComponent(service.id)}`)}>
-                <BookOpenText size={16} aria-hidden="true" />
-                {t('nav.biblemode')}
-              </button>
-            </div>
-
             <div className="slide-strip">
               <div className="slide-strip-head">
                 <span className="eyebrow">{t('common.slides')}</span>
                 {isLive && <span className="slide-strip-live-hint">{t('live.doubleClickHint')}</span>}
+                <button type="button" className="btn btn-secondary btn-sm slide-strip-grid-button" onClick={() => setSlideGrid(true)} aria-pressed={slideGrid}>
+                  <LayoutGrid size={15} />
+                  {t('editor.gridView')}
+                </button>
                 <button
                   className="text-link"
                   onClick={() => activeItem && addBlankSlide(service.id, activeItem.id)}
@@ -2242,11 +2271,12 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                 <label className="field"><span>{t('control.autoAdvance')}</span><input type="number" min={0} max={3600} step={1} value={activeSlide.autoAdvanceSeconds ?? 0} onChange={(e) => updateSlide(service.id, activeItem.id, activeSlide.id, { autoAdvanceSeconds: Math.max(0, Math.min(3600, Number(e.target.value))) })} /><small>{t('control.manual')}</small></label>
                 <label className="switch-row"><span>{t('control.loop')}</span><input type="checkbox" checked={Boolean(service.loop)} onChange={(e) => updateServiceMeta(service.id, { loop: e.target.checked })} /></label>
                 <InspectorGroup id="background" icon={Palette} title={t('editor.background')} meta={activeSlide.background.preset}>
-                <div className="preset-grid">
-                  {BACKGROUND_PRESETS.map((preset) => (
+                {([false, true] as const).map((motion) => <div className="background-preset-section" key={String(motion)}><strong>{t(motion ? 'background.motion' : 'background.static')}</strong><div className="preset-grid">
+                  {BACKGROUND_PRESETS.filter((preset) => motion ? preset.id.startsWith('cinematic-motion-') : !isMotionBackground(preset.id)).map((preset) => (
                     <button
                       key={preset.id}
-                      className={`preset-swatch bg-${preset.id} ${activeSlide.background.preset === preset.id ? 'is-active' : ''}`}
+                      className={`preset-swatch bg-${preset.id} ${preset.id.startsWith('worship-motion-') ? 'bg-worship-motion' : ''} ${preset.id.startsWith('cinematic-motion-') ? 'bg-cinematic-motion' : ''} ${activeSlide.background.preset === preset.id ? 'is-active' : ''}`}
+                      style={worshipBackgroundStyle(preset.id)}
                       onClick={() =>
                         setSlideBackground(service.id, activeItem.id, activeSlide.id, {
                           type: 'preset',
@@ -2256,10 +2286,10 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
                       }
                       aria-label={t(preset.nameKey)}
                     >
-                      <span />
+                      {motion && <span className="cinematic-atmosphere" aria-hidden="true" />}{motion && <span className="motion-swatch-icon" aria-hidden="true">▶</span>}
                     </button>
                   ))}
-                </div>
+                </div></div>)}
                 </InspectorGroup>
                 <InspectorGroup
                   id="transition"
@@ -2338,7 +2368,7 @@ export function WorkspaceScreen({ serviceId, presentOnOpen = false }: { serviceI
         </aside>
       </div>
 
-      {preflight && <PreflightDialog checks={preflight} onClose={() => setPreflight(null)} onContinue={() => void goLive(true)} onCheck={() => void goLive(false, true)} />}
+      {preflight && <PreflightDialog checks={preflight} onClose={() => { pendingGridSlideRef.current = null; setPreflight(null) }} onContinue={() => void goLive(true)} onCheck={() => void goLive(false, true)} />}
       <AddContentModal
         initialChoice={addInitialChoice}
         open={addOpen}

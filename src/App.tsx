@@ -129,7 +129,7 @@ function App() {
     if (!link) return
     const custom = branding.logoAsFavicon && branding.logoUrl
     link.type = custom ? branding.logoUrl!.slice(5, branding.logoUrl!.indexOf(';')) : 'image/png'
-    link.href = custom ? branding.logoUrl! : '/favicon.png'
+    link.href = custom ? branding.logoUrl! : '/favicon.png?v=3'
   }, [branding.logoAsFavicon, branding.logoUrl])
 
   useEffect(() => {
