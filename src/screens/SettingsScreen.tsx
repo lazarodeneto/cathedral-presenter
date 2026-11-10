@@ -130,7 +130,8 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
   const validTab = (TABS.find((tab) => tab.id === initialTab)?.id ?? 'general') as Tab
   const [tab, setTab] = useState<Tab>(validTab)
   const [confirm, setConfirm] = useState<'reset' | 'clear' | null>(null)
-  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({ state: 'current', version: __APP_VERSION__ })
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({ state: 'idle' })
+  const [lastUpdateCheck, setLastUpdateCheck] = useState<string | null>(null)
 
   useEffect(() => {
     setTab(validTab)
@@ -143,8 +144,14 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
 
   const checkForUpdate = async () => {
     setUpdateStatus({ state: 'checking' })
-    const result = await window.cathedralDesktop?.checkForUpdate?.()
-    setUpdateStatus(result ?? { state: 'unsupported' })
+    try {
+      const result = await window.cathedralDesktop?.checkForUpdate?.()
+      setUpdateStatus(result ?? { state: 'unsupported' })
+    } catch {
+      setUpdateStatus({ state: 'error' })
+    } finally {
+      setLastUpdateCheck(new Date().toISOString())
+    }
   }
 
   const downloadUpdate = async () => {
@@ -394,7 +401,7 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
               <div className="update-panel">
                 <div className="update-panel-meta">
                   <div><span>{t('settings.updateVersionLabel')}</span><strong>{__APP_VERSION__}</strong></div>
-                  <div><span>{t('settings.updateDateLabel')}</span><strong>{formatNumericDateTime(new Date().toISOString())}</strong></div>
+                  <div><span>{t('settings.updateDateLabel')}</span><strong>{lastUpdateCheck ? formatNumericDateTime(lastUpdateCheck) : '—'}</strong></div>
                   <div><span>{t('settings.updateChannelLabel')}</span><strong>{t('settings.updateChannel')}</strong></div>
                 </div>
                 <div className="update-panel-status">
@@ -403,10 +410,7 @@ export function SettingsScreen({ initialTab }: { initialTab?: string }) {
                   {updateStatus.version && <span>{updateStatus.version}</span>}
                   {updateStatus.percent !== undefined && <span>{updateStatus.percent}%</span>}
                 </div>
-                <div className="update-panel-details">
-                  <strong>{t('settings.updateIncludes')}</strong>
-                  <p>{t('settings.updateComponents')}</p>
-                </div>
+                {updateStatus.state === 'error' && <div className="update-panel-details"><p>{t('settings.updateErrorHelp')}</p></div>}
                 {updateStatus.state === 'available' && <button className="btn btn-primary" onClick={() => void downloadUpdate()}><Download size={16} />{t('settings.updateDownload')}</button>}
                 {updateStatus.state === 'downloaded' && <button className="btn btn-primary" onClick={() => void installUpdate()}><RefreshCw size={16} />{t('settings.updateInstall')}</button>}
                 {!['available', 'downloaded', 'downloading', 'installing'].includes(updateStatus.state) && <button className="btn btn-primary" onClick={() => void checkForUpdate()}><RefreshCw size={16} />{t('settings.updateCheck')}</button>}

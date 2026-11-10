@@ -28,7 +28,7 @@ export interface DesktopDisplays {
   installUpdate?(): Promise<UpdateResult>
   onUpdateStatus?(listener: (status: UpdateStatus) => void): () => void
 }
-export type UpdateState = 'checking' | 'current' | 'available' | 'downloading' | 'downloaded' | 'installing' | 'unsupported' | 'error'
+export type UpdateState = 'idle' | 'checking' | 'current' | 'available' | 'downloading' | 'downloaded' | 'installing' | 'unsupported' | 'error'
 export interface UpdateStatus { state: UpdateState; version?: string; percent?: number; message?: string }
 export interface UpdateResult extends UpdateStatus {}
 declare global {

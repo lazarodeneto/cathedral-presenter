@@ -35,7 +35,7 @@ function configureUpdater() {
   if (!app.isPackaged) return
   autoUpdater.autoDownload = false
   autoUpdater.autoInstallOnAppQuit = false
-  autoUpdater.setFeedURL({ provider: 'github', owner: 'lazarodeneto', repo: 'church-presenter' })
+  autoUpdater.setFeedURL({ provider: 'github', owner: 'lazarodeneto', repo: 'cathedral-presenter' })
   autoUpdater.on('checking-for-update', () => sendUpdateStatus({ state: 'checking' }))
   autoUpdater.on('update-available', (info) => sendUpdateStatus({ state: 'available', version: info.version }))
   autoUpdater.on('update-not-available', () => sendUpdateStatus({ state: 'current', version: app.getVersion() }))
@@ -175,18 +175,17 @@ app.whenReady().then(async () => {
       if (!updaterReady) return { state: 'unsupported' }
       try {
         const result = await autoUpdater.checkForUpdates()
-        if (!result?.updateInfo) return { state: 'current', version: app.getVersion() }
-        if (result.updateInfo.version === app.getVersion()) return { state: 'current', version: app.getVersion() }
+        if (!result?.updateInfo) return { state: 'error', message: 'Update information unavailable' }
+        if (!result.isUpdateAvailable) return { state: 'current', version: app.getVersion() }
         return { state: 'available', version: result.updateInfo.version }
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Update check failed'
-        if (/404|no published releases|latest release/i.test(message)) return { state: 'current', version: app.getVersion() }
         return { state: 'error', message }
       }
     },
     'app:update-download': async () => {
       if (!updaterReady) return { state: 'unsupported' }
-      try { await autoUpdater.downloadUpdate(); return { state: 'downloading' } }
+      try { await autoUpdater.downloadUpdate(); return { state: 'downloaded' } }
       catch (error) { return { state: 'error', message: error instanceof Error ? error.message : 'Update download failed' } }
     },
     'app:update-install': () => {

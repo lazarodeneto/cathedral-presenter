@@ -5,7 +5,7 @@ directories:
 publish:
   provider: github
   owner: lazarodeneto
-  repo: church-presenter
+  repo: cathedral-presenter
   releaseType: release
 files:
   - dist/**
